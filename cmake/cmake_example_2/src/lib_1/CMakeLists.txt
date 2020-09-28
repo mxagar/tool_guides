@@ -1,0 +1,33 @@
+SET(SRC_DIR ${CMAKE_SOURCE_DIR})
+SET(EXEC_NAME ${LIB1_NAME})
+SET(files
+    ${SRC_DIR}/lib_1/factorial.h
+    ${SRC_DIR}/lib_1/factorial.cpp
+)
+
+SET(headers
+    ${SRC_DIR}/lib_1/factorial.h
+)
+
+SOURCE_GROUP("Source Files" FILES ${files})
+
+INCLUDE_DIRECTORIES(
+	${CMAKE_SOURCE_DIR}/lib_1
+    ${SRC_DIR}
+)
+
+LINK_DIRECTORIES(
+	${CMAKE_SOURCE_DIR}/lib_1
+    ${SRC_DIR}
+)
+
+ADD_LIBRARY(${EXEC_NAME} SHARED
+    ${files}
+)
+
+TARGET_LINK_LIBRARIES(
+	${EXEC_NAME}
+)
+
+INSTALL(TARGETS ${EXEC_NAME} DESTINATION ${PROJECT_LIBDIR})
+INSTALL(FILES ${headers} DESTINATION ${PROJECT_INCDIR})
