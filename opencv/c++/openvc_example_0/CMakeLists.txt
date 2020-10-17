@@ -6,6 +6,7 @@ project(DisplayImage)
 if(WIN32)
     # After regular installation of binaries from opencv.org
     #set(OpenCV_DIR C:/OpenCV/OpenCV-4.4.0/opencv/build)
+    # After installation from source + contrib
     set(OpenCV_DIR C:/OpenCV/git_repos/build)
 elseif(APPLE)
     # After 'brew installl opencv'
