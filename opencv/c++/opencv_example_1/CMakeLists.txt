@@ -7,10 +7,10 @@ if(WIN32)
     # After regular installation of binaries from opencv.org
     set(OpenCV_DIR C:/OpenCV/OpenCV-4.4.0/opencv/build)
 elseif(APPLE)
-    # After 'brew installl opencv'
+    # After 'brew install opencv'
     set(OpenCV_DIR /usr/local/Cellar/opencv/4.4.0_2/lib/cmake/opencv4)
 elseif(LINUX)
-    # TBD
+    # After compilation from source
     set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
 endif(WIN32)
 find_package(OpenCV REQUIRED)
