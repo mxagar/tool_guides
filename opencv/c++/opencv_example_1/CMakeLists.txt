@@ -5,7 +5,9 @@ project(DisplayImage)
 # either 'OpenCVConfig.cmake' or 'FindOpenCV.cmake'
 if(WIN32)
     # After regular installation of binaries from opencv.org
-    set(OpenCV_DIR C:/OpenCV/OpenCV-4.4.0/opencv/build)
+    #set(OpenCV_DIR C:/OpenCV/OpenCV-4.4.0/opencv/build)
+    # After installation from source + contrib
+    set(OpenCV_DIR C:/OpenCV/git_repos/build)
 elseif(APPLE)
     # After 'brew install opencv'
     set(OpenCV_DIR /usr/local/Cellar/opencv/4.4.0_2/lib/cmake/opencv4)
@@ -21,5 +23,5 @@ find_package(OpenCV REQUIRED)
 # OpenCV_DEFINITIONS
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-add_executable(displayImage displayImage.cpp)
-target_link_libraries(displayImage ${OpenCV_LIBS})
+add_executable(videoStreaming videoStreaming.cpp)
+target_link_libraries(videoStreaming ${OpenCV_LIBS})
