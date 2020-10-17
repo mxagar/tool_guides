@@ -5,7 +5,8 @@ project(DisplayImage)
 # either 'OpenCVConfig.cmake' or 'FindOpenCV.cmake'
 if(WIN32)
     # After regular installation of binaries from opencv.org
-    set(OpenCV_DIR C:/OpenCV/OpenCV-4.4.0/opencv/build)
+    #set(OpenCV_DIR C:/OpenCV/OpenCV-4.4.0/opencv/build)
+    set(OpenCV_DIR C:/OpenCV/git_repos/build)
 elseif(APPLE)
     # After 'brew installl opencv'
     set(OpenCV_DIR /usr/local/Cellar/opencv/4.4.0_2/lib/cmake/opencv4)
