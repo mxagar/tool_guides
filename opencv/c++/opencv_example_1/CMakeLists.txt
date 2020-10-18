@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(DisplayImage)
+project(VideoStreaming)
 
 # Set OpenCV_DIR to the path that contains
 # either 'OpenCVConfig.cmake' or 'FindOpenCV.cmake'

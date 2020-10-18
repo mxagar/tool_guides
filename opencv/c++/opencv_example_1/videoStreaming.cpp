@@ -1,10 +1,7 @@
-#include <stdio.h>
-#include <iostream>
 #include <opencv2/opencv.hpp>
 using namespace cv;
 int main(int argc, char** argv )
 {
-
     // Video input object: 0 firsrt cam, 1 next, etc.
     VideoCapture cap(0);
     if (!cap.isOpened())
@@ -19,5 +16,5 @@ int main(int argc, char** argv )
             break;
         }
     }
-
+    return 0;
 }
