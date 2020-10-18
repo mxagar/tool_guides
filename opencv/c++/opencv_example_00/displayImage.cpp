@@ -1,3 +1,7 @@
+/*
+ * This simple application opens an image with OpenCV.
+ */
+
 #include <stdio.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>

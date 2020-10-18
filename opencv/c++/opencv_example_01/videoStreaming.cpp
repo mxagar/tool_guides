@@ -1,3 +1,10 @@
+/*
+ * This simple file streams video from the first connected camera.
+ * The window closes if a key is pressed.
+ * NOTE: on Mac, you need to run it on the native Terminal
+ * & have access to Camera granted for the Terminal.
+ */
+
 #include <opencv2/opencv.hpp>
 using namespace cv;
 int main(int argc, char** argv )

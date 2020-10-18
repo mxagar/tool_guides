@@ -24,4 +24,6 @@ find_package(OpenCV REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 add_executable(videoStreaming videoStreaming.cpp)
+add_executable(faceDetection faceDetection.cpp)
 target_link_libraries(videoStreaming ${OpenCV_LIBS})
+target_link_libraries(faceDetection ${OpenCV_LIBS})
