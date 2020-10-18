@@ -1,5 +1,5 @@
 /*
- * This simple file streams video from the first connected camera.
+ * This simple file detects faces on a video stream.
  * The window closes if a key is pressed.
  * NOTE: on Mac, you need to run it on the native Terminal
  * & have access to Camera granted for the Terminal.
