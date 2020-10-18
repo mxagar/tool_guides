@@ -4,22 +4,20 @@
 using namespace cv;
 int main(int argc, char** argv )
 {
-    if ( argc != 2 )
-    {
-        //printf("usage: displayImage <Image_Path>\n");
-        std::cout << "usage: displayImage <Image_Path>" << std::endl;
+
+    // Video input object: 0 firsrt cam, 1 next, etc.
+    VideoCapture cap(0);
+    if (!cap.isOpened())
         return -1;
+
+    Mat frame;
+    while (true) {
+        cap >> frame;
+        imshow("Webcam Frame", frame);
+        if (waitKey(30) > 0) {
+            // Wait 30ms, if any key pressed, exit
+            break;
+        }
     }
-    Mat image;
-    image = imread( argv[1], 1 );
-    if ( !image.data )
-    {
-        //printf("No image data \n");
-        std::cout << "No image data" << std::endl;
-        return -1;
-    }
-    namedWindow("Display Image", WINDOW_AUTOSIZE );
-    imshow("Display Image", image);
-    waitKey(0);
-    return 0;
+
 }
