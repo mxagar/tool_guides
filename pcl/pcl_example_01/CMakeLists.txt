@@ -29,5 +29,5 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable (pcd_write pcd_write.cpp)
-target_link_libraries (pcd_write ${PCL_LIBRARIES})
+add_executable (new_point_type new_point_type.cpp)
+target_link_libraries (new_point_type ${PCL_LIBRARIES})
