@@ -2,7 +2,7 @@
 	
 # Make sure the compiler can find include files from our Hello library.
 # HELLO_SOURCE_NAME: HELLO was defined in top-level folder and the variable HELLO_SOURCE_NAME was automatically generated and inherited by all subfolders
-INCLUDE_DIRECTORIES(${HELLO_SOURCE_DIR}/Hello)
+INCLUDE_DIRECTORIES(${HELLO_SOURCE_DIR}/HelloLib)
 	
 # Add binary called "helloWorld" that is built from the source file "test.cc".
 # Again, as in ../Hello/CMakeLists.txt, I understand the executable is generated out of the source code
