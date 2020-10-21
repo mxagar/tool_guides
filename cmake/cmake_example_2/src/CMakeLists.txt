@@ -36,7 +36,7 @@ SET(CMAKE_INSTALL_PREFIX ${PROJECT_BINDIR} CACHE PATH "Path to install the proje
 
 # STATIC / SHARED libraries? ON: STATIC, OFF: SHARED
 # Watch out: if SHARED + Windows, library headers need need a macro with __declspec() which preceeds any function & class definition
-option(PROJECT_BUILD_STATIC "Build static library" ON)
+option(PROJECT_BUILD_STATIC "Build static library" OFF)
 #option(PROJECT_BUILD_SHARED "Build shared library" OFF)
 
 SET(BUILD_LIB1 ON CACHE BOOL "This variable is ON when the lib1 should be built")
