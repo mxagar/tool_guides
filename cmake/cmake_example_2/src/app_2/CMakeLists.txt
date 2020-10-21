@@ -1,6 +1,7 @@
 SET( SRC_DIR ".." )
 
 SET(EXEC_NAME ${APP2_NAME})
+MESSAGE("Configuring " ${EXEC_NAME})
 
 SET(files
     program2.cpp

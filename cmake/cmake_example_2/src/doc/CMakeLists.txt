@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-PROJECT(MIKELTEST)
+PROJECT("CMake_Example")
 
 SET(DOXYGEN_DOCU ON CACHE BOOL "Build the doxygen documentation")
 

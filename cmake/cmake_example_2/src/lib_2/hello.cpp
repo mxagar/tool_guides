@@ -10,3 +10,7 @@
 void print_hello(void){
    std::cout << "Hello World!";
 }
+
+void PrintHello::printHello(void) {
+   print_hello();
+}
