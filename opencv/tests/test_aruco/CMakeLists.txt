@@ -29,3 +29,9 @@ target_link_libraries(create_marker ${OpenCV_LIBS})
 # Executable 2
 add_executable(detect_markers detect_markers.cpp)
 target_link_libraries(detect_markers ${OpenCV_LIBS})
+# Executable 3
+add_executable(simple_detect_markers_image simple_detect_markers_image.cpp)
+target_link_libraries(simple_detect_markers_image ${OpenCV_LIBS})
+# Executable 4
+add_executable(simple_detect_markers_videostream simple_detect_markers_videostream.cpp)
+target_link_libraries(simple_detect_markers_videostream ${OpenCV_LIBS})

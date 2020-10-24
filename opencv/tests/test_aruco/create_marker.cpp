@@ -56,6 +56,7 @@ const char* keys  =
         "{si       | false | show generated image }";
 }
 
+//./create_marker "marker23.png" -d=10 -id=23
 
 int main(int argc, char *argv[]) {
     CommandLineParser parser(argc, argv, keys);

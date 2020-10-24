@@ -1,0 +1,3 @@
+.\create_marker.exe "marker23.png" -d=10 -id=23 -si=true
+...
+.\create_marker.exe "marker28.png" -d=10 -id=28 -si=true
