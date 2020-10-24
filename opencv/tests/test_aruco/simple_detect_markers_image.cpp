@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 #ifdef _WIN32
         filename = "..\\..\\data\\markers_image.jpg";
 #else
-        filename = "../../data/markers_image.jpg";
+        filename = "../data/markers_image.jpg";
 #endif
     }
 
