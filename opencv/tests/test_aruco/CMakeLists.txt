@@ -24,9 +24,12 @@ find_package(OpenCV REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 # Executable 1: default program from the samples to create Charuco markers
+# .\create_marker.exe "marker23.png" -d=10 -id=23 -si=true
 add_executable(create_marker create_marker.cpp)
 target_link_libraries(create_marker ${OpenCV_LIBS})
 # Executable 2: default program from the samples to create Charuco markers
+# .\detect_markers -d=10
+# .\detect_markers -c="..\\..\\data\\camera_params_logitech_c270.txt" -d=10
 add_executable(detect_markers detect_markers.cpp)
 target_link_libraries(detect_markers ${OpenCV_LIBS})
 # Executable 3: program I made to detect Charuco markers from an image
@@ -36,11 +39,16 @@ target_link_libraries(simple_detect_markers_image ${OpenCV_LIBS})
 add_executable(simple_detect_markers_videostream simple_detect_markers_videostream.cpp)
 target_link_libraries(simple_detect_markers_videostream ${OpenCV_LIBS})
 # Executable 5: default program from the samples to create Charuco board
+# .\create_board_charuco "charuco_board.png" -w=5 -h=7 -sl=200 -ml=120 -d=10 -si=true
 add_executable(create_board_charuco create_board_charuco.cpp)
 target_link_libraries(create_board_charuco ${OpenCV_LIBS})
 # Executable 6: default program from the samples to detect Charuco board
+# .\detect_board_charuco -w=5 -h=7 -sl=200 -ml=120 -d=10
+# .\detect_board_charuco -dp="..\\..\\data\\detector_params.yml" -w=5 -h=7 -sl=200 -ml=120 -d=10
+# .\detect_board_charuco -c="..\\..\\data\\camera_params_logitech_c270.txt" -dp="..\\..\\data\\detector_params.yml" -w=5 -h=7 -sl=200 -ml=120 -d=10
 add_executable(detect_board_charuco detect_board_charuco.cpp)
 target_link_libraries(detect_board_charuco ${OpenCV_LIBS})
 # Executable 7: default program from the samples to calibrate the camera with a Charuco board (intrinsic cam params obtained)
+# .\calibrate_camera_charuco "camera_params.txt" -dp="..\\..\\data\\detector_params.yml" -w=5 -h=7 -sl=200 -ml=120 -d=10
 add_executable(calibrate_camera_charuco calibrate_camera_charuco.cpp)
 target_link_libraries(calibrate_camera_charuco ${OpenCV_LIBS})
