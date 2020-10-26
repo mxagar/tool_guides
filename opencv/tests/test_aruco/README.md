@@ -1,4 +1,4 @@
-# Notes
+# Aruco Tutorials: Marker Creation, Calibration (Charuco), Detection, Pose Estimation
 
 This project tests the ARUCO module from OpenCV.
 Code is taken from the samples in the OpenCV contrib repository:
