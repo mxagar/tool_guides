@@ -29,5 +29,12 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+# Executable 1: Normals are estimated in an unordered pointcloud
+# .\normalEstimation [pointcloud.pcd]
 add_executable (normalEstimation normalEstimation.cpp)
 target_link_libraries (normalEstimation ${PCL_LIBRARIES})
+
+# Executable 2: Normals are estimated in an ordered pointcloud created from depth images
+# .\normalEstimationImages [pointcloud.pcd]
+add_executable (normalEstimationImages normalEstimationImages.cpp)
+target_link_libraries (normalEstimationImages ${PCL_LIBRARIES})

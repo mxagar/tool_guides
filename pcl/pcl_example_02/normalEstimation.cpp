@@ -1,3 +1,8 @@
+/* Simple program that computes the normals of an unordered pointcloud.
+ * Look at:
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/normal_estimation.html#normal-estimation
+*/
+
 #include <pcl/point_types.h>
 #include <pcl/features/normal_3d.h>
 //#include <pcl/io/pcd_io.h>
@@ -25,6 +30,7 @@ int main (int argc, char** argv) {
   pcl::io::loadPLYFile(filename, *cloud);
 
   // Create the normal estimation class, and pass the input dataset to it
+  // Consider also the OpenMP parallelized version pcl::NormalEstimationOMP!
   pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
   ne.setInputCloud (cloud);
 
@@ -61,8 +67,16 @@ int main (int argc, char** argv) {
   // No matter how big the radius, 5 closest  points taken
   ne.setKSearch(5);
   
-  // Compute the features
+  // NOTE: if too much neighbor points are taken because of big radius or k, normals at edges ar enot sharp anymore!
+
+  // Compute the features: in this case, the normals
   ne.compute (*cloud_normals);
+  // Internal process steps: for each point
+  // - Select neighbor points according to radius/k
+  // - Compute covariance matrix and its eigen values & vectors
+  // - Obtain normal and curvature from eigen data
+  // - Flip/Select normal direction according to 2.5D image scanning viewpoint
+  // IMPORTANT: the default viewpoint is (0,0,0), if that's not true, set anew: ne.setViewPoint(vx,vy,vy)
 
   // cloud_normals->size () should have the same size as the input cloud->size ()
 std::cout << "Number of computed normals: " << cloud_normals->size() << std::endl;
