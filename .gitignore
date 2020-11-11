@@ -3,3 +3,5 @@ build
 .ipynb_checkpoints
 .DS_Store
 __pycache__
+credentials.json
+credentials-sheets.json
