@@ -9,7 +9,10 @@ These projects explore PCL functionalities.
 3. `pcl_example_03`: Features are explored
 
     - PLY loaded: `normalEstimation.cpp`
-    - Visualization: `normalEstimationImages.cpp`
+    - Visualization of points and normals: `normalEstimationImages.cpp`, `pfhEstimation.cpp`
     - Normals computed in unordered pointcloud: `normalEstimation.cpp`
     - Normals computed in ordered pointcloud (XY relationship given): `normalEstimationImages.cpp`
+    - PFHs computed in unordered pointcloud: `pfhEstimation.cpp`
+    - Point pair normal fetures computed: `pfhEstimation.cpp`
+    - Point neighborhood searched (kdtree): `pfhEstimation.cpp`
 
