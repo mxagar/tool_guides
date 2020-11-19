@@ -138,7 +138,7 @@ int main (int argc, char** argv) {
 
   // If we want to compute the PFH descriptor/signature of a neighborhood
   // pfh.computePointPFHSignature()
-  // BUT: It is commented out, because I havent managed to  make it work...
+  // BUT: It is commented out, because I havent managed to make it work...
   int nr_split = 5;
   Eigen::VectorXf pfh_histogram;
 
@@ -158,7 +158,7 @@ int main (int argc, char** argv) {
   std::vector<float> pointNKNSquaredDistance(K);
   if (kdtree.nearestKSearch (searchPoint, K, pointIdxNKNSearch, pointNKNSquaredDistance) > 0)
   {
-    //std::cout << "Nearest k indices: " << pointIdxNKNSearch[0] << std::endl;
+    // std::cout << "Nearest k indices: " << pointIdxNKNSearch[0] << std::endl;
     // pfh.computePointPFHSignature (*cloud, *normals, pointIdxNKNSearch, nr_split, pfh_histogram);
     // std::cout << "Histogram size: " << pfh_histogram.size() << std::endl;
     // std::cout << "Histogram sum " <<  pfh_histogram.sum() << std::endl;
@@ -180,14 +180,14 @@ int main (int argc, char** argv) {
 
   // Visualize points
 #ifdef VISUALIZE
-    pcl::visualization::PCLVisualizer viewer("PCL Viewer");
-    viewer.setBackgroundColor (0.0, 0.0, 0.5);
-    viewer.addPointCloudNormals<pcl::PointXYZ,pcl::Normal>(cloud, normals);
-    
-    while (!viewer.wasStopped ())
-    {
-      viewer.spinOnce ();
-    }
+  pcl::visualization::PCLVisualizer viewer("PCL Viewer");
+  viewer.setBackgroundColor (0.0, 0.0, 0.5);
+  viewer.addPointCloudNormals<pcl::PointXYZ,pcl::Normal>(cloud, normals);
+  
+  while (!viewer.wasStopped ())
+  {
+    viewer.spinOnce ();
+  }
 #endif
 
 return 0;
