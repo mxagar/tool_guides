@@ -51,20 +51,20 @@ int main (int argc, char** argv) {
   ne.compute (*normals);
 
   // -- 2. Compute PFHs
-  // Each point ends up having a PFH descriptor which is the distribution of how the normals change in its neighborhood
-  // How PFH descriptors are computed:
-  // - Given a point, its neighborhood is computed
-  // - For each point pair in the neighborhood (quadratic), features [alpha, phi, theta, d] are computed
-  //    . alpha, phi, theta = angle differences between normals
-	//	  . d = distance between points
-  //    . in order to compute the normal angle differences, a coordinate system is defined for each pair using the normals and their distance vector
-  //    . NOTE: usually the feature d is not used (because efficiency and less benefit)
-	// - a histogram is built for each point + neighborhood with b^f bins
-  //    . b: number of ranges, usually 5
-  //    . f: number of feautes: 3 if [alpha, beta, gama], 4 if [alpha, beta, gama]
-  //    . therefore, usually we have 5^3 = 125 bins
-  //    . in each bin, we count how many occurrences appear for the point neighborhood
-  //    . IMPORTANT: we have like a sphere devided in 125 sectors and count how many occurrences happen in each sector
+  // For a pointcloud of n points and k points per neighbor
+  // creating PFH costs O(nk^2), which is not feasible in realtime
+  // Fast PFHs are a simplification that can be computed in O(nk).
+  // Main idea: instead of computing the histogram analyzing all pairs within a point neighborhood, compute in 2 steps
+  // 1. first, for each query point Pq, compute [alpha, phi, theta, d] values with the points Pi inside its neighborhood N(Pq) and build histogram
+  //   that is the Simplified PFH: SPFH(Pq)
+  //   in other words, Pq-Pi pairs are processed not all Pi-Pi pairs
+  // 2. after all points SPFH(Pq) have been computed, sum the weighted histograms of neighborhood points
+  //   FPFH(Pq) = SPFH(Pq) + (1/k)*sum_k((1/wi)*SPFH(Pi))
+  //   wi = dist(Pq,Pi)
+  // While for PFH we had pcl::PFHSignature125
+  // now, we have pcl::FPFHSignature33
+  //   11 bins for each of the 3 angle values
+  //   it is not b^f, as with PFH, because now each feature is decoupled, so: b*f
 
   // Create the FPFH estimation class, and pass the input dataset+normals to it
   pcl::FPFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> fpfh;
