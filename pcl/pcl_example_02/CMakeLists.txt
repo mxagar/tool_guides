@@ -43,3 +43,8 @@ target_link_libraries (normalEstimationImages ${PCL_LIBRARIES})
 # .\pfhEstimation [pointcloud.pcd]
 add_executable (pfhEstimation pfhEstimation.cpp)
 target_link_libraries (pfhEstimation ${PCL_LIBRARIES})
+
+# Executable 4: FPFHs are estimated in an unordered pointcloud
+# .\pfhEstimation [pointcloud.pcd]
+add_executable (fpfhEstimation fpfhEstimation.cpp)
+target_link_libraries (fpfhEstimation ${PCL_LIBRARIES})
