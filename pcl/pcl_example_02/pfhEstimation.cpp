@@ -100,6 +100,7 @@ int main (int argc, char** argv) {
 
   // Use all neighbors in a sphere of radius 5cm / 0.05 units
   // IMPORTANT: the radius used here has to be larger than the radius used to estimate the surface normals!!!
+  //pfh.setRadiusSearch (0.02*diagonal);
   pfh.setRadiusSearch (0.05);
 
   // Due to efficiency, PFHEstimation doesn't check normals

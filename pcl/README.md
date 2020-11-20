@@ -15,4 +15,5 @@ These projects explore PCL functionalities.
     - PFHs computed in unordered pointcloud: `pfhEstimation.cpp`
     - Point pair normal fetures computed: `pfhEstimation.cpp`
     - Point neighborhood searched (kdtree): `pfhEstimation.cpp`
+    - FPFHs computed in unordered pointcloud: `fpfhEstimation.cpp`
 
