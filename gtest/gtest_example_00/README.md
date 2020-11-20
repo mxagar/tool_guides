@@ -1,5 +1,8 @@
-# How to use
+# Simple Compilation Test
 
+This project compiles an executable against GTest.
+However, this is not the recommended approach; see the [generic build instructions of googletest](https://github.com/google/googletest/tree/master/googletest).
+A better approach is implemented in `../gtest_example_01`.
 ## Compile
 
 **Mac**
@@ -20,8 +23,9 @@ The toochain/C compiler used to compile gtest is
 
 **Windows**
 
-TBD
+I have not managed to make it work.
+`gtest.lib` is not found during compilation, although paths are correctly set.
 
 **Linux**
 
-TBD
+TBD.

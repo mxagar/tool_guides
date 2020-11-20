@@ -50,6 +50,21 @@ int main (int argc, char** argv) {
   ne.compute (*normals);
 
   // -- 2. Compute PFHs
+  // Each point ends up having a PFH descriptor which is the distribution of how the normals change in its neighborhood
+  // How PFH descriptors are computed:
+  // - Given a point, its neighborhood is computed
+  // - For each point pair in the neighborhood (quadratic), features [alpha, phi, theta, d] are computed
+  //    . alpha, phi, theta = angle differences between normals
+	//	  . d = distance between points
+  //    . in order to compute the normal angle differences, a coordinate system is defined for each pair using the normals and their distance vector
+  //    . NOTE: usually the feature d is not used (because efficiency and less benefit)
+	// - a histogram is built for each point + neighborhood with b^f bins
+  //    . b: number of ranges, usually 5
+  //    . f: number of feautes: 3 if [alpha, beta, gama], 4 if [alpha, beta, gama]
+  //    . therefore, usually we have 5^3 = 125 bins
+  //    . in each bin, we count how many occurrences appear for the point neighborhood
+  //    . IMPORTANT: we have like a sphere devided in 125 sectors and count how many occurrences happen in each sector
+
   // Create the PFH estimation class, and pass the input dataset + normals to it
   pcl::PFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::PFHSignature125> pfh;
   pfh.setInputCloud (cloud);
