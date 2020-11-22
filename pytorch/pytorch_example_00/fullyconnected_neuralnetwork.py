@@ -41,8 +41,8 @@
     # Select desired number of hidden layers and their sizes
     hidden_sizes = [512, 256, 128]
     model = fc_nn.Network(input_size, output_size, hidden_sizes)
-    criterion = nn.NLLLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    criterion = nn.NLLLoss() # Alternatives: nn.CrossEntropyLoss(), nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001) # Alternatives: optim.SGD()
 
     # TRAIN
     fc_nn.train(model, trainloader, testloader, criterion, optimizer, epochs=2)
@@ -61,7 +61,7 @@
     images, labels = next(iter(testloader))
     img = images[0]
     #img = img.view(1, 28*28)
-    img = img.view(1, images.shape[2]*images.shape[3])
+    img = img.view(1, images.shape[2]*images.shape[3]) # Note: visualization for one channel
     with torch.no_grad():
         output = model.forward(img)
     ps = torch.exp(output)
@@ -118,7 +118,9 @@ def validation(model, testloader, criterion):
     test_loss = 0
     for images, labels in testloader:
 
+        # pixels = channels x width x height
         pixels = images.size()[1]*images.size()[2]*images.size()[3]
+        # batch, pixels
         images = images.resize_(images.size()[0], pixels)
 
         output = model.forward(images)
@@ -152,8 +154,9 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_
             # Transfer to CUDA device if available
             #images, labels = images.to(device), labels.to(device)
 
-            # Flatten images into a channelsxrowsxcols long vector (784 in MNIST 28x28 case)
+            # Flatten images into a channels x rows x cols long vector (784 in MNIST 28x28 case)
             pixels = images.size()[1]*images.size()[2]*images.size()[3]
+            # batch, pixels
             images.resize_(images.size()[0], pixels)
 
             optimizer.zero_grad()
@@ -179,8 +182,8 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_
                       "Test Loss: {:.3f}.. ".format(test_loss/len(testloader)),
                       "Test Accuracy: {:.3f}".format(accuracy/len(testloader)))
 
-                # NOTE: we should track loss and accuracy
-                # When d(abs(loss-accuracy))/d(epoch)>0 -> we're overfitting, stop!
+                # NOTE: we should track loss and accuracy and stop if necessary, eg
+                # when d(abs(loss-accuracy))/d(epoch)>0 -> we're overfitting, stop!
 
                 running_loss = 0
 
