@@ -110,7 +110,7 @@ class Network(nn.Module):
             x = self.dropout(x)
         x = self.output(x)
 
-        return F.log_softmax(x, dim=1)
+        return F.log_softmax(x, dim=1)  # Alternatives: F.softmax
 
 
 def validation(model, testloader, criterion):
