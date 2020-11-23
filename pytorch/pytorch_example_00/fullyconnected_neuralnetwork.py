@@ -116,7 +116,21 @@ class Network(nn.Module):
 def validation(model, testloader, criterion):
     accuracy = 0
     test_loss = 0
+
+    # Check if CUDA GPU available
+    # with this check, we obatin if we have a CUDA-compatible GPU
+    # if so, we just need to transfer .to(device) every time we have a new
+    # - model
+    # - images or labels batch extracted from dataloader
+    # if data already in device, nothing is done
+    device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = torch.device(device_str)
+    model.to(device)
+
     for images, labels in testloader:
+
+        # Transfer to CUDA device if available
+        images, labels = images.to(device), labels.to(device)
 
         # pixels = channels x width x height
         pixels = images.size()[1]*images.size()[2]*images.size()[3]
@@ -140,8 +154,15 @@ def validation(model, testloader, criterion):
 def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_every=40):
 
     # Check if CUDA GPU available
-    #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    #model.to(device)
+    # with this check, we obatin if we have a CUDA-compatible GPU
+    # if so, we just need to transfer .to(device) every time we have a new
+    # - model
+    # - images or labels batch extracted from dataloader
+    # if data already in device, nothing is done 
+    device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = torch.device(device_str)
+    model.to(device)
+    print("Training on "+device_str)
 
     steps = 0
     running_loss = 0
@@ -152,20 +173,23 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_
             steps += 1
 
             # Transfer to CUDA device if available
-            #images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(device), labels.to(device)
 
             # Flatten images into a channels x rows x cols long vector (784 in MNIST 28x28 case)
             pixels = images.size()[1]*images.size()[2]*images.size()[3]
             # batch, pixels
             images.resize_(images.size()[0], pixels)
 
+            # Zero/initialize gradients
             optimizer.zero_grad()
 
+            # Forward pass, then compute loss and differentiate it
             output = model.forward(images)
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
 
+            # Aggregate/sum loss
             running_loss += loss.item()
 
             if steps % print_every == 0:

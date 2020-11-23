@@ -52,6 +52,8 @@ def imshow(image, ax=None, title=None, normalize=True):
     ax.tick_params(axis='both', length=0)
     ax.set_xticklabels('')
     ax.set_yticklabels('')
+    if title is not None:
+        ax.set_title(title)
 
     return ax
 
