@@ -27,12 +27,9 @@ def reorganize_samples(dataset_dir = '../data/cat_dog_small/all', annotations = 
         Note that a sample could belong to several classes.
         A suffix is added to the sample files; it denotes the classes they belong to.
     '''
-    # Lists that need to be modified if the dataset is changed
-    # samples_in_class
-    # class_values
-    # class_names
-    samples_in_class = [0,0] # modify or extend this if dataset changes
+    # List that needs to be modified if the dataset is changed
     class_names = ['Cat', 'Dog'] # modify this is dataset changes
+    samples_in_class = [0 for i in class_names]
 
     # Create train folder
     root_folder_name = dataset_dir + '/'
@@ -62,7 +59,7 @@ def reorganize_samples(dataset_dir = '../data/cat_dog_small/all', annotations = 
         # Extract values from XLSX
         filename = df['Filename'][i]
         # Initialize class values & names; allow for multi-class arrangement
-        class_values = [0,0] # extend this is dataset changes
+        class_values = [0 for i in class_names]
         for f in range(len(class_values)):
             class_values[f] = df[class_names[f]][i]
         total = sum(class_values)
