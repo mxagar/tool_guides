@@ -123,7 +123,8 @@ def validation(model, testloader, criterion):
     # - model
     # - images or labels batch extracted from dataloader
     # if data already in device, nothing is done
-    device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    #device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device_str = "cpu"
     device = torch.device(device_str)
     model.to(device)
 
@@ -159,7 +160,8 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_
     # - model
     # - images or labels batch extracted from dataloader
     # if data already in device, nothing is done 
-    device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    #device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device_str = "cpu"
     device = torch.device(device_str)
     model.to(device)
     print("Training on "+device_str)
