@@ -1,4 +1,5 @@
 /* Simple program that cuts off values that are either inside or outside a given user range.
+ * Filtering consists here in segmenting points within a range in a dimension/field, eg. X, Y, Z.
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/passthrough.html#passthrough
 */
@@ -35,7 +36,7 @@ int main (int argc, char** argv)
   pass.setInputCloud (cloud);
   pass.setFilterFieldName ("z"); //x, y, z
   pass.setFilterLimits (0.0, 5.0);
-  //pass.setFilterLimitsNegative (true); // deprecates, use following method
+  //pass.setFilterLimitsNegative (true); // deprecated, use following method
   pass.setNegative(true); // if active, the points that lie in the complementary range (limits) are selected
   pass.filter (*cloud_filtered);
 

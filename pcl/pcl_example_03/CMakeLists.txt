@@ -29,7 +29,42 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-# Executable 1: Normals are estimated in an unordered pointcloud
+# Executable 1: Pointcloud segmentarion/filtering: points with Z in range are taken.
 # ./passthrough
 add_executable (passthrough passthrough.cpp)
 target_link_libraries (passthrough ${PCL_LIBRARIES})
+
+# Executable 2: Pointcloud is embedded in voxel grid and for each voxel, the centroid of the points within it is delivered.
+# ./voxel_grid
+add_executable (voxel_grid voxel_grid.cpp)
+target_link_libraries (voxel_grid ${PCL_LIBRARIES})
+
+# Executable 3: Statistical outlier removal targetting mainly noise in sparse regions; outliers in point Gaussian distribution are removed.
+# ./statistical_removal
+add_executable (statistical_removal statistical_removal.cpp)
+target_link_libraries (statistical_removal ${PCL_LIBRARIES})
+
+# Executable 4: Points of a point cloud are projected on a primitive model (a plane).
+# ./project_inliers
+add_executable (project_inliers project_inliers.cpp)
+target_link_libraries (project_inliers ${PCL_LIBRARIES})
+
+# Executable 5: 
+# ./planar_segmentation
+add_executable (planar_segmentation planar_segmentation.cpp)
+target_link_libraries (planar_segmentation ${PCL_LIBRARIES})
+
+# Executable 6: 
+# ./cylinder_segmentation
+add_executable (cylinder_segmentation cylinder_segmentation.cpp)
+target_link_libraries (cylinder_segmentation ${PCL_LIBRARIES})
+
+# Executable 7: 
+# ./extract_segmented_indices
+add_executable (extract_segmented_indices extract_segmented_indices.cpp)
+target_link_libraries (extract_segmented_indices ${PCL_LIBRARIES})
+
+# Executable 8: 
+# ./remove_outliers <-c|-r>
+add_executable (remove_outliers remove_outliers.cpp)
+target_link_libraries (remove_outliers ${PCL_LIBRARIES})

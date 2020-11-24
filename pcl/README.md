@@ -6,7 +6,7 @@ These projects explore PCL functionalities.
 
 2. `pcl_example_01`: new point type is created and used to store a *.pcd
 
-3. `pcl_example_03`: Features are explored
+3. `pcl_example_02`: Features are explored
 
     - PLY loaded: `normalEstimation.cpp`
     - Visualization of points and normals: `normalEstimationImages.cpp`, `pfhEstimation.cpp`
@@ -17,6 +17,7 @@ These projects explore PCL functionalities.
     - Point neighborhood searched (kdtree): `pfhEstimation.cpp`
     - FPFHs computed in unordered pointcloud: `fpfhEstimation.cpp`
 
-4. `pcl_example_04`: Filtering
+4. `pcl_example_03`: Filtering = Segmentation = Selection
 
-    - 
+    - Get the list of fields that a point has: `voxel_grid.cpp`
+    - Print cloud object: `statistical_removal.cpp`
