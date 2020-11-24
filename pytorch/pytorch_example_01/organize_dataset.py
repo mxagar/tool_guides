@@ -128,7 +128,6 @@ def split_dataset(trainpath, fraction=0.3):
         os.mkdir(testpath)
     except FileExistsError:
         pass    
-    print(testpath)
     try:
         os.mkdir(testpath)
     except FileExistsError:
@@ -158,7 +157,7 @@ if __name__ == "__main__":
     # Move sample files to their class folders in train/
     dataset_dir = '../data/cat_dog_small/all'
     annotations = '../data/cat_dog_small/cat_dog_small_annotations.xlsx'
-    num_images = 200
+    num_images = -1
     reorganize_samples(dataset_dir = dataset_dir, annotations = annotations, num_samples = num_images)
 
     # Create train/ and test/ splits
