@@ -17,3 +17,6 @@ These projects explore PCL functionalities.
     - Point neighborhood searched (kdtree): `pfhEstimation.cpp`
     - FPFHs computed in unordered pointcloud: `fpfhEstimation.cpp`
 
+4. `pcl_example_04`: Filtering
+
+    - 
