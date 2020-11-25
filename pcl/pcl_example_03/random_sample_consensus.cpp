@@ -1,4 +1,14 @@
-/* Simple program in which 
+/* Simple program in which a pointcloud containing inliers & putliers of a model (plane or sphere) is segmented using RANSAC
+ * Basically, the inliers that fit the model (plane / sphere) are detected (and visualized)
+ * Example of usage:
+ *    ./random_sample_consensus
+ *        plane points + outliers created, everything visualized
+ *    ./random_sample_consensus -f
+ *        plane points + outliers created, only fitted inliers visualized
+ *    ./random_sample_consensus -s
+ *        sphere points + outliers created, everything visualized
+ *    ./random_sample_consensus -sf
+ *        sphere points + outliers created, only fitted inliers visualized 
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/random_sample_consensus.html#random-sample-consensus
 */
@@ -16,7 +26,7 @@
 
 // If PCL was compiled with the visualization module, uncommet this!
 #ifndef VISUALIZE
-#define VISUALIZE
+//#define VISUALIZE
 #endif
 
 #ifdef VISUALIZE
@@ -88,6 +98,7 @@ int main(int argc, char** argv) {
     }
   }
 
+  // Indices of inliers stored in a vector of ints
   std::vector<int> inliers;
 
   // Define the appropriated model: Sphere / Plane
@@ -114,7 +125,7 @@ int main(int argc, char** argv) {
     ransac.setDistanceThreshold (.01);
     ransac.computeModel();
     // Indices of cloud that are inliers
-    // NOTE: I don't know why, I get only 4 inliers...
+    // NOTE: I don't know why, on Windows I get only 4 inliers...?
     ransac.getInliers(inliers);
   }
 
