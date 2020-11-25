@@ -50,21 +50,26 @@ add_executable (project_inliers project_inliers.cpp)
 target_link_libraries (project_inliers ${PCL_LIBRARIES})
 
 # Executable 5: 
+# ./random_sample_consensus <-s|-f|-sf>
+add_executable (random_sample_consensus random_sample_consensus.cpp)
+target_link_libraries (random_sample_consensus ${PCL_LIBRARIES})
+
+# Executable 6: 
 # ./planar_segmentation
 add_executable (planar_segmentation planar_segmentation.cpp)
 target_link_libraries (planar_segmentation ${PCL_LIBRARIES})
 
-# Executable 6: 
+# Executable 7: 
 # ./cylinder_segmentation
 add_executable (cylinder_segmentation cylinder_segmentation.cpp)
 target_link_libraries (cylinder_segmentation ${PCL_LIBRARIES})
 
-# Executable 7: 
+# Executable 8: 
 # ./extract_segmented_indices
 add_executable (extract_segmented_indices extract_segmented_indices.cpp)
 target_link_libraries (extract_segmented_indices ${PCL_LIBRARIES})
 
-# Executable 8: 
+# Executable 9: 
 # ./remove_outliers <-c|-r>
 add_executable (remove_outliers remove_outliers.cpp)
 target_link_libraries (remove_outliers ${PCL_LIBRARIES})
