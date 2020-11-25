@@ -22,3 +22,4 @@ These projects explore PCL functionalities.
     - Get the list of fields that a point has: `voxel_grid.cpp`
     - Print cloud object: `statistical_removal.cpp`
     - Visualization of points and coordinate ystem: `random_sample_consensus.cpp`
+    - A `PointCloud2` data structure is created: `extract_segmented_indices.cpp`

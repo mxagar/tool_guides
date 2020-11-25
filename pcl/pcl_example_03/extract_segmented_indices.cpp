@@ -1,4 +1,8 @@
-/* Simple program in which 
+/* Simple program in which Several subsets of points which fit into different planes are extracted iteratively from a scene.
+ * The following steps are carried out:
+ * - The pointcloud is downsampled using a voxel grid
+ * - A plane segmentation model is defined with the RANSAC model fitting method
+ * - Iteratively we pass the current pointclud to the segmentator and remove the inliers of the detected model from it until less than 30% of the points are remaining
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/extract_indices.html#extract-indices
 */
@@ -18,8 +22,10 @@ int main (int argc, char** argv) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>), cloud_p (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
 
   // Fill in the cloud data
+  // Download from
+  // https://raw.github.com/PointCloudLibrary/data/master/tutorials/table_scene_lms400.pcd
   pcl::PCDReader reader;
-  reader.read ("table_scene_lms400.pcd", *cloud_blob);
+  reader.read ("../../../data/table_scene_lms400.pcd", *cloud_blob);
 
   std::cerr << "PointCloud before filtering: " << cloud_blob->width * cloud_blob->height << " data points." << std::endl;
 
@@ -29,7 +35,7 @@ int main (int argc, char** argv) {
   sor.setLeafSize (0.01f, 0.01f, 0.01f);
   sor.filter (*cloud_filtered_blob);
 
-  // Convert to the templated PointCloud
+  // Convert to the templated PointCloud - what is this?
   pcl::fromPCLPointCloud2 (*cloud_filtered_blob, *cloud_filtered);
 
   std::cerr << "PointCloud after filtering: " << cloud_filtered->width * cloud_filtered->height << " data points." << std::endl;
@@ -50,10 +56,11 @@ int main (int argc, char** argv) {
   seg.setMaxIterations (1000);
   seg.setDistanceThreshold (0.01);
 
-  // Create the filtering object
+  // Create the filtering object: this is the extractor which removes the points we pass to it
   pcl::ExtractIndices<pcl::PointXYZ> extract;
 
-  int i = 0, nr_points = (int) cloud_filtered->size ();
+  int i = 0;
+  int nr_points = (int) cloud_filtered->size ();
   // While 30% of the original cloud is still there
   while (cloud_filtered->size () > 0.3 * nr_points)
   {
@@ -73,13 +80,15 @@ int main (int argc, char** argv) {
     extract.filter (*cloud_p);
     std::cerr << "PointCloud representing the planar component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
 
+    // Save the plane points
     std::stringstream ss;
     ss << "table_scene_lms400_plane_" << i << ".pcd";
     writer.write<pcl::PointXYZ> (ss.str (), *cloud_p, false);
 
-    // Create the filtering object
+    // Take the complementary subset of points to the detected plane and replace with it the scene cloud
     extract.setNegative (true);
     extract.filter (*cloud_f);
+    // Swap: the scene cloud is replaced by the cloud without the plane points
     cloud_filtered.swap (cloud_f);
     i++;
   }

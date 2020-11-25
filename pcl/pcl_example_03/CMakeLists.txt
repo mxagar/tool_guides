@@ -59,17 +59,17 @@ target_link_libraries (random_sample_consensus ${PCL_LIBRARIES})
 add_executable (planar_segmentation planar_segmentation.cpp)
 target_link_libraries (planar_segmentation ${PCL_LIBRARIES})
 
-# Executable 7: 
-# ./cylinder_segmentation: a cylindrical mug is segmented on a real scene with a table. It is an application that extends the example in `planar_segmentation.cpp` to cylinders in a real scenario.
+# Executable 7: A cylindrical mug is segmented on a real scene with a table. It is an application that extends the example in `planar_segmentation.cpp` to cylinders in a real scenario.
+# ./cylinder_segmentation 
 add_executable (cylinder_segmentation cylinder_segmentation.cpp)
 target_link_libraries (cylinder_segmentation ${PCL_LIBRARIES})
 
-# Executable 8: 
+# Executable 8: Several subsets of points which fit into different planes are extracted iteratively from a scene.
 # ./extract_segmented_indices
 add_executable (extract_segmented_indices extract_segmented_indices.cpp)
 target_link_libraries (extract_segmented_indices ${PCL_LIBRARIES})
 
-# Executable 9: 
+# Executable 9: Two types of point subsets are removed: (1) points that have less than n neighbor points in a radius R (argument -r), and (2) points that satisfy a set of simple conditions (argument -c).
 # ./remove_outliers <-c|-r>
 add_executable (remove_outliers remove_outliers.cpp)
 target_link_libraries (remove_outliers ${PCL_LIBRARIES})

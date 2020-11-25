@@ -1,4 +1,6 @@
-/* Simple program in which 
+/* Simple program in which two types of point subsets are removed:
+ * (1) points that have less than n neighbor points in a radius R (argument -r),
+ * and (2) points that satisfy a set of simple conditions (argument -c).
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/cylinder_segmentation.html#cylinder-segmentation
 */
@@ -29,18 +31,21 @@ int main (int argc, char** argv) {
     point.z = 1024 * rand () / (RAND_MAX + 1.0f);
   }
 
+  // Option 1: Points that have less than 2 neighbors in a radius of 0.8 are removed
   if (strcmp(argv[1], "-r") == 0){
     pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
     // build the filter
     outrem.setInputCloud(cloud);
     outrem.setRadiusSearch(0.8);
-    outrem.setMinNeighborsInRadius (2);
+    outrem.setMinNeighborsInRadius(2);
     outrem.setKeepOrganized(true);
     // apply filter
     outrem.filter (*cloud_filtered);
-  }
+  } // Option 2: Points with Z in [0,0.8] are taken
   else if (strcmp(argv[1], "-c") == 0){
     // build the condition
+    // available GT, GE, LT, LE, EQ
+    // we could define a box
     pcl::ConditionAnd<pcl::PointXYZ>::Ptr range_cond (new
       pcl::ConditionAnd<pcl::PointXYZ> ());
     range_cond->addComparison (pcl::FieldComparison<pcl::PointXYZ>::ConstPtr (new
@@ -49,11 +54,11 @@ int main (int argc, char** argv) {
       pcl::FieldComparison<pcl::PointXYZ> ("z", pcl::ComparisonOps::LT, 0.8)));
     // build the filter
     pcl::ConditionalRemoval<pcl::PointXYZ> condrem;
-    condrem.setCondition (range_cond);
-    condrem.setInputCloud (cloud);
+    condrem.setCondition(range_cond);
+    condrem.setInputCloud(cloud);
     condrem.setKeepOrganized(true);
     // apply filter
-    condrem.filter (*cloud_filtered);
+    condrem.filter(*cloud_filtered);
   }
   else{
     std::cerr << "please specify command line arg '-r' or '-c'" << std::endl;

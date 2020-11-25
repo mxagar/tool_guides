@@ -21,6 +21,6 @@ List of examples:
 
 7. `cylinder_segmentation.cpp`: Example in which a cylindrical mug is segmented on a real scene with a table. It is an application that extends the example in `planar_segmentation.cpp` to cylinders in a real scenario. See [Cylinder model segmentation](https://pcl.readthedocs.io/projects/tutorials/en/latest/cylinder_segmentation.html#cylinder-segmentation).
 
-8. `extract_segmented_indices.cpp` See [Extracting indices from a PointCloud](https://pcl.readthedocs.io/projects/tutorials/en/latest/extract_indices.html#extract-indices).
+8. `extract_segmented_indices.cpp`: Several subsets of points which fit into different planes are extracted iteratively from a scene. See [Extracting indices from a PointCloud](https://pcl.readthedocs.io/projects/tutorials/en/latest/extract_indices.html#extract-indices).
 
 9. `remove_outliers.cpp`
