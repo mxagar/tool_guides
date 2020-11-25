@@ -23,4 +23,4 @@ List of examples:
 
 8. `extract_segmented_indices.cpp`: Several subsets of points which fit into different planes are extracted iteratively from a scene. See [Extracting indices from a PointCloud](https://pcl.readthedocs.io/projects/tutorials/en/latest/extract_indices.html#extract-indices).
 
-9. `remove_outliers.cpp`
+9. `remove_outliers.cpp` Two types of point subsets are removed: (1) points that have less than n neighbor points in a radius R (argument -r), and (2) points that satisfy a set of simple conditions (argument -c). See [Removing outliers using a Conditional or RadiusOutlier removal](https://pcl.readthedocs.io/projects/tutorials/en/latest/remove_outliers.html#remove-outliers).
