@@ -49,18 +49,18 @@ target_link_libraries (statistical_removal ${PCL_LIBRARIES})
 add_executable (project_inliers project_inliers.cpp)
 target_link_libraries (project_inliers ${PCL_LIBRARIES})
 
-# Executable 5: 
+# Executable 5: A pointcloud containing inliers & outliers of a model (plane or sphere) is segmented using RANSAC; basically, the inliers that fit the model (plane / sphere) are detected (and visualized).
 # ./random_sample_consensus <|-s|-f|-sf>
 add_executable (random_sample_consensus random_sample_consensus.cpp)
 target_link_libraries (random_sample_consensus ${PCL_LIBRARIES})
 
-# Executable 6: 
+# Executable 6: A point cloud is segmented in inliers that fit in a plane. Segmentation is carried out using RANSAC. Inlier indices and model parameters are extracted.
 # ./planar_segmentation
 add_executable (planar_segmentation planar_segmentation.cpp)
 target_link_libraries (planar_segmentation ${PCL_LIBRARIES})
 
 # Executable 7: 
-# ./cylinder_segmentation
+# ./cylinder_segmentation: a cylindrical mug is segmented on a real scene with a table. It is an application that extends the example in `planar_segmentation.cpp` to cylinders in a real scenario.
 add_executable (cylinder_segmentation cylinder_segmentation.cpp)
 target_link_libraries (cylinder_segmentation ${PCL_LIBRARIES})
 

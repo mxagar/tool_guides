@@ -1,5 +1,7 @@
-/* Simple program in which a pointcloud containing inliers & putliers of a model (plane or sphere) is segmented using RANSAC
- * Basically, the inliers that fit the model (plane / sphere) are detected (and visualized)
+/* Simple program in which a pointcloud containing inliers & outliers of a model (plane or sphere) is segmented using RANSAC
+ * Basically, the inliers that fit the model (plane / sphere) are detected (and visualized).
+ * Model parameters are nore extracted.
+ * If you need model parameters, follow the example pcl_example_03/planar_segmentation.cpp.
  * Example of usage:
  *    ./random_sample_consensus
  *        plane points + outliers created, everything visualized

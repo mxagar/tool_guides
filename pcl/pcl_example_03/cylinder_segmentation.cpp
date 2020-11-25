@@ -1,4 +1,10 @@
-/* Simple program in which 
+/* Example in which a cylindrical mug is segmented on a real scene with a table.
+ * It is an application that extends the example in `planar_segmentation.cpp` to cylinders in a real scenario.
+ * The following steps are carried out: 
+ * - data points further away than 1.5 meters are filtered
+ * - surface normals at each point are estimated
+ * - a plane model (describing the table in our demo dataset) is segmented and saved to disk
+ * - a cylindrical model (describing the mug in our demo dataset) is segmented and saved to disk
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/cylinder_segmentation.html#cylinder-segmentation
 */
@@ -16,6 +22,7 @@
 typedef pcl::PointXYZ PointT;
 
 int main (int argc, char** argv) {
+  
   // All the objects needed
   pcl::PCDReader reader;
   pcl::PassThrough<PointT> pass;
@@ -38,7 +45,7 @@ int main (int argc, char** argv) {
   // Read in the cloud data
   // Download the model from
   // https://raw.github.com/PointCloudLibrary/data/master/tutorials/table_scene_mug_stereo_textured.pcd
-  reader.read ("table_scene_mug_stereo_textured.pcd", *cloud);
+  reader.read ("../../../data/table_scene_mug_stereo_textured.pcd", *cloud);
   std::cerr << "PointCloud has: " << cloud->size () << " data points." << std::endl;
 
   // Build a passthrough filter to remove spurious NaNs

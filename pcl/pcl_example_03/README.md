@@ -15,12 +15,12 @@ List of examples:
 
 4. `project_inliers.cpp`: points of a point cloud are projected on a primitive model (a plane); see [Projecting points using a parametric model](https://pcl.readthedocs.io/projects/tutorials/en/latest/project_inliers.html#project-inliers).
 
-5. `random_sample_consensus.cpp`
+5. `random_sample_consensus.cpp`: a pointcloud containing inliers & outliers of a model (plane or sphere) is segmented using RANSAC; basically, the inliers that fit the model (plane / sphere) are detected (and visualized); no model parameters are extracted, for that, see next example `planar_segmentation.cpp`. See also [How to use Random Sample Consensus model (RANSAC)](https://pcl.readthedocs.io/projects/tutorials/en/latest/random_sample_consensus.html#random-sample-consensus).
 
-6. `planar_segmentation.cpp`
+6. `planar_segmentation.cpp`:  a point cloud is segmented (with RANSAC) in inliers that fit in a plane. Inlier indices and model parameters are extracted; see [Plane model segmentation](https://pcl.readthedocs.io/projects/tutorials/en/latest/planar_segmentation.html#planar-segmentation).
 
-7. `cylinder_segmentation.cpp`
+7. `cylinder_segmentation.cpp`: Example in which a cylindrical mug is segmented on a real scene with a table. It is an application that extends the example in `planar_segmentation.cpp` to cylinders in a real scenario. See [Cylinder model segmentation](https://pcl.readthedocs.io/projects/tutorials/en/latest/cylinder_segmentation.html#cylinder-segmentation).
 
-8. `extract_segmented_indices.cpp`
+8. `extract_segmented_indices.cpp` See [Extracting indices from a PointCloud](https://pcl.readthedocs.io/projects/tutorials/en/latest/extract_indices.html#extract-indices).
 
 9. `remove_outliers.cpp`
