@@ -17,7 +17,8 @@ These projects explore PCL functionalities.
     - Point neighborhood searched (kdtree): `pfhEstimation.cpp`
     - FPFHs computed in unordered pointcloud: `fpfhEstimation.cpp`
 
-4. `pcl_example_03`: Filtering = Segmentation = Selection
+4. `pcl_example_03`: Filtering & Segmentation (= Selection)
 
     - Get the list of fields that a point has: `voxel_grid.cpp`
     - Print cloud object: `statistical_removal.cpp`
+    - Visualization of points and coordinate ystem: `random_sample_consensus.cpp`

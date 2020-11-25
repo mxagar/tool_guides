@@ -50,7 +50,7 @@ add_executable (project_inliers project_inliers.cpp)
 target_link_libraries (project_inliers ${PCL_LIBRARIES})
 
 # Executable 5: 
-# ./random_sample_consensus <-s|-f|-sf>
+# ./random_sample_consensus <|-s|-f|-sf>
 add_executable (random_sample_consensus random_sample_consensus.cpp)
 target_link_libraries (random_sample_consensus ${PCL_LIBRARIES})
 

@@ -15,10 +15,12 @@ List of examples:
 
 4. `project_inliers.cpp`: points of a point cloud are projected on a primitive model (a plane); see [Projecting points using a parametric model](https://pcl.readthedocs.io/projects/tutorials/en/latest/project_inliers.html#project-inliers).
 
-5. `planar_segmentation.cpp`
+5. `random_sample_consensus.cpp`
 
-6. `cylinder_segmentation.cpp`
+6. `planar_segmentation.cpp`
 
-7. `extract_segmented_indices.cpp`
+7. `cylinder_segmentation.cpp`
 
-8. `remove_outliers.cpp`
+8. `extract_segmented_indices.cpp`
+
+9. `remove_outliers.cpp`
