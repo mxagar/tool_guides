@@ -43,3 +43,7 @@ These projects explore PCL functionalities.
     - **Interactive ICP**: a point cloud is moved to a target position step by step using ICP and the process is **visualized**: `interactive_icp.cpp`
     - Two **large 3D scans** (360 rooms) are aligned using the Normal Distributions Transform (NDT) and **visualized**: `normal_distributions_transform.cpp`
     - The alignment pose of a rigid object in a **scene with clutter** and occlusions is found and **visualized**:: `alignment_prerejective.cpp`
+
+6. `pcl_example_05`: Surface processing (e.g., Triangulation)
+
+7. `pcl_example_06`: Visualization
