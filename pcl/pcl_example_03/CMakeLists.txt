@@ -8,7 +8,7 @@ if(WIN32)
     list (APPEND CMAKE_MODULE_PATH C:/src/PCL/pcl-1.11.1/pcl/cmake/Modules)
 endif(WIN32)
 
-project(pcd_write)
+project(pcl_filtering)
 
 if(WIN32)
     # WATCH OUT: Probably some of these need to be set again with ccmake / cmake-gui
