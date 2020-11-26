@@ -1,4 +1,4 @@
-/* Example in which a 
+/* Example in which a simple ICP is performed between artificial point clouds.
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/iterative_closest_point.html#iterative-closest-point
 */
@@ -26,10 +26,12 @@ int
       
   for (auto& point : *cloud_in)
     std::cout << point << std::endl;
-      
+
+  // Cloud to align is initialized as target/model cloud 
   *cloud_out = *cloud_in;
   
   std::cout << "size:" << cloud_out->size() << std::endl;
+  // We add 0.7 in X to cloud to align
   for (auto& point : *cloud_out)
     point.x += 0.7f;
 
@@ -38,16 +40,19 @@ int
   for (auto& point : *cloud_out)
     std::cout << point << std::endl;
 
+  // Create ICP object and set source & target (model) clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   icp.setInputSource(cloud_in);
   icp.setInputTarget(cloud_out);
   
+  // Perform the alignment; aligned cloud stored in Final
   pcl::PointCloud<pcl::PointXYZ> Final;
   icp.align(Final);
 
-  std::cout << "has converged:" << icp.hasConverged() << " score: " <<
-  icp.getFitnessScore() << std::endl;
-  std::cout << icp.getFinalTransformation() << std::endl;
+  // Extract results: converged, score, transformation
+  std::cout << "ICP has converged: " << icp.hasConverged() << "\nFitness score: " <<  icp.getFitnessScore() << std::endl;
+  // Transformation is identity + 0.7 in X
+  std::cout << "Final transformation: \n" <<  icp.getFinalTransformation() << std::endl;
 
  return (0);
 }

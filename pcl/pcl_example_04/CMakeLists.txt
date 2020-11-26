@@ -29,7 +29,13 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-# Executable 1: 
-# ./main
+# Executable 1: A simple ICP is performed between artificial point clouds.
+# ./iterative_closest_point
 add_executable (iterative_closest_point iterative_closest_point.cpp)
 target_link_libraries (iterative_closest_point ${PCL_LIBRARIES})
+
+# Executable 2: A point cloud is moved to a target position step by step using ICP and the process is visualized
+# WARNING: This example works only with the visualization module!
+# ./interactive_icp
+add_executable (interactive_icp interactive_icp.cpp)
+target_link_libraries (interactive_icp ${PCL_LIBRARIES})

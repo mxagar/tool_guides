@@ -37,4 +37,8 @@ These projects explore PCL functionalities.
     - Visualization of points and coordinate ystem: `random_sample_consensus.cpp`
     - A `PointCloud2` data structure is created: `extract_segmented_indices.cpp`
 
-5. `pcl_example_04`: Ragistration (= Matching) 
+5. `pcl_example_04`: Registration (= Matching) 
+
+    - Iterative Closest Point (ICP) algorithm usage: `iterative_closest_point.cpp`
+    - Interactive ICP: a point cloud is moved to a target position step by step using ICP and the process is **visualized**: `interactive_icp.cpp`
+    - 

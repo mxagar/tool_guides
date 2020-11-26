@@ -7,4 +7,6 @@ For more info, see `pcl_guide.txt` or
 
 List of examples:
 
-1. `main.cpp`: blah; see [title](URL).
+1. `iterative_closest_point.cpp`: A simple ICP is performed between artificial point clouds; see [How to use iterative closest point](https://pcl.readthedocs.io/projects/tutorials/en/latest/iterative_closest_point.html#iterative-closest-point).
+
+2. `interactive_icp.cpp`: A point cloud is moved to a target position step by step using ICP and the process is **visualized**; see [Interactive Iterative Closest Point](https://pcl.readthedocs.io/projects/tutorials/en/latest/interactive_icp.html#interactive-icp).
