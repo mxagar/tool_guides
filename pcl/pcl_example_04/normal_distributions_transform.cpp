@@ -1,4 +1,4 @@
-/* 
+/* Example in which 2 large 3D scans (360 rooms) are aligned using the Normal Distributions Transform (NDT).
  * WARNING: This example works only with the visualization module!
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/normal_distributions_transform.html#normal-distributions-transform
@@ -19,18 +19,22 @@ using namespace std::chrono_literals;
 
 int main(int argc, char **argv)
 {
-    // Loading first scan of room.
+    // Loading first scan of room (360)
+    // Download from:
+    // https://raw.github.com/PointCloudLibrary/data/master/tutorials/room_scan1.pcd
     pcl::PointCloud<pcl::PointXYZ>::Ptr target_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZ>("room_scan1.pcd", *target_cloud) == -1)
+    if (pcl::io::loadPCDFile<pcl::PointXYZ>("../../data/room_scan1.pcd", *target_cloud) == -1)
     {
         PCL_ERROR("Couldn't read file room_scan1.pcd \n");
         return (-1);
     }
     std::cout << "Loaded " << target_cloud->size() << " data points from room_scan1.pcd" << std::endl;
 
-    // Loading second scan of room from new perspective.
+    // Loading second scan of room from new perspective (360)
+    // Download from:
+    // https://raw.github.com/PointCloudLibrary/data/master/tutorials/room_scan2.pcd
     pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZ>("room_scan2.pcd", *input_cloud) == -1)
+    if (pcl::io::loadPCDFile<pcl::PointXYZ>("../../data/room_scan2.pcd", *input_cloud) == -1)
     {
         PCL_ERROR("Couldn't read file room_scan2.pcd \n");
         return (-1);

@@ -1,4 +1,4 @@
-/* 
+/* Example in which the alignment pose of a rigid object in a scene with clutter and occlusions is found.
  * WARNING: This example works only with the visualization module!
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/alignment_prerejective.html#alignment-prerejective
@@ -45,6 +45,9 @@ int main(int argc, char **argv)
     }
 
     // Load object and scene
+    // Download models:
+    // https://pcl.readthedocs.io/projects/tutorials/en/latest/_downloads/9c19c0a6911bdc707d28e7a20218f87f/chef.pcd
+    // https://pcl.readthedocs.io/projects/tutorials/en/latest/_downloads/f81df67a580ff4f3fd71870b31e7ab81/rs1.pcd
     pcl::console::print_highlight("Loading point clouds...\n");
     if (pcl::io::loadPCDFile<PointNT>(argv[1], *object) < 0 ||
         pcl::io::loadPCDFile<PointNT>(argv[2], *scene) < 0)
@@ -72,7 +75,7 @@ int main(int argc, char **argv)
 
     // Estimate features
     pcl::console::print_highlight("Estimating features...\n");
-    FeatureEstimationT fest;
+    FeatureEstimationT fest; // FPFH
     fest.setRadiusSearch(0.025);
     fest.setInputCloud(object);
     fest.setInputNormals(object);
