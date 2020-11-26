@@ -46,23 +46,67 @@ int main (int argc, char** argv) {
   std::string filename = "test_pcd.pcd";
   pcl::io::savePCDFileASCII (filename, cloud);
   std::cerr << "Saved " << cloud.size () << " data points to test_pcd.pcd." << std::endl;
-  // test_pcd.pcd
-  //    # .PCD v0.7 - Point Cloud Data file format
-  //    VERSION 0.7
-  //    FIELDS x y z
-  //    SIZE 4 4 4
-  //    TYPE F F F
-  //    COUNT 1 1 1
-  //    WIDTH 5
-  //    HEIGHT 1
-  //    VIEWPOINT 0 0 0 1 0 0 0
-  //    POINTS 5
-  //    DATA ascii
-  //    1.28125 577.09375 197.9375
-  //    828.125 599.03125 491.375
-  //    358.6875 917.4375 842.5625
-  //    764.5 178.28125 879.53125
-  //    727.53125 525.84375 311.28125
+  /*
+   Example:
+   test_pcd.pcd
+      # .PCD v0.7 - Point Cloud Data file format
+      VERSION 0.7
+      FIELDS x y z
+      SIZE 4 4 4
+      TYPE F F F
+      COUNT 1 1 1
+      WIDTH 5
+      HEIGHT 1
+      VIEWPOINT 0 0 0 1 0 0 0
+      POINTS 5
+      DATA ascii
+      1.28125 577.09375 197.9375
+      828.125 599.03125 491.375
+      358.6875 917.4375 842.5625
+      764.5 178.28125 879.53125
+      727.53125 525.84375 311.28125
+      ...
+    Explanation:
+      VERSION .7
+      FIELDS x y z rgb
+        dimensions/fields a point can have
+        x y z
+        x y z rgb
+        x y z normal_x normal_y normal_z
+        j1 j2 j3
+      SIZE 4 4 4 4
+        size in bytes of each dimension/field	
+          unsigned char/char has 1 byte
+          unsigned short/short has 2 bytes
+          unsigned int/int/float has 4 bytes
+          double has 8 bytes
+      TYPE F F F F
+        type of each dimension/field
+        I int
+        U unsigned char/int
+        F float
+      COUNT 1 1 1 1
+        number of elements in each dimension/field
+        usually 1, but with histograms, more!
+        eg, VFH -> 308
+      WIDTH 213
+        unordered pointclouds: WIDTH N, HEIGHT 1 -> number points: N
+        ordered pointclouds: WIDTH W, HEIGHT H -> number points: W*N
+      HEIGHT 1
+        see WIDTH
+      VIEWPOINT 0 0 0 1 0 0 0
+        acquisition viewpoint of dataset
+        translation (tx ty tz) + quaternion (qw qx qy qz)
+      POINTS 213
+        see WIDTH
+      DATA ascii
+        ascii or binary
+        after DATA, point list continues, each point ending with \n
+      0.93773 0.33763 0 4.2108e+06
+      0.90805 0.35641 0 4.2108e+06
+      0.81915 0.32 0 4.2108e+06
+      ...
+  */
 
   std::cout << "Saved PCD: " << std::endl;
   for (const auto& point: cloud)
