@@ -1,3 +1,10 @@
+/* Simple program that showcases CMake compilation.
+ * A basic point cloud is created and saved as *.pcd.
+ * The PCD format is also explained in the C++ file comments.
+ * Look at:
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/writing_pcd.html#writing-pcd
+*/
+
 #include <iostream>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>

@@ -1,3 +1,9 @@
+/* Simple program that creates a new point type in PCL.
+ * Look at:
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/adding_custom_ptype.html#adding-custom-ptype
+*/
+
+
 #define PCL_NO_PRECOMPILE
 #include <pcl/memory.h>
 #include <pcl/pcl_macros.h>

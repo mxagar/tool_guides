@@ -2,9 +2,12 @@
 
 These projects explore PCL functionalities.
 
-1. `pcl_example_00`: CMake compilation + basic point cloud is created and saved as *.pcd
+1. `pcl_example_00`: CMake compilation + basic point cloud is created and saved as *.pcd; the PCD format is also explained in the C++ file comments.
 
-2. `pcl_example_01`: new point type is created and used to store a *.pcd
+2. `pcl_example_01`: More advanced options for/with PCD pointclouds are explained
+
+    - `new_point_type.cpp`: new point type is created and used to store a *.pcd.
+    - `concatenate_clouds.cpp`: pointcouds are concatenated (point lists and fields).
 
 3. `pcl_example_02`: Features are explored
 

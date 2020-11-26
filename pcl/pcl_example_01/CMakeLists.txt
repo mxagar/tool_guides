@@ -29,5 +29,12 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+# Executable 1: A new point type is created and used to store a *.pcd.
+# ./new_point_type
 add_executable (new_point_type new_point_type.cpp)
 target_link_libraries (new_point_type ${PCL_LIBRARIES})
+
+# Executable 2: Pointcouds are concatenated (point lists and fields).
+# ./concatenate_clouds
+add_executable (concatenate_clouds concatenate_clouds.cpp)
+target_link_libraries (concatenate_clouds ${PCL_LIBRARIES})
