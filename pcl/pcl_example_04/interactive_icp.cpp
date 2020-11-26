@@ -37,10 +37,8 @@ keyboardEventOccurred (const pcl::visualization::KeyboardEvent& event,
     next_iteration = true;
 }
 
-int
-main (int argc,
-      char* argv[])
-{
+int main (int argc, char* argv[]) {
+  
   // The point clouds we will be using
   PointCloudT::Ptr cloud_in (new PointCloudT);  // Original point cloud
   PointCloudT::Ptr cloud_tr (new PointCloudT);  // Transformed point cloud

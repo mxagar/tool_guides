@@ -36,6 +36,18 @@ target_link_libraries (iterative_closest_point ${PCL_LIBRARIES})
 
 # Executable 2: A point cloud is moved to a target position step by step using ICP and the process is visualized
 # WARNING: This example works only with the visualization module!
-# ./interactive_icp
+# ./interactive_icp ../../data/suzanne_blender_faces_points.ply
 add_executable (interactive_icp interactive_icp.cpp)
 target_link_libraries (interactive_icp ${PCL_LIBRARIES})
+
+# Executable 3: 
+# WARNING: This example works only with the visualization module!
+# ./normal_distributions_transform
+add_executable (normal_distributions_transform normal_distributions_transform.cpp)
+target_link_libraries (normal_distributions_transform ${PCL_LIBRARIES})
+
+# Executable 4: 
+# WARNING: This example works only with the visualization module!
+# ./alignment_prerejective chef.pcd rs1.pcd
+add_executable (alignment_prerejective alignment_prerejective.cpp)
+target_link_libraries (alignment_prerejective ${PCL_LIBRARIES})
