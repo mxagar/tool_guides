@@ -28,6 +28,8 @@ int main (int argc, char** argv) {
 #endif
   }
   pcl::io::loadPLYFile(filename, *cloud);
+  //pcl::io::savePLYFileASCII(...);
+  //pcl::io::savePLYFileBinary(...);
 
   // Create the normal estimation class, and pass the input dataset to it
   // Consider also the OpenMP parallelized version pcl::NormalEstimationOMP!
