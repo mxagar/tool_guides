@@ -1,41 +1,70 @@
-/* Interactive ICP: a point cloud is moved to a target position step by step using ICP and the process is visualized.
+/* Very simple pointcloud visualization code.
+ * BUT: It doesn't work on my Mac...
  * WARNING: This example works only with the visualization module!
  * Look at:
- * https://pcl.readthedocs.io/projects/tutorials/en/latest/resampling.html#moving-least-squares
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/cloud_viewer.html#cloud-viewer
 */
 
-#include <pcl/point_types.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <iostream>
+#include <pcl/io/io.h>
 #include <pcl/io/pcd_io.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/surface/mls.h>
 
-int main(int argc, char **argv)
+int user_data;
+
+void viewerOneOff(pcl::visualization::PCLVisualizer &viewer)
 {
-  // Load input file into a PointCloud<T> with an appropriate type
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
-  // Load bun0.pcd -- should be available with the PCL archive in test
-  pcl::io::loadPCDFile("bun0.pcd", *cloud);
+  viewer.setBackgroundColor(1.0, 0.5, 1.0);
+  pcl::PointXYZ o;
+  o.x = 1.0;
+  o.y = 0;
+  o.z = 0;
+  viewer.addSphere(o, 0.25, "sphere", 0);
+  std::cout << "i only run once" << std::endl;
+}
 
-  // Create a KD-Tree
-  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+void viewerPsycho(pcl::visualization::PCLVisualizer &viewer)
+{
+  static unsigned count = 0;
+  std::stringstream ss;
+  ss << "Once per viewer loop: " << count++;
+  viewer.removeShape("text", 0);
+  viewer.addText(ss.str(), 200, 300, "text", 0);
 
-  // Output has the PointNormal type in order to store the normals calculated by MLS
-  pcl::PointCloud<pcl::PointNormal> mls_points;
+  //FIXME: possible race condition here:
+  user_data++;
+}
 
-  // Init object (second point type is for the normals, even if unused)
-  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
+int main()
+{
+  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-  mls.setComputeNormals(true);
+  // Load bun0.pcd
+  // Download from:
+  // https://raw.githubusercontent.com/PointCloudLibrary/pcl/master/test/bun0.pcd
+  pcl::io::loadPCDFile("../../data/bun0.pcd", *cloud);
 
-  // Set parameters
-  mls.setInputCloud(cloud);
-  mls.setPolynomialOrder(2);
-  mls.setSearchMethod(tree);
-  mls.setSearchRadius(0.03);
+  // IMPORTANT: CloudViewer class is NOT meant to be used in multi-threaded applications
+  // For multi-threaded cases, use PCLVisualizer
+  pcl::visualization::CloudViewer viewer("Cloud Viewer");
 
-  // Reconstruct
-  mls.process(mls_points);
+  //blocks until the cloud is actually rendered
+  viewer.showCloud(cloud);
 
-  // Save output
-  pcl::io::savePCDFile("bun0-mls.pcd", mls_points);
+  //use the following functions to get access to the underlying more advanced/powerful
+  //PCLVisualizer
+
+  //This will only get called once
+  viewer.runOnVisualizationThreadOnce(viewerOneOff);
+
+  //This will get called once per visualization iteration
+  viewer.runOnVisualizationThread(viewerPsycho);
+  while (!viewer.wasStopped())
+  {
+    //you can also do cool processing here
+    //FIXME: Note that this is running in a separate thread from viewerPsycho
+    //and you should guard against race conditions yourself...
+    user_data++;
+  }
+  return 0;
 }

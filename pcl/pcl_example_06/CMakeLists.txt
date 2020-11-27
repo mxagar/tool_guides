@@ -8,7 +8,7 @@ if(WIN32)
     list (APPEND CMAKE_MODULE_PATH C:/src/PCL/pcl-1.11.1/pcl/cmake/Modules)
 endif(WIN32)
 
-project(pcd_surface)
+project(pcd_visualization)
 
 if(WIN32)
     # WATCH OUT: Probably some of these need to be set again with ccmake / cmake-gui
@@ -29,7 +29,17 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-# Executable 1: A simple ICP is performed between artificial point clouds.
-# ./resampling
-add_executable (resampling resampling.cpp)
-target_link_libraries (resampling ${PCL_LIBRARIES})
+# Executable 1: Visualization Blueprint - BUT: It doesn't work on my mac.
+# ./cloud_viewer
+add_executable (cloud_viewer cloud_viewer.cpp)
+target_link_libraries (cloud_viewer ${PCL_LIBRARIES})
+
+# Executable 2: 
+# ./simple_viewer
+add_executable (simple_viewer simple_viewer.cpp)
+target_link_libraries (simple_viewer ${PCL_LIBRARIES})
+
+# Executable 3: 
+# ./pcl_visualizer_demo
+add_executable (pcl_visualizer_demo pcl_visualizer_demo.cpp)
+target_link_libraries (pcl_visualizer_demo ${PCL_LIBRARIES})
