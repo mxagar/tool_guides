@@ -4,14 +4,21 @@
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/interactive_icp.html#interactive-icp
 */
 
+#ifndef VISUALIZE
+#define VISUALIZE
+#endif
+
 #include <iostream>
 #include <string>
 
 #include <pcl/io/ply_io.h>
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
-#include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/console/time.h>   // TicToc
+
+#ifdef VISUALIZE
+#include <pcl/visualization/pcl_visualizer.h>
+#endif
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<PointT> PointCloudT;
@@ -118,6 +125,7 @@ int main (int argc, char* argv[]) {
     return (-1);
   }
 
+#ifdef VISUALIZE
   // Visualization
   pcl::visualization::PCLVisualizer viewer ("ICP demo");
   // Create two vertically separated viewports
@@ -199,5 +207,6 @@ int main (int argc, char* argv[]) {
     }
     next_iteration = false;
   }
+#endif // VISUALIZE
   return (0);
 }

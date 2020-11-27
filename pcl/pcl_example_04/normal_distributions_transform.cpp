@@ -7,13 +7,19 @@
 #include <iostream>
 #include <thread>
 
+#ifndef VISUALIZE
+#define VISUALIZE
+#endif
+
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 
 #include <pcl/registration/ndt.h>
 #include <pcl/filters/approximate_voxel_grid.h>
 
+#ifdef VISUALIZE
 #include <pcl/visualization/pcl_visualizer.h>
+#endif
 
 using namespace std::chrono_literals;
 
@@ -87,6 +93,7 @@ int main(int argc, char **argv)
     // Saving transformed input cloud.
     pcl::io::savePCDFileASCII("room_scan2_transformed.pcd", *output_cloud);
 
+#ifdef VISUALIZE
     // Initializing point cloud visualizer
     pcl::visualization::PCLVisualizer::Ptr
         viewer_final(new pcl::visualization::PCLVisualizer("3D Viewer"));
@@ -116,6 +123,7 @@ int main(int argc, char **argv)
         viewer_final->spinOnce(100);
         std::this_thread::sleep_for(100ms);
     }
+#endif // VISUALIZE
 
     return (0);
 }

@@ -17,7 +17,7 @@ These projects explore PCL functionalities.
     - Normals computed in ordered pointcloud (XY relationship given): `normalEstimationImages.cpp`
     - PFHs computed in unordered pointcloud: `pfhEstimation.cpp`
     - Point pair normal fetures computed: `pfhEstimation.cpp`
-    - Point neighborhood searched (kdtree): `pfhEstimation.cpp`
+    - Point neighborhood searched (kd-tree): `pfhEstimation.cpp`
     - FPFHs computed in unordered pointcloud: `fpfhEstimation.cpp`
 
 4. `pcl_example_03`: Filtering & Segmentation (= Selection)
@@ -47,3 +47,7 @@ These projects explore PCL functionalities.
 6. `pcl_example_05`: Surface processing (e.g., Triangulation)
 
 7. `pcl_example_06`: Visualization
+
+8. `pcl_example_07`: Useful data structures
+
+9. `pcl_example_08`: Recognition

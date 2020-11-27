@@ -4,6 +4,10 @@
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/alignment_prerejective.html#alignment-prerejective
 */
 
+#ifndef VISUALIZE
+#define VISUALIZE
+#endif
+
 #include <Eigen/Core>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -17,7 +21,9 @@
 #include <pcl/registration/icp.h>
 #include <pcl/registration/sample_consensus_prerejective.h>
 #include <pcl/segmentation/sac_segmentation.h>
+#ifdef VISUALIZE
 #include <pcl/visualization/pcl_visualizer.h>
+#endif
 
 // Types
 typedef pcl::PointNormal PointNT;
@@ -115,11 +121,13 @@ int main(int argc, char **argv)
         pcl::console::print_info("\n");
         pcl::console::print_info("Inliers: %i/%i\n", align.getInliers().size(), object->size());
 
+#ifdef VISUALIZE
         // Show alignment
         pcl::visualization::PCLVisualizer visu("Alignment");
         visu.addPointCloud(scene, ColorHandlerT(scene, 0.0, 255.0, 0.0), "scene");
         visu.addPointCloud(object_aligned, ColorHandlerT(object_aligned, 0.0, 0.0, 255.0), "object_aligned");
         visu.spin();
+#endif // VISUALIZE
     }
     else
     {

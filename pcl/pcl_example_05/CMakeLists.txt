@@ -29,7 +29,7 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-# Executable 1: A simple ICP is performed between artificial point clouds.
+# Executable 1: Moving Least Squares (MLS) surface reconstruction method is used to smooth and resample noisy data with errors in normals due to alignment, among others.
 # ./resampling
 add_executable (resampling resampling.cpp)
 target_link_libraries (resampling ${PCL_LIBRARIES})
