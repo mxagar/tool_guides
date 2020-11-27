@@ -1,6 +1,7 @@
 # PCL Tutorials
 
 These projects explore PCL functionalities.
+Important: use tools like `pcl_viewer` along with the examples, if possible.
 
 1. `pcl_example_00`: CMake compilation + basic point cloud is created and saved as *.pcd; the PCD format is also explained in the C++ file comments.
 
@@ -41,15 +42,31 @@ These projects explore PCL functionalities.
 
     - Iterative Closest Point (**ICP**) algorithm usage: `iterative_closest_point.cpp`
     - **Interactive ICP**: a point cloud is moved to a target position step by step using ICP and the process is **visualized**: `interactive_icp.cpp`
+    - **Rigid 3D Transformations** with `pcl::transformPointCloud(*cloud_in, *cloud_out, trafo)`: `interactive_icp.cpp`
     - Two **large 3D scans** (360 rooms) are aligned using the Normal Distributions Transform (NDT) and **visualized**: `normal_distributions_transform.cpp`
     - The alignment pose of a rigid object in a **scene with clutter** and occlusions is found and **visualized**:: `alignment_prerejective.cpp`
 
 6. `pcl_example_05`: Surface processing (e.g., Triangulation)
 
-    - `resampling.cpp`
+    - Moving Least Squares (MLS) surface reconstruction method smooth and resample noisy data with errors in normals due to alignment, among others:`resampling.cpp`
+    - Create a 2D convex / concave hull (3D points that enclose the hull) of a planar point cloud; a simple 2D hull polygon (concave or convex) for a set of points supported by a plane: `concave_convex_hull_2d.cpp`
+    - Greedy surface triangulation algorithm on a PointCloud with normals, to obtain a triangle mesh based on projections of the local neighborhoods. Triangulation is performed locally, by projecting the local neighborhood of a point along the point’s normal, and connecting unconnected points: `greedy_projection.cpp`
 
 7. `pcl_example_06`: Visualization
 
+    - CloudViewer
+    - Range image visualization
+    - PCLVisualizer
+
 8. `pcl_example_07`: Useful data structures
 
+    - NARF keypoints
+    - kd-tree
+    - octree
+    - Range images
+
 9. `pcl_example_08`: Recognition
+
+    - 1
+    - 2
+    - 3

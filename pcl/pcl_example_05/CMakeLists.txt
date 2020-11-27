@@ -31,5 +31,19 @@ add_definitions(${PCL_DEFINITIONS})
 
 # Executable 1: Moving Least Squares (MLS) surface reconstruction method is used to smooth and resample noisy data with errors in normals due to alignment, among others.
 # ./resampling
+# pcl_viewer bun0-mls.pcd 
 add_executable (resampling resampling.cpp)
 target_link_libraries (resampling ${PCL_LIBRARIES})
+
+# Executable 2: A simple 2D hull polygon (concave or convex) for a set of points supported by a plane
+# ./concave_convex_hull_2d [-concave]
+# pcl_viewer table_scene_mug_stereo_textured_hull.pcd
+add_executable (concave_convex_hull_2d concave_convex_hull_2d.cpp)
+target_link_libraries (concave_convex_hull_2d ${PCL_LIBRARIES})
+
+# Executable 3: 
+# ./greedy_projection
+# pcl_vtk2pcd mesh.vtk mesh.pcd
+# pcl_viewer mesh.pcd
+add_executable (greedy_projection greedy_projection.cpp)
+target_link_libraries (greedy_projection ${PCL_LIBRARIES})

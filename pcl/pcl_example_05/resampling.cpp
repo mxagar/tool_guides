@@ -1,10 +1,10 @@
 /* Moving Least Squares (MLS) surface reconstruction method is used to smooth and resample noisy data with errors in normals due to alignment, among others.
- * WARNING: This example works only with the visualization module!
  * Look at:
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/resampling.html#moving-least-squares
 */
 
 #include <pcl/point_types.h>
+// Although not in the tutorial web, I need to add these 2 headers to compile...
 #include <pcl/features/normal_3d.h>
 #include <pcl/features/pfh.h>
 #include <pcl/io/pcd_io.h>
@@ -27,6 +27,7 @@ int main(int argc, char **argv)
   pcl::io::loadPCDFile("../../data/bun0.pcd", *cloud);
 
   // Create a KD-Tree for searching neighbor points
+  // I need to change this line to compile...
   //pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
 
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
 
   // Set parameters
   mls.setInputCloud(cloud);
-  mls.setPolynomialOrder(2);
+  mls.setPolynomialOrder(2); // this could be skipped
   mls.setSearchMethod(tree);
   mls.setSearchRadius(0.03);
 
@@ -49,4 +50,6 @@ int main(int argc, char **argv)
 
   // Save output
   pcl::io::savePCDFile("bun0-mls.pcd", mls_points);
+  // To visualize:
+  // pcl_viewer bun0-mls.pcd
 }
