@@ -6,6 +6,7 @@ if(WIN32)
     # unless this path is added, with the necessary modules
     #list (APPEND CMAKE_MODULE_PATH C:/src/cmake_tools/modules)
     list (APPEND CMAKE_MODULE_PATH C:/src/PCL/pcl-1.11.1/pcl/cmake/Modules)
+    #list (APPEND CMAKE_MODULE_PATH C:/src/PCL/pcl-1.10.0/cmake/Modules)
 endif(WIN32)
 
 project(pcd_registration)
