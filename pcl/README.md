@@ -46,6 +46,8 @@ These projects explore PCL functionalities.
 
 6. `pcl_example_05`: Surface processing (e.g., Triangulation)
 
+    - `resampling.cpp`
+
 7. `pcl_example_06`: Visualization
 
 8. `pcl_example_07`: Useful data structures
