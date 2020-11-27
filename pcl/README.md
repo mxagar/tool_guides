@@ -12,7 +12,7 @@ These projects explore PCL functionalities.
 3. `pcl_example_02`: Features are explored
 
     - PLY loaded: `normalEstimation.cpp`
-    - Visualization of points and normals: `normalEstimationImages.cpp`, `pfhEstimation.cpp`
+    - **Visualization** of points and normals: `normalEstimationImages.cpp`, `pfhEstimation.cpp`
     - Normals computed in unordered pointcloud: `normalEstimation.cpp`
     - Normals computed in ordered pointcloud (XY relationship given): `normalEstimationImages.cpp`
     - PFHs computed in unordered pointcloud: `pfhEstimation.cpp`
@@ -34,11 +34,12 @@ These projects explore PCL functionalities.
 
     - Get the list of fields that a point has: `voxel_grid.cpp`
     - Print cloud object: `statistical_removal.cpp`
-    - Visualization of points and coordinate ystem: `random_sample_consensus.cpp`
+    - **Visualization** of points and coordinate ystem: `random_sample_consensus.cpp`
     - A `PointCloud2` data structure is created: `extract_segmented_indices.cpp`
 
 5. `pcl_example_04`: Registration (= Matching) 
 
-    - Iterative Closest Point (ICP) algorithm usage: `iterative_closest_point.cpp`
-    - Interactive ICP: a point cloud is moved to a target position step by step using ICP and the process is **visualized**: `interactive_icp.cpp`
-    - 
+    - Iterative Closest Point (**ICP**) algorithm usage: `iterative_closest_point.cpp`
+    - **Interactive ICP**: a point cloud is moved to a target position step by step using ICP and the process is **visualized**: `interactive_icp.cpp`
+    - Two **large 3D scans** (360 rooms) are aligned using the Normal Distributions Transform (NDT) and **visualized**: `normal_distributions_transform.cpp`
+    - The alignment pose of a rigid object in a **scene with clutter** and occlusions is found and **visualized**:: `alignment_prerejective.cpp`
