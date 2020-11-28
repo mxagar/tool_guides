@@ -5,7 +5,7 @@
 
 // If PCL was compiled with the visualization module, uncommet this!
 #ifndef VISUALIZE
-//#define VISUALIZE
+#define VISUALIZE
 #endif
 
 #ifdef VISUALIZE

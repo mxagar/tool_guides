@@ -1,69 +1,71 @@
 /* Very simple pointcloud visualization code.
  * WARNING: This example works only with the visualization module!
- * Look at:
- * https://pcl.readthedocs.io/projects/tutorials/en/latest/cloud_viewer.html#cloud-viewer
-*/
+ * This example collects the most important visualization functionalities interesting for me.
+ */
 
 #include <pcl/visualization/cloud_viewer.h>
 #include <iostream>
+#include <string>
 #include <pcl/io/io.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/features/integral_image_normal.h>
 
-int user_data;
-
-void viewerOneOff(pcl::visualization::PCLVisualizer &viewer)
+int main(int argc, char **argv)
 {
-    viewer.setBackgroundColor(1.0, 0.5, 1.0);
-    pcl::PointXYZ o;
-    o.x = 1.0;
-    o.y = 0;
-    o.z = 0;
-    viewer.addSphere(o, 0.25, "sphere", 0);
-    std::cout << "i only run once" << std::endl;
-}
 
-void viewerPsycho(pcl::visualization::PCLVisualizer &viewer)
-{
-    static unsigned count = 0;
-    std::stringstream ss;
-    ss << "Once per viewer loop: " << count++;
-    viewer.removeShape("text", 0);
-    viewer.addText(ss.str(), 200, 300, "text", 0);
+    std::string filename;
+#ifdef _WIN32
+    filename = "..\\..\\..\\data\\table_scene_mug_stereo_textured.pcd";
+#else
+    filename = "../../data/table_scene_mug_stereo_textured.pcd";
+#endif
 
-    //FIXME: possible race condition here:
-    user_data++;
-}
+    // Load point cloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::io::loadPCDFile(filename, *cloud);
 
-int main()
-{
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+    // Estimate normals
+    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+    pcl::IntegralImageNormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+    ne.setNormalEstimationMethod(ne.AVERAGE_3D_GRADIENT);
+    ne.setMaxDepthChangeFactor(0.02f);
+    ne.setNormalSmoothingSize(10.0f);
+    ne.setInputCloud(cloud);
+    ne.compute(*normals);
 
-    // Load bun0.pcd
-    // Download from:
-    // https://raw.githubusercontent.com/PointCloudLibrary/pcl/master/test/bun0.pcd
-    pcl::io::loadPCDFile("../../data/bun0.pcd", *cloud);
+    // VISUALIZATION
+    pcl::visualization::PCLVisualizer viewer("PCL Viewer");
 
-    // IMPORTANT: CloudViewer class is NOT meant to be used in multi-threaded applications
-    // For multi-threaded cases, use PCLVisualizer
-    pcl::visualization::CloudViewer viewer("Cloud Viewer");
+    viewer.setBackgroundColor(0.0, 0.0, 0.5); // r, g, b
+    viewer.addCoordinateSystem(1.5); // size
 
-    //blocks until the cloud is actually rendered
-    viewer.showCloud(cloud);
+    pcl::ModelCoefficients coeffs;
+    // plane
+    coeffs.values.push_back(0.0); //nx
+    coeffs.values.push_back(0.0); //ny
+    coeffs.values.push_back(1.0); //nz
+    coeffs.values.push_back(0.0); //d
+    viewer.addPlane(coeffs, "plane");
+    // cone
+    coeffs.values.clear();
+    coeffs.values.push_back(0.3); //x
+    coeffs.values.push_back(0.3); //y
+    coeffs.values.push_back(0.0); //z
+    coeffs.values.push_back(0.0); //nx
+    coeffs.values.push_back(1.0); //ny
+    coeffs.values.push_back(0.0); //nz
+    coeffs.values.push_back(5.0); //alpha
+    viewer.addCone(coeffs, "cone");
+    // sphere
+    viewer.addSphere(pcl::PointXYZ(1.0, 1.0, 1.0), 1.2, 0.5, 0.5, 0.0, "sphere"); // center, radius, r, g, b, id
 
-    //use the following functions to get access to the underlying more advanced/powerful
-    //PCLVisualizer
-
-    //This will only get called once
-    viewer.runOnVisualizationThreadOnce(viewerOneOff);
-
-    //This will get called once per visualization iteration
-    viewer.runOnVisualizationThread(viewerPsycho);
+    //viewer.addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud, normals); // visualize normals
+    viewer.addPointCloud(cloud); // visualize points
+    viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1); // point size
+    
     while (!viewer.wasStopped())
     {
-        //you can also do cool processing here
-        //FIXME: Note that this is running in a separate thread from viewerPsycho
-        //and you should guard against race conditions yourself...
-        user_data++;
+        viewer.spinOnce();
     }
     return 0;
 }

@@ -27,7 +27,7 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
     - Pointcloud is embedded in voxel grid and for each voxel, the centroid of the points within it is delivered: `voxel_grid.cpp`
     - Statistical outlier removal targetting mainly noise in sparse regions; outliers in point Gaussian distribution are removed: `statistical_removal.cpp`
     - Points of a point cloud are projected on a primitive model (a plane): `project_inliers.cpp`
-    - A pointcloud containing inliers & outliers of a model (plane or sphere) is segmented using RANSAC; basically, the inliers that fit the model (plane / sphere) are detected (and visualized): `random_sample_consensus.cpp`
+    - A pointcloud containing inliers & outliers of a model (plane or sphere) is segmented using RANSAC; basically, the inliers that fit the model (plane / sphere) are detected (and **visualized**): `random_sample_consensus.cpp`
     - A point cloud is segmented in inliers that fit in a plane. Segmentation is carried out using RANSAC. Inlier indices and model parameters are extracted: `planar_segmentation.cpp`
     - A cylindrical mug is segmented on a real scene with a table. It is an application that extends the example in `planar_segmentation.cpp` to cylinders in a real scenario: `cylinder_segmentation.cpp`
     - Several subsets of points which fit into different planes are extracted iteratively from a scene: `extract_segmented_indices.cpp`
@@ -48,25 +48,34 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
 
 6. `pcl_example_05`: Surface processing (e.g., Triangulation)
 
-    - Moving Least Squares (MLS) surface reconstruction method smooth and resample noisy data with errors in normals due to alignment, among others:`resampling.cpp`
+    - Moving Least Squares (MLS) surface reconstruction method smooth and resample noisy data with errors in normals due to alignment, among others: `resampling.cpp`
     - Create a 2D convex / concave hull (3D points that enclose the hull) of a planar point cloud; a simple 2D hull polygon (concave or convex) for a set of points supported by a plane: `concave_convex_hull_2d.cpp`
     - Greedy surface triangulation algorithm on a PointCloud with normals, to obtain a triangle mesh based on projections of the local neighborhoods. Triangulation is performed locally, by projecting the local neighborhood of a point along the point’s normal, and connecting unconnected points: `greedy_projection.cpp`
 
 7. `pcl_example_06`: Visualization
 
-    - CloudViewer
-    - Range image visualization
-    - PCLVisualizer
+    - Simple visualization blueprint with the `CloudViewer` class - but it doesn't work on my macloudViewer: `cloud_viewer.cpp`
+    - Simple visualization utils compiled by me, eg., pointcloud with and without normals, point size, background color, coordinate system, plane, cone, sphere: `simple_viewer.cpp`
+    - Several examples with the `pcl::visualization::PCLVisualizer` class, the main visualization class in PCL -- many elements are visualized: `pcl_visualizer_demo.cpp`
 
-8. `pcl_example_07`: Useful data structures
+    - See also the PCL tool `pcl_viewer`
+
+    - Additional examples in other folders that visualize elements:
+        - normals are visualized: `pcl_example_02/fpfhEstimation.cpp`, `pcl_example_02/normalEstimationImages.cpp`, `pcl_example_02/pfhEstimation.cpp`
+        - pointcloud and coordinate system are visualized: `pcl_example_03/random_sample_consensus.cpp`
+        - pointclouds with different single colors are shown after alignment: `pcl_example_04/alignment_prerejective.cpp`, `pcl_example_04/normal_distributions_transform.cpp`
+        - **very intersting example**: pointclouds with different single colors are shown in 2 viewports as they are interactively aligned: `pcl_example_04/interactive_icp.cpp`
+
+8. `pcl_example_07`: Other useful data structures
 
     - NARF keypoints
     - kd-tree
     - octree
     - Range images
+    - How to visualize range images
 
 9. `pcl_example_08`: Recognition
 
-    - 1
-    - 2
-    - 3
+    - 3D Object Recognition based on Correspondence Grouping
+    - Implicit Shape Model
+    - Tutorial: Hypothesis Verification for 3D Object Recognition

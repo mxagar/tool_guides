@@ -1,4 +1,9 @@
-/* \author Geoffrey Biggs */
+/* Usage examples with PCLVisualizer.
+ * PCLVisualizer is PCL’s full-featured visualisation class.
+ * WARNING: This example works only with the visualization module!
+ * This example collects the most important visualization functionalities interesting for me.
+ * \author Geoffrey Biggs
+ */
 
 #include <iostream>
 #include <thread>
