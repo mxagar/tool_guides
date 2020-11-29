@@ -8,11 +8,11 @@ project(eigen_examples)
 
 if(WIN32)
     include_directories(/usr/local/include/eigen3)
-elseif(LINUX)
-    include_directories(/usr/local/include/eigen3)
+elseif(UNIX)
+    include_directories(/usr/include/eigen3)
 elseif(APPLE)
     include_directories(/usr/local/include/eigen3)
-endif()
+endif(WIN32)
 
 add_executable (eigen_examples eigen_examples.cpp)
 
