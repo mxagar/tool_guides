@@ -7,7 +7,7 @@ project(eigen_examples)
 #add_definitions(${Eigen3_DEFINITIONS})
 
 if(WIN32)
-    include_directories(/usr/local/include/eigen3)
+    include_directories(C:/src/Eigen3/eigen)
 elseif(LINUX)
     include_directories(/usr/local/include/eigen3)
 elseif(APPLE)
