@@ -12,7 +12,7 @@ elseif(LINUX)
     include_directories(/usr/local/include/eigen3)
 elseif(APPLE)
     include_directories(/usr/local/include/eigen3)
-endif()
+endif(WIN32)
 
 add_executable (eigen_examples eigen_examples.cpp)
 
