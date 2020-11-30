@@ -8,6 +8,8 @@ project(eigen_examples)
 
 if(WIN32)
     include_directories(C:/src/Eigen3/eigen)
+    # C1128 error issue in Windows
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 elseif(UNIX)
     include_directories(/usr/include/eigen3)
 elseif(APPLE)

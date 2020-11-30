@@ -199,6 +199,7 @@ int main(int argc, char** argv)
     Vector3f bb;
     AA << 1,2,3,  4,5,6,  7,8,10;
     bb << 3, 3, 4;
+    std::cout << "Ax = b with Housholder QR:" << std::endl;
     std::cout << "Here is the matrix A:\n" << AA << std::endl;
     std::cout << "Here is the vector b:\n" << bb << std::endl;
     Vector3f xx = AA.colPivHouseholderQr().solve(bb);
@@ -206,7 +207,7 @@ int main(int argc, char** argv)
 
     // colPivHouseholderQr() returns an object of the type ColPivHouseholderQR, which is used to solve the linear system
     // ColPivHouseholderQR performs a QR decomposition with column pivoting
-    // Other useful decompositions that can be used for solving linear systems (see links)
+    // Other useful decompositions that can be used for solving linear systems (see links, there are more classes):
     // https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html
     // https://eigen.tuxfamily.org/dox/group__TopicLinearAlgebraDecompositions.html
     // https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html
@@ -221,6 +222,7 @@ int main(int argc, char** argv)
     // Example: AX=B with Cholesky
     A << 2, -1, -1, 3;
     B << 1, 2, 3, 1;
+    std::cout << "AX=B with Cholesky:" << std::endl;
     std::cout << "Here is the matrix A:\n" << A << std::endl;
     std::cout << "Here is the right hand side b:\n" << B << std::endl;
     Matrix2f X = A.ldlt().solve(B);
@@ -233,17 +235,126 @@ int main(int argc, char** argv)
     double relative_error = (AAA*xxx - bbb).norm() / bbb.norm(); // norm() is L2 norm
     std::cout << "The relative error is:\n" << relative_error << std::endl;
 
-    // Eigenvalues & Eigenvectors
-
+    // Eigenvalues an Eigenvectors
+    A << 1, 2, 2, 3;
+    std::cout << "Eigenvalues and Eigenvectors:" << std::endl;
+    std::cout << "A:\n" << A << std::endl;
+    SelfAdjointEigenSolver<Matrix2f> eigensolver(A); // There are more options/eigen-solvers
+    if (eigensolver.info() != Success) abort();
+    std::cout << "eigenvalues(A):\n" << eigensolver.eigenvalues() << std::endl;
+    std::cout << "eigenvectors(A):\n"
+        << eigensolver.eigenvectors() << std::endl;
 
     // Inverse and Determinant
+    // Note: make sure you really want the inverse; usually, it's successfully replaced by .solve()
+    // Some decomposition classes (see above) offer .inverse() and .determinant() methods
+    // For small matrix sizes (e.g., 4x4), custom more efficient methods are implemented
+    std::cout << "Inverse and Determinant:" << std::endl;
+    AA << 1, 2, 1,
+        2, 1, 0,
+        -1, 1, 2;
+    std::cout << "A = \n" << AA << std::endl;
+    std::cout << "det(A) = \n" << AA.determinant() << std::endl;
+    std::cout << "inv(A) = \n" << AA.inverse() << std::endl;
 
+    // --- LEAST SQUARES
+    std::cout << "\n--- Least Squares ---" << std::endl;
+    // Best solved with SVD decompositions; 2 classes:
+    // 1. BDCSVD: for large problems
+    // 2. JacobiSVD: for smaller problems
+    // See also:
+    // https://eigen.tuxfamily.org/dox/group__LeastSquares.html
 
-    // Least Squares Solving
-
+    MatrixXf M = MatrixXf::Random(3, 2);
+    std::cout << "M = \n" << M << std::endl;
+    VectorXf z = VectorXf::Random(3);
+    std::cout << "z = \n" << z << std::endl;
+    std::cout << "M*q = z -> q = \n" << M.bdcSvd(ComputeThinU | ComputeThinV).solve(z) << std::endl;
 
     // --- GEOMETRY: SPATIAL TRANSFORMATIONS
     std::cout << "\n--- Geometry: Spatial Transformations ---" << std::endl;
 
+    // 2D & 3D rotations, projective and affine transformations
+    // Two types of transformation objects:
+    // 1. Abstract object, not represented by matrices, but which can operate with matrices
+    //      rotations: Eigen::AngleAxis, Eigen::Quaternion
+    //          NOTE: we can create a rotation object type from another type, but it must be in 2 steps, not in the constructor, eg
+    //              INCORRECT: Quaternion<float> q = AngleAxis<float>(angle_in_radian, axis);
+    //              CORRECT: Quaternion<float> q; q = AngleAxis<float>(angle_in_radian, axis);
+    //      translations: Eigen::Translation
+    //      scalings: Eigen::Scaling
+    // 2. Transformations, represented by matrices: Projective and Affine Transformations
+    //      Eigen::Transform
+    // Note: if matrices, recall data is stored in column-major order
 
+    // Rotation
+    float angle_in_radian = 1.0;
+    Rotation2D<float> rot2(angle_in_radian); // 2D rotation
+    float ax = 1.0, ay = 0.0, az = 0.0;
+    Vector3f axis(ax,ay,az);
+    AngleAxis<float> aa(angle_in_radian, axis);
+    Quaternion<float> q; q = AngleAxis<float>(angle_in_radian, axis);
+    std::cout << "Quaternion q = \n" << q << std::endl;
+    
+    // Scaling
+    float sx = 1.0f, sy = 1.2f, sz = 1.3f;
+    Eigen::AlignedScaling2f S1= Scaling(sx, sy);
+    Eigen::AlignedScaling3f S2 = Scaling(sx, sy, sz);
+    Vector3f sN(sx, sy, sz);
+    Eigen::AlignedScaling3f S3 = Scaling(sN);
+
+    // Translation
+    float tx = 0.0, ty = 1.0, tz = -1.0;
+    Translation<float,2> t1(tx, ty);
+    Translation<float,3> t2(tx, ty, tz);
+    Translation<float,3> t3(Vector3f(tx, ty, tz));
+
+    // Affine transformations (Transform class): Concatenation
+    Transform<float,3,Affine> H1 = Translation3f(Vector3f(tx, ty, tz)) * AngleAxisf(angle_in_radian,axis) * Scaling(sN);
+    std::cout << "rxx: H1(0,0) = " << H1(0,0)
+                << ", ryy: H1(1,1) = " << H1(1,1)
+                << ", rzz: H1(2,2) = " << H1(2,2)
+                << ", tx: H1(0,3) = " << H1(0,3)
+                << ", ty: H1(1,3) = " << H1(1,3)
+                << ", tz: H1(2,3) = " << H1(2,3)
+                << ", 1: H1(3,3) = " << H1(3,3)
+                << ", 0: H1(3,2) = " << H1(3,2)
+                << std::endl;
+
+    // Linear transformations (Matrix class): Concatenation
+    Matrix2f H2 = Rotation2Df(angle_in_radian) * Scaling(Vector2f(sx,sy));
+    Matrix3f H3 = AngleAxisf(angle_in_radian,axis) * Scaling(Vector3f(sx,sy,sz));
+    H1 = H3; // An affine transform can accept a linear transformation as input
+
+    // Typical transformations: Homogeneous matrices (rotation and translation), pose composition, point transformation
+    // Instead of Matrix3f, Affine3f seems better suited for homogeneous transformations
+    // because it accepts during constructions other object types, such as AngleAxisf or Translation3f
+    // However, note that when done that, the assignation must be carried out in two steps, not in constructor, eg
+    // INCORRECT (compilation error): Affine3f Rot = AngleAxisf(rad,Vector3f(1.0, 0.0, 0.0));
+    // CORRECT: Affine3f Rot; Rot = AngleAxisf(rad,Vector3f(1.0, 0.0, 0.0));
+    // NOTE: Affine3f is typedef Transform<float,3,Affine>
+    Vector3f P1(1.0, 2.0, 3.0);
+    float rad = 0.5f;
+    Affine3f I = Affine3f::Identity();
+    Affine3f Rot; Rot = AngleAxisf(rad,Vector3f(1.0f, 0.0f, 0.0f));
+    Affine3f T; T = Translation3f(Vector3f(0.5f, -0.6f, 0.7f));
+    Affine3f H4 = T * Rot; // [Rot|T]
+    Affine3f H5 = I * H1.inverse() * H4; // Concatenate transformations
+    Vector3f P2 = H5 * P1; // Transform point
+    std::cout << "P2 = " << P2(0) << ", " << P2(1) << ", " << P2(2) << std::endl;
+
+    // Get components
+    Matrix4f MH5 = H5.matrix();
+    Vector3f TH5 = H5.translation();
+    Matrix3f RH5 = H5.rotation();
+
+    // Euler Angles
+    // There are 24 different conventions
+    // Example: Rotation matrix according to the 2-1-2 (Z-Y-Z) convention (0:x, 1:y, 2:z):
+    Matrix3f EulerRot;
+    float angle1 = 0.5f, angle2 = 0.7f, angle3 = 0.9f;
+    EulerRot = AngleAxisf(angle1, Vector3f::UnitZ()) * AngleAxisf(angle2, Vector3f::UnitY()) * AngleAxisf(angle3, Vector3f::UnitZ());
+    Vector3f Angles = EulerRot.eulerAngles(2, 1, 2); // Z-Y-Z
+    std::cout << "Euler angles = " << Angles(0) << ", " << Angles(1) << ", " << Angles(2) << std::endl;
+    
 }
