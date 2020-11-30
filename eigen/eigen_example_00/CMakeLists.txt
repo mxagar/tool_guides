@@ -17,4 +17,4 @@ endif(WIN32)
 add_executable (eigen_examples eigen_examples.cpp)
 
 # This would be equivalent to
-# g++ -I /path/to/eigen/ my_program.cpp -o my_program
+# g++ -I /path/to/eigen/ eigen_examples.cpp -o eigen_examples
