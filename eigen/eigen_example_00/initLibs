@@ -1,2 +1,2 @@
-# Eigen Linux
-export LD_LIBRARY_PATH="/usr/local/include/eigen3:$LD_LIBRARY_PATH"
+# Eigen3 Linux
+export LD_LIBRARY_PATH="/usr/include/eigen3:$LD_LIBRARY_PATH"
