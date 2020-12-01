@@ -294,7 +294,6 @@ int main(int argc, char** argv)
     Vector3f axis(ax,ay,az);
     AngleAxis<float> aa(angle_in_radian, axis);
     Quaternion<float> q; q = AngleAxis<float>(angle_in_radian, axis);
-    std::cout << "Quaternion q = \n" << q << std::endl;
     
     // Scaling
     float sx = 1.0f, sy = 1.2f, sz = 1.3f;
