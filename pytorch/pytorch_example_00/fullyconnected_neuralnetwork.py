@@ -185,13 +185,16 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_
             # Zero/initialize gradients
             optimizer.zero_grad()
 
-            # Forward pass, then compute loss and differentiate it
+            # Forward pass: compute the prediction
             output = model.forward(images)
+            # Loss: difference between prediction and ground truth
             loss = criterion(output, labels)
+            # Backward: compute parameter (weights) gradient
             loss.backward()
+            # Update the parameters with gradient (and learning rate) using the passed optmizing strategy
             optimizer.step()
 
-            # Aggregate/sum loss
+            # Aggregate/sum loss; .item() converts a single-value tensor in a scalar
             running_loss += loss.item()
 
             if steps % print_every == 0:
