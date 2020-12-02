@@ -16,7 +16,7 @@ Files and content:
     - Tensors: `tensors.py`
     - Main Exemplary Application: main example in which pytorch is showcased; `fullyconnected_neuralnetwork.py` and `helper_nn.py` are used to train a model (defined in the notebook) with Fashion-MNIST dataset and infer some images
     - Custom Datasets: details on how to deal with own image datasets are explained
-    - Additional: manually defined networks and access to weight values
+    - Additional: manually defined networks, access to weight values, and layer/filter & activation/feature map visualization
 - `tensors.py`: basic tensor usage.
 - `helper_nn.py`: utils for model testing and visualization of dataset & inferred values
 - `fullyconnected_neuralnetwork.py`: 
