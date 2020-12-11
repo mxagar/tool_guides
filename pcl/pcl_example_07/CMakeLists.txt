@@ -29,7 +29,12 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-# Executable 1: A simple ICP is performed between artificial point clouds.
-# ./resampling
-add_executable (resampling resampling.cpp)
-target_link_libraries (resampling ${PCL_LIBRARIES})
+# Executable 1: How to create a range image from a point cloud and a given sensor position.
+# ./range_image_creation
+add_executable (range_image_creation range_image_creation.cpp)
+target_link_libraries (range_image_creation ${PCL_LIBRARIES})
+
+# Executable 2: How to visualize a range image.
+# ./range_image_visualization
+add_executable (range_image_visualization range_image_visualization.cpp)
+target_link_libraries (range_image_visualization ${PCL_LIBRARIES})

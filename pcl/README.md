@@ -68,11 +68,11 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
 
 8. `pcl_example_07`: Other useful data structures
 
-    - NARF keypoints
+    - Range images: how to create them from point clouds (a synthetic **unordered** is used), given a sensor position: `range_image_creation.cpp`
+    - How to visualize range images: `range_image_visualization.cpp`
+    - NARF keypoints on range images
     - kd-tree
     - octree
-    - Range images
-    - How to visualize range images
 
 9. `pcl_example_08`: Recognition
 
