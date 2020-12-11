@@ -5,7 +5,6 @@
  * (1) the 3D pointcloud
  * and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud.
  * WARNING: This example works only with the visualization module!
- * This tutorial demonstrates how to create a range image from a point cloud and a given sensor position.
  */
 
 #include <iostream>
