@@ -69,7 +69,7 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
 8. `pcl_example_07`: Other useful data structures
 
     - Range images: how to create them from point clouds (a synthetic **unordered** is used), given a sensor position: `range_image_creation.cpp`
-    - How to visualize range images: `range_image_visualization.cpp`
+    - How to visualize range images: unordered pointcloud can be loaded (or created, if not specified one), its range image created and visualized; 2 windows are opened: (1) the 3D pointcloud and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud: `range_image_visualization.cpp`
     - NARF keypoints on range images
     - kd-tree
     - octree

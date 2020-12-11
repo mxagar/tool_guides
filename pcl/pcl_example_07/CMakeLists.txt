@@ -35,6 +35,9 @@ add_executable (range_image_creation range_image_creation.cpp)
 target_link_libraries (range_image_creation ${PCL_LIBRARIES})
 
 # Executable 2: How to visualize a range image.
-# ./range_image_visualization
+# ./range_image_visualization: pointcloud created and visualized in 2 windows: 3D pointcloud and 2D range image
+# ./range_image_visualization -h: help
+# ./range_image_visualization -l: interactive 2D range image generated from 3D pointcloud view modified with mouse
+# ./range_image_visualization <my_pointcloud.pcd>: create range image of custom pointcloud; if pointcloud not passed, a synthetic unordered pointcloud is created
 add_executable (range_image_visualization range_image_visualization.cpp)
 target_link_libraries (range_image_visualization ${PCL_LIBRARIES})

@@ -1,4 +1,9 @@
-/* Very simple range image visualization.
+/* Range image visualization.
+ * Unordered pointcloud can be loaded (or created, if not specified one),
+ * its range image created and visualized.
+ * Two windows are opened:
+ * (1) the 3D pointcloud
+ * and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud.
  * WARNING: This example works only with the visualization module!
  * This tutorial demonstrates how to create a range image from a point cloud and a given sensor position.
  */
@@ -17,6 +22,9 @@ typedef pcl::PointXYZ PointType;
 // --------------------
 // -----Parameters-----
 // --------------------
+
+// Default values
+// See range_image_creation.cpp for explanations
 float angular_resolution_x = 0.5f,
       angular_resolution_y = angular_resolution_x;
 pcl::RangeImage::CoordinateFrame coordinate_frame = pcl::RangeImage::CAMERA_FRAME;
@@ -121,6 +129,7 @@ int main(int argc, char **argv)
     // -----------------------------------------------
     // -----Create RangeImage from the PointCloud-----
     // -----------------------------------------------
+    // See range_image_creation.cpp for more explanations
     float noise_level = 0.0;
     float min_range = 0.0f;
     int border_size = 1;
@@ -133,20 +142,32 @@ int main(int argc, char **argv)
     // --------------------------------------------
     // -----Open 3D viewer and add point cloud-----
     // --------------------------------------------
+    // 
+    // We open 2 windows: (1) the pointcloud used for the range image, and (2) the range image
+    //
+    // (1) Pointcloud viewer
     pcl::visualization::PCLVisualizer viewer("3D Viewer");
-    viewer.setBackgroundColor(1, 1, 1);
-    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointWithRange> range_image_color_handler(range_image_ptr, 0, 0, 0);
-    viewer.addPointCloud(range_image_ptr, range_image_color_handler, "range image");
+    viewer.setBackgroundColor(1, 1, 1); // white background
+    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointWithRange> range_image_color_handler(range_image_ptr, 0, 0, 0); // black points
+    viewer.addPointCloud(range_image_ptr, range_image_color_handler, "range image"); // pointcloud name is the reference
     viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "range image");
-    //viewer.addCoordinateSystem (1.0f, "global");
-    //PointCloudColorHandlerCustom<PointType> point_cloud_color_handler (point_cloud_ptr, 150, 150, 150);
-    //viewer.addPointCloud (point_cloud_ptr, point_cloud_color_handler, "original point cloud");
+
+    // We can add the coordinate system and the original pointcloud (x,y,z) from with we create the (x,y,z,range) pointcloud
+    // Note in the visualization that both pointclouds do not match exactly...
+    // I understand this is because the range pointcloud has points defined as radial beams that cut a plane
+    viewer.addCoordinateSystem (1.0f, "global");
+    pcl::visualization::PointCloudColorHandlerCustom<PointType> point_cloud_color_handler(point_cloud_ptr, 150, 150, 150);
+    viewer.addPointCloud (point_cloud_ptr, point_cloud_color_handler, "original point cloud");
+    
     viewer.initCameraParameters();
     setViewerPose(viewer, range_image.getTransformationToWorldSystem());
 
     // --------------------------
     // -----Show range image-----
     // --------------------------
+    //
+    // (2) Range image viewer: That is another extra window
+    // 2D image of color-coded range values
     pcl::visualization::RangeImageVisualizer range_image_widget("Range image");
     range_image_widget.showRangeImage(range_image);
 
@@ -159,6 +180,8 @@ int main(int argc, char **argv)
         viewer.spinOnce();
         pcl_sleep(0.01);
 
+        // If live_update = true, the pointcloud moved by the user with the mouse is projected accordingly to generate the range image, interactively
+        // We can activate that with option -l
         if (live_update)
         {
             scene_sensor_pose = viewer.getViewerPose();
@@ -168,4 +191,9 @@ int main(int argc, char **argv)
             range_image_widget.showRangeImage(range_image);
         }
     }
+
+    // Note:
+    // - unseen areas(range - INFINITY) are shown in pale green
+    // - far ranges (range INFINITY - if available in the scan) in pale blue
+
 }
