@@ -1,0 +1,20 @@
+name: python-cvcourse
+channels:
+  - menpo
+  - conda-forge
+  - defaults
+dependencies:
+  - jupyter=1.0.0
+  - jupyterlab=0.34.9
+  - keras=2.2.2=0
+  - matplotlib=2.2.3
+  - numpy=1.15.1
+  - opencv=3.4.2
+  - pandas=0.23.4
+  - python=3.6.6
+  - scikit-learn=0.19.1
+  - scipy=1.1.0
+  - tensorboard=1.10.0
+  - tensorflow=1.10.0
+prefix: /anaconda3/envs/cvcourse
+
