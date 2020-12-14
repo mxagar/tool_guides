@@ -97,10 +97,19 @@ main (int argc, char** argv)
                                                                point_cloud.sensor_origin_[1],
                                                                point_cloud.sensor_origin_[2])) *
                         Eigen::Affine3f (point_cloud.sensor_orientation_);
-  
+
+    // To extract the border information,
+    // it is important to differentiate between range image points that are unobserved and points that should have been observed but were out of range for the sensor.
+    // The latter typically marks a border, whereas unobserved points typically do not.
+    // Therefore it is useful to provide those measurements, if they are available.
+    // We expect to find an additional pcd file containing those values.
+    // They are later on integrated into the range image: range_image.integrateFarRanges().
     std::string far_ranges_filename = pcl::getFilenameWithoutExtension (filename)+"_far_ranges.pcd";
     if (pcl::io::loadPCDFile(far_ranges_filename.c_str(), far_ranges) == -1)
       std::cout << "Far ranges file \""<<far_ranges_filename<<"\" does not exists.\n";
+      // If those far range values are not available, the command line parameter -m can be used to assume,
+      // that all unobserved points are actually far ranges.
+      // This is done with: range_image.setUnseenToMaxRange()
   }
   else
   {
@@ -126,13 +135,18 @@ main (int argc, char** argv)
   pcl::RangeImage& range_image = *range_image_ptr;   
   range_image.createFromPointCloud (point_cloud, angular_resolution, pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
                                    scene_sensor_pose, coordinate_frame, noise_level, min_range, border_size);
+  // If available, pointcloud with information about far ranges is integrated here (see comments above)
   range_image.integrateFarRanges (far_ranges);
+  // If those far range values are not available, the command line parameter -m can be used to assume,
+  // that all unobserved points are actually far ranges.
+  // This is done in the code with
   if (setUnseenToMaxRange)
     range_image.setUnseenToMaxRange ();
 
   // --------------------------------------------
   // -----Open 3D viewer and add point cloud-----
   // --------------------------------------------
+  // We create a viewer and add the pointcloud to it
   pcl::visualization::PCLVisualizer viewer ("3D Viewer");
   viewer.setBackgroundColor (1, 1, 1);
   viewer.addCoordinateSystem (1.0f, "global");
@@ -145,13 +159,19 @@ main (int argc, char** argv)
   // -------------------------
   // -----Extract borders-----
   // -------------------------
+  // Border extraction happens actually in these 3 lines
+  // Rest is visualization
   pcl::RangeImageBorderExtractor border_extractor (&range_image);
   pcl::PointCloud<pcl::BorderDescription> border_descriptions;
+  // border_descriptions contains for each XYZ point (or in width x height domain) a flag
+  // stating whether point is boder / veil / shadow 
   border_extractor.compute (border_descriptions);
-  
+
   // ----------------------------------
   // -----Show points in 3D viewer-----
   // ----------------------------------
+  // We create 3 pointclouds: boder, veil, shadow
+  // And fill them in with points according to the point flags in border_extractor
   pcl::PointCloud<pcl::PointWithRange>::Ptr border_points_ptr(new pcl::PointCloud<pcl::PointWithRange>),
                                             veil_points_ptr(new pcl::PointCloud<pcl::PointWithRange>),
                                             shadow_points_ptr(new pcl::PointCloud<pcl::PointWithRange>);
@@ -170,6 +190,7 @@ main (int argc, char** argv)
         shadow_points.points.push_back (range_image[y*range_image.width + x]);
     }
   }
+  // The three border pointclouds are added to the viewer: border / veil / shadow
   pcl::visualization::PointCloudColorHandlerCustom<pcl::PointWithRange> border_points_color_handler (border_points_ptr, 0, 255, 0);
   viewer.addPointCloud<pcl::PointWithRange> (border_points_ptr, border_points_color_handler, "border points");
   viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 7, "border points");
@@ -183,6 +204,7 @@ main (int argc, char** argv)
   //-------------------------------------
   // -----Show points on range image-----
   // ------------------------------------
+  // Note: in my visualization the range image seems to have another viewpoint...
   pcl::visualization::RangeImageVisualizer* range_image_borders_widget = NULL;
   range_image_borders_widget =
     pcl::visualization::RangeImageVisualizer::getRangeImageBordersWidget (range_image, -std::numeric_limits<float>::infinity (), std::numeric_limits<float>::infinity (), false,

@@ -14,6 +14,9 @@ List of examples:
 
 2. `range_image_visualization.cpp`: how to visualize range images: unordered pointcloud can be loaded (or created, if not specified one), its range image created and visualized; 2 windows are opened: (1) the 3D pointcloud and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud; see [How to visualize a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/range_image_visualization.html#range-image-visualization).
 
-3. `range_image_border_extraction.cpp`: [How to extract borders from range images](https://pcl.readthedocs.io/projects/tutorials/en/latest/range_image_border_extraction.html#range-image-border-extraction)
+3. `range_image_border_extraction.cpp`: given a pointcloud (if not given, a synthetic one is created), three boder points are detected and **visualized**: **border**, **shadow**, **veil**; see [How to extract borders from range images](https://pcl.readthedocs.io/projects/tutorials/en/latest/range_image_border_extraction.html#range-image-border-extraction)
 
-4. `narf_keypoint_extraction.cpp`: [How to extract NARF keypoint from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction)
+4. `narf_keypoint_extraction.cpp`: [How to extract NARF **Keypoints** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction)
+
+5. `narf_feature_extraction.cpp`: [How to extract NARF **Features** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_feature_extraction.html#narf-feature-extraction)
+

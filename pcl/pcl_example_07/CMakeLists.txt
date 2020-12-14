@@ -43,11 +43,19 @@ add_executable (range_image_visualization range_image_visualization.cpp)
 target_link_libraries (range_image_visualization ${PCL_LIBRARIES})
 
 # Executable 3: Range image border extraction.
-# ./range_image_border_extraction
+# ./range_image_border_extraction -m: synthetic point cloud created, unobserved points set to max range values (-m), boder points visualized in 3D viewer and 2D range image viewer
+# ./range_image_border_extraction <point_cloud.pcd>: same as above, but we pass the pointcloud and unobserved points are not assigned max gange values
 add_executable (range_image_border_extraction range_image_border_extraction.cpp)
 target_link_libraries (range_image_border_extraction ${PCL_LIBRARIES})
 
 # Executable 4: NARF Keypoint extraction.
-# ./narf_keypoint_extraction
+# ./narf_keypoint_extraction -m
+# ./narf_keypoint_extraction <point_cloud.pcd>
 add_executable (narf_keypoint_extraction narf_keypoint_extraction.cpp)
 target_link_libraries (narf_keypoint_extraction ${PCL_LIBRARIES})
+
+# Executable 5: NARF Feature extraction.
+# ./narf_feature_extraction -m
+# ./narf_feature_extraction <point_cloud.pcd>
+add_executable (narf_feature_extraction narf_feature_extraction.cpp)
+target_link_libraries (narf_feature_extraction ${PCL_LIBRARIES})

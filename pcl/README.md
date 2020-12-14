@@ -65,13 +65,15 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
         - pointcloud and coordinate system are visualized: `pcl_example_03/random_sample_consensus.cpp`
         - pointclouds with different single colors are shown after alignment: `pcl_example_04/alignment_prerejective.cpp`, `pcl_example_04/normal_distributions_transform.cpp`
         - **very intersting example**: pointclouds with different single colors are shown in 2 viewports as they are interactively aligned: `pcl_example_04/interactive_icp.cpp`
+        - range image visualization: `pcl_example_07/range_image_visualization.cpp`, `pcl_example_07/range_image_border_extraction.cpp`, `pcl_example_07/narf_keypoint_extraction.cpp`
 
-8. `pcl_example_07`: Other useful data structures
+8. `pcl_example_07`: Other useful data structures: Range Images and Search Structures (kd-trees & octrees)
 
     - Range images: how to create them from point clouds (a synthetic **unordered** is used), given a sensor position: `range_image_creation.cpp`
-    - How to visualize range images: unordered pointcloud can be loaded (or created, if not specified one), its range image created and visualized; 2 windows are opened: (1) the 3D pointcloud and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud: `range_image_visualization.cpp`
-    - Range image border extraction: `range_image_border_extraction.cpp`
+    - How to **visualize** range images: unordered pointcloud can be loaded (or created, if not specified one), its range image created and visualized; 2 windows are opened: (1) the 3D pointcloud and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud: `range_image_visualization.cpp`
+    - Range image border extraction: given a pointcloud (if not given, a synthetic one is created), three boder points are detected and **visualized**: **border**, **shadow**, **veil**;`range_image_border_extraction.cpp`
     - NARF keypoints on range images: `narf_keypoint_extraction.cpp`
+    - NARF features on range images: `narf_feature_extraction.cpp`
     - kd-tree
     - octree
 

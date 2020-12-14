@@ -1,10 +1,13 @@
-/* This tutorial demonstrates how to extract NARF key points from a range image.
+/* This tutorial demonstrates how to extract NARF keypoints from a range image.
  * Interest point detection and feature descriptor calculation in 3D range data called NARF (Normal Aligned Radial Feature).
  * The method makes explicit use of object boundary information and tries to extract the features in areas where the surface is stable but has substantial change in the vicinity.
  * http://www2.informatik.uni-freiburg.de/~steder/steder10irosws-abstract.html
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_feature_extraction.html#narf-feature-extraction
+ * NARF keypoints seem to be detected in object boundary corners.
  * For a background, consult first:
  * - range_image_creation.cpp
  * - range_image_visualization.cpp
+ * - range_image_border_extraction.cpp
  * WARNING: This example works only with the visualization module!
  * \author Bastian Steder
  */
@@ -167,13 +170,17 @@ main (int argc, char** argv)
   // --------------------------------
   // -----Extract NARF keypoints-----
   // --------------------------------
+  // NARF keypoints are detected here
   pcl::RangeImageBorderExtractor range_image_border_extractor;
   pcl::NarfKeypoint narf_keypoint_detector (&range_image_border_extractor);
   narf_keypoint_detector.setRangeImage (&range_image);
+  // Suport size: the size of the sphere around a point that includes points that are used for the determination of the interest value
   narf_keypoint_detector.getParameters ().support_size = support_size;
+  // We can test these parameters too
   //narf_keypoint_detector.getParameters ().add_points_on_straight_edges = true;
   //narf_keypoint_detector.getParameters ().distance_for_additional_points = 0.5;
   
+  // The computation of NARF keypoints happens here, and we extract the point indices
   pcl::PointCloud<int> keypoint_indices;
   narf_keypoint_detector.compute (keypoint_indices);
   std::cout << "Found "<<keypoint_indices.size ()<<" key points.\n";
@@ -188,6 +195,7 @@ main (int argc, char** argv)
   // -------------------------------------
   // -----Show keypoints in 3D viewer-----
   // -------------------------------------
+  // We create a new pointcloud which is filled with the keypoints
   pcl::PointCloud<pcl::PointXYZ>::Ptr keypoints_ptr (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZ>& keypoints = *keypoints_ptr;
   keypoints.resize (keypoint_indices.size ());
