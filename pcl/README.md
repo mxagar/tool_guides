@@ -72,7 +72,7 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
     - Range images: how to create them from point clouds (a synthetic **unordered** is used), given a sensor position: `range_image_creation.cpp`
     - How to **visualize** range images: unordered pointcloud can be loaded (or created, if not specified one), its range image created and visualized; 2 windows are opened: (1) the 3D pointcloud and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud: `range_image_visualization.cpp`
     - Range image border extraction: given a pointcloud (if not given, a synthetic one is created), three boder points are detected and **visualized**: **border**, **shadow**, **veil**;`range_image_border_extraction.cpp`
-    - NARF keypoints on range images: `narf_keypoint_extraction.cpp`
+    - NARF keypoints on range images: given a pointcloud (if not given, a synthetic one is created), NARF keypoints are detected and **visualized**: `narf_keypoint_extraction.cpp`
     - NARF features on range images: `narf_feature_extraction.cpp`
     - kd-tree
     - octree

@@ -16,7 +16,7 @@ List of examples:
 
 3. `range_image_border_extraction.cpp`: given a pointcloud (if not given, a synthetic one is created), three boder points are detected and **visualized**: **border**, **shadow**, **veil**; see [How to extract borders from range images](https://pcl.readthedocs.io/projects/tutorials/en/latest/range_image_border_extraction.html#range-image-border-extraction)
 
-4. `narf_keypoint_extraction.cpp`: [How to extract NARF **Keypoints** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction)
+4. `narf_keypoint_extraction.cpp`: given a pointcloud (if not given, a synthetic one is created), NARF keypoints are detected and **visualized**; NARF keypoints seem to be detected in object boundary corners; see [How to extract NARF **Keypoints** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction)
 
 5. `narf_feature_extraction.cpp`: [How to extract NARF **Features** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_feature_extraction.html#narf-feature-extraction)
 
