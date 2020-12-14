@@ -13,3 +13,7 @@ List of examples:
 1. `range_image_creation.cpp`: how to create a range image from a point cloud (a synthetic **unordered** is used) and a given sensor position; see [How to create a range image from a point cloud](https://pcl.readthedocs.io/projects/tutorials/en/latest/range_image_creation.html#range-image-creation).
 
 2. `range_image_visualization.cpp`: how to visualize range images: unordered pointcloud can be loaded (or created, if not specified one), its range image created and visualized; 2 windows are opened: (1) the 3D pointcloud and the (2) 2D range image, which can be interactively updated with the movement of the 3D pointcloud; see [How to visualize a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/range_image_visualization.html#range-image-visualization).
+
+3. `range_image_border_extraction.cpp`: [How to extract borders from range images](https://pcl.readthedocs.io/projects/tutorials/en/latest/range_image_border_extraction.html#range-image-border-extraction)
+
+4. `narf_keypoint_extraction.cpp`: [How to extract NARF keypoint from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction)

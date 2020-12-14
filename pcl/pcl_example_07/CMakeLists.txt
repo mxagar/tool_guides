@@ -41,3 +41,13 @@ target_link_libraries (range_image_creation ${PCL_LIBRARIES})
 # ./range_image_visualization <my_pointcloud.pcd>: create range image of custom pointcloud; if pointcloud not passed, a synthetic unordered pointcloud is created
 add_executable (range_image_visualization range_image_visualization.cpp)
 target_link_libraries (range_image_visualization ${PCL_LIBRARIES})
+
+# Executable 3: Range image border extraction.
+# ./range_image_border_extraction
+add_executable (range_image_border_extraction range_image_border_extraction.cpp)
+target_link_libraries (range_image_border_extraction ${PCL_LIBRARIES})
+
+# Executable 4: NARF Keypoint extraction.
+# ./narf_keypoint_extraction
+add_executable (narf_keypoint_extraction narf_keypoint_extraction.cpp)
+target_link_libraries (narf_keypoint_extraction ${PCL_LIBRARIES})
