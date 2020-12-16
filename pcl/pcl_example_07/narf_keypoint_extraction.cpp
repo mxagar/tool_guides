@@ -2,6 +2,7 @@
  * Interest point detection and feature descriptor calculation in 3D range data called NARF (Normal Aligned Radial Feature).
  * The method makes explicit use of object boundary information and tries to extract the features in areas where the surface is stable but has substantial change in the vicinity.
  * http://www2.informatik.uni-freiburg.de/~steder/steder10irosws-abstract.html
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction
  * https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_feature_extraction.html#narf-feature-extraction
  * NARF keypoints seem to be detected in object boundary corners.
  * For a background, consult first:

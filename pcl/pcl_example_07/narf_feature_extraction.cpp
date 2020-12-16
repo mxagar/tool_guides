@@ -1,6 +1,9 @@
 /* This tutorial demonstrates how to extract NARF descriptors at NARF keypoint positions from a range image.
  * NARF keypoints seem to be detected in object boundary corners.
+ * The method makes explicit use of object boundary information and tries to extract the features in areas where the surface is stable but has substantial change in the vicinity.
  * http://www2.informatik.uni-freiburg.de/~steder/steder10irosws-abstract.html
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction
+ * https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_feature_extraction.html#narf-feature-extraction
  * For a background, consult first:
  * - range_image_creation.cpp
  * - range_image_visualization.cpp
@@ -176,6 +179,7 @@ int main(int argc, char **argv)
     // --------------------------------
     // -----Extract NARF keypoints-----
     // --------------------------------
+    // NARF keypoints are computed here
     pcl::RangeImageBorderExtractor range_image_border_extractor;
     pcl::NarfKeypoint narf_keypoint_detector;
     narf_keypoint_detector.setRangeImageBorderExtractor(&range_image_border_extractor);
@@ -208,17 +212,27 @@ int main(int argc, char **argv)
     // ------------------------------------------------------
     // -----Extract NARF descriptors for interest points-----
     // ------------------------------------------------------
+    // NARF feature descriptor are computed here
+    // We pass the range image an the indices of the NARF keypoints
+    // pcl::PointCloud<pcl::Narf36>::compute() computes are feature descriptor with 36 elements for each NARF keypoint
     std::vector<int> keypoint_indices2;
     keypoint_indices2.resize(keypoint_indices.size());
     for (unsigned int i = 0; i < keypoint_indices.size(); ++i) // This step is necessary to get the right vector type
         keypoint_indices2[i] = keypoint_indices[i];
     pcl::NarfDescriptor narf_descriptor(&range_image, &keypoint_indices2);
-    narf_descriptor.getParameters().support_size = support_size;
-    narf_descriptor.getParameters().rotation_invariant = rotation_invariant;
-    pcl::PointCloud<pcl::Narf36> narf_descriptors;
+    narf_descriptor.getParameters().support_size = support_size; // size of the area around which the feature descriptor is computed
+    narf_descriptor.getParameters().rotation_invariant = rotation_invariant; // rotation around the normal
+    // Output pointcloud where the computation is performed and delivered
+    pcl::PointCloud<pcl::Narf36> narf_descriptors; // 6x (x,y,z,roll,ptch,yaw)
     narf_descriptor.compute(narf_descriptors);
+    // IMPORTANT:
+    // Number of Keypoints and Descriptors might differ!
+    // because:
+    // - the calculation of the descriptor fails (not enough points)
+    // - or there might be multiple descriptors in the same place, but for different dominant rotations
     std::cout << "Extracted " << narf_descriptors.size() << " descriptors for "
               << keypoint_indices.size() << " keypoints.\n";
+    // Now features are ready to use: you can compare them, eg, with the Manhattan distance
 
     //--------------------
     // -----Main loop-----
