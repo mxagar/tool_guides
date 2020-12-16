@@ -18,5 +18,5 @@ List of examples:
 
 4. `narf_keypoint_extraction.cpp`: given a pointcloud (if not given, a synthetic one is created), NARF keypoints are detected and **visualized**; NARF keypoints seem to be detected in object boundary corners; see [How to extract NARF **Keypoints** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_keypoint_extraction.html#narf-keypoint-extraction)
 
-5. `narf_feature_extraction.cpp`: [How to extract NARF **Features** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_feature_extraction.html#narf-feature-extraction)
+5. `narf_feature_extraction.cpp`: this example buils up on the previous; after computing the NARF keypoints (located on object boundary corners), the NARF feature descriptors are computed; see [How to extract NARF **Features** from a range image](https://pcl.readthedocs.io/projects/tutorials/en/latest/narf_feature_extraction.html#narf-feature-extraction)
 
