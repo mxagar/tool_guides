@@ -48,3 +48,8 @@ target_link_libraries (pfhEstimation ${PCL_LIBRARIES})
 # .\pfhEstimation [pointcloud.pcd]
 add_executable (fpfhEstimation fpfhEstimation.cpp)
 target_link_libraries (fpfhEstimation ${PCL_LIBRARIES})
+
+# Executable 5: Moment of inertia features extracted: AABB, OBB, etc.
+# .\moment_of_inertia [pointcloud.pcd]
+add_executable (moment_of_inertia moment_of_inertia.cpp)
+target_link_libraries (moment_of_inertia ${PCL_LIBRARIES})
