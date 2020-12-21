@@ -20,6 +20,7 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
     - Point pair normal fetures computed: `pfhEstimation.cpp`
     - Point neighborhood searched (kd-tree): `pfhEstimation.cpp`
     - FPFHs computed in unordered pointcloud: `fpfhEstimation.cpp`
+    - Moment of inertia features (center of mass, AABB, OBB, eigen system) computed and **visualized**: `moment_of_inertia.cpp`
 
 4. `pcl_example_03`: Filtering & Segmentation (= Selection)
 
@@ -66,6 +67,7 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
         - pointclouds with different single colors are shown after alignment: `pcl_example_04/alignment_prerejective.cpp`, `pcl_example_04/normal_distributions_transform.cpp`
         - **very intersting example**: pointclouds with different single colors are shown in 2 viewports as they are interactively aligned: `pcl_example_04/interactive_icp.cpp`
         - range image visualization: `pcl_example_07/range_image_visualization.cpp`, `pcl_example_07/range_image_border_extraction.cpp`, `pcl_example_07/narf_keypoint_extraction.cpp`
+        - OBB, ABB, vectors visualized with boxes and cubes: `pcl_example_02/moment_of_inertia.cpp`
 
 8. `pcl_example_07`: Other useful data structures: Range Images and Search Structures (kd-trees & octrees)
 
@@ -74,11 +76,13 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
     - Range image border extraction: given a pointcloud (if not given, a synthetic one is created), three boder points are detected and **visualized**: **border**, **shadow**, **veil**;`range_image_border_extraction.cpp`
     - NARF keypoints on range images: given a pointcloud (if not given, a synthetic one is created), NARF keypoints are detected and **visualized**: `narf_keypoint_extraction.cpp`
     - NARF features on range images: after computing the NARF keypoints (located on object boundary corners, and **visualized**), the NARF feature descriptors are computed: `narf_feature_extraction.cpp`
-    - kd-tree
-    - octree
 
 9. `pcl_example_08`: Recognition
 
     - 3D Object Recognition based on Correspondence Grouping
     - Implicit Shape Model
     - Tutorial: Hypothesis Verification for 3D Object Recognition
+
+10. `pcl_example_09`: Hierarchichal data structures for searching
+    - kd-tree
+    - octree

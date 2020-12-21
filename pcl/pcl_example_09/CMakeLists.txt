@@ -8,7 +8,7 @@ if(WIN32)
     list (APPEND CMAKE_MODULE_PATH C:/src/PCL/pcl-1.11.1/pcl/cmake/Modules)
 endif(WIN32)
 
-project(pcl_features)
+project(pcd_surface)
 
 if(WIN32)
     # WATCH OUT: Probably some of these need to be set again with ccmake / cmake-gui
@@ -29,27 +29,7 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-# Executable 1: Normals are estimated in an unordered pointcloud
-# .\normalEstimation [pointcloud.pcd]
-add_executable (normalEstimation normalEstimation.cpp)
-target_link_libraries (normalEstimation ${PCL_LIBRARIES})
-
-# Executable 2: Normals are estimated in an ordered pointcloud created from depth images
-# .\normalEstimationImages [pointcloud.pcd]
-add_executable (normalEstimationImages normalEstimationImages.cpp)
-target_link_libraries (normalEstimationImages ${PCL_LIBRARIES})
-
-# Executable 3: PFHs are estimated in an unordered pointcloud
-# .\pfhEstimation [pointcloud.pcd]
-add_executable (pfhEstimation pfhEstimation.cpp)
-target_link_libraries (pfhEstimation ${PCL_LIBRARIES})
-
-# Executable 4: FPFHs are estimated in an unordered pointcloud
-# .\pfhEstimation [pointcloud.pcd]
-add_executable (fpfhEstimation fpfhEstimation.cpp)
-target_link_libraries (fpfhEstimation ${PCL_LIBRARIES})
-
-# Executable 5: Moment of inertia features extracted: AABB, OBB, etc.
-# .\moment_of_inertia [pointcloud.pcd]
-add_executable (moment_of_inertia moment_of_inertia.cpp)
-target_link_libraries (moment_of_inertia ${PCL_LIBRARIES})
+# Executable 1: A simple ICP is performed between artificial point clouds.
+# ./resampling
+add_executable (resampling resampling.cpp)
+target_link_libraries (resampling ${PCL_LIBRARIES})
