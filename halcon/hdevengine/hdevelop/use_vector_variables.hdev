@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="20.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>global object vector(1) GObjectVector</l>
+<l>global tuple vector(2) GTupleVector</l>
+<c>* </c>
+<c>* save the original values of the global variables in program variables</c>
+<l>for I := 0 to GObjectVector.length() - 1 by 1</l>
+<l>    ObjectVector.at(I) := GObjectVector.at(I)</l>
+<l>    TupleVector.at(I) := GTupleVector.at(I)</l>
+<l>endfor</l>
+<c>* </c>
+<c>* process the global variables</c>
+<l>use_vector_variables (GObjectVector, GObjectVector, GTupleVector, GTupleVector)</l>
+<c>* </c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
