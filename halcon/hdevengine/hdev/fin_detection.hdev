@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="20.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Detects fins using a procedure.</c>
+<l>init_acquisition (AcqHandle, Width, Height)</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, Width / 2, Height / 2, 'black', WinID)</l>
+<l>dev_set_part (0, 0, Height - 1, Width - 1)</l>
+<l>dev_set_draw ('margin')</l>
+<l>dev_set_line_width (4)</l>
+<l>grab_image (Image, AcqHandle)</l>
+<l>dev_display (Image)</l>
+<l>detect_fin (Image, FinRegion, FinArea)</l>
+<l>dev_display (Image)</l>
+<l>dev_set_color ('red')</l>
+<l>dev_display (FinRegion)</l>
+<l>dev_set_color ('white')</l>
+<l>* set_tposition (WinID, 150, 20)</l>
+<l>* write_string (WinID, 'Fin Area: ' + FinArea)</l>
+<l>display_zoomed_region (Image, FinRegion, 2, 5)</l>
+<l>close_framegrabber (AcqHandle)</l>
+<l>dev_close_window ()</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
