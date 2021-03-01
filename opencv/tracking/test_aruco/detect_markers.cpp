@@ -180,13 +180,21 @@ int main(int argc, char *argv[]) {
 
         double tick = (double)getTickCount();
 
+        // corners: marker 2d points clockwise, starting from top-left
+        // corners.size() == ids.size()
         vector< int > ids;
         vector< vector< Point2f > > corners, rejected;
+        // tvecs: translation vectors
+        // rvecs: rotation vectors expressed as Rodriges vectors
+        // use cv::Rodrigues() to convert to 3x3 rotation matrix
         vector< Vec3d > rvecs, tvecs;
 
-        // detect markers and estimate pose
+        // Detect markers and estimate pose
+        // detectorParams & rejectedCandidates are optional
         aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
         if(estimatePose && ids.size() > 0)
+            // markerLength: marker side length in m: needed for correct scaling! (default 0.1m)
+            // camMatrix, distCoeffs: obtained from calibration file
             aruco::estimatePoseSingleMarkers(corners, markerLength, camMatrix, distCoeffs, rvecs,
                                              tvecs);
 
