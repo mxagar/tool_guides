@@ -21,6 +21,12 @@ find_package(OpenCV REQUIRED)
 # OpenCV_INCLUDE_DIRS or OpenCV_INCLUDES
 # OpenCV_LIBRARIES or OpenCV_LIBS
 # OpenCV_DEFINITIONS
+# Print some message showing some of them
+message(STATUS "OpenCV library status:")
+message(STATUS "    config: ${OpenCV_DIR}")
+message(STATUS "    version: ${OpenCV_VERSION}")
+message(STATUS "    libraries: ${OpenCV_LIBS}")
+message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 add_executable(displayImage displayImage.cpp)
