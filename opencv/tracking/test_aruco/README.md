@@ -67,6 +67,10 @@ Detect the printed Charuco board:
 
 .\detect_board_charuco -dp="..\\..\\data\\detector_params.yml" -w=5 -h=7 -sl="0.037" -ml="0.0225" -d=10
     Same are before, but with detector parameters saved in a YAML file.
+    Explanation of detector params:
+    https://docs.opencv.org/master/d5/dae/tutorial_aruco_detection.html
+    An example of the file is in
+    ...\opencv_contrib\modules\aruco\samples\detector_params.yml
 ```
 
 Calibrate the camera with the Charuco board: we get the cam params in camera_params.txt:
@@ -123,6 +127,10 @@ Detect Charuco board and its pose with camera params (calibrated):
 
 ```bash
 .\detect_board_charuco -c="..\\..\\data\\camera_params.txt" -dp="..\\..\\data\\detector_params.yml" -w=5 -h=7 -sl="0.037" -ml="0.0225" -d=10
+    Explanation of detector params:
+    https://docs.opencv.org/master/d5/dae/tutorial_aruco_detection.html
+    An example of the file is in
+    ...\opencv_contrib\modules\aruco\samples\detector_params.yml
 ```
 
 Detect makers and their pose with camera params (calibrated):
