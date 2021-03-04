@@ -37,3 +37,11 @@ target_link_libraries(camera_calibration ${OpenCV_LIBS})
 # Executable 2: 
 add_executable(calibration 02_calibration.cpp)
 target_link_libraries(calibration ${OpenCV_LIBS})
+
+# Executable 3: 
+add_executable(imagelist_creator imagelist_creator.cpp)
+target_link_libraries(imagelist_creator ${OpenCV_LIBS})
+
+# Executable 4: 
+add_executable(imagelist_reader imagelist_reader.cpp)
+target_link_libraries(imagelist_reader ${OpenCV_LIBS})
