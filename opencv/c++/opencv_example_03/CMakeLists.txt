@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(DisplayImage)
+project(CoreFunctionalities)
 
 # Set OpenCV_DIR to the path that contains
 # either 'OpenCVConfig.cmake' or 'FindOpenCV.cmake'
@@ -9,10 +9,10 @@ if(WIN32)
     # After installation from source + contrib
     set(OpenCV_DIR C:/OpenCV/git_repos/build)
 elseif(APPLE)
-    # After 'brew installl opencv'
+    # After 'brew install opencv'
     set(OpenCV_DIR /usr/local/Cellar/opencv/4.4.0_2/lib/cmake/opencv4)
 elseif(LINUX)
-    # TBD
+    # After compilation from source
     set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
 endif(WIN32)
 find_package(OpenCV REQUIRED)
@@ -29,5 +29,19 @@ message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-add_executable(displayImage displayImage.cpp)
-target_link_libraries(displayImage ${OpenCV_LIBS})
+
+# Executable 1: 
+add_executable(camera_calibration 01_camera_calibration.cpp)
+target_link_libraries(camera_calibration ${OpenCV_LIBS})
+
+# Executable 2: 
+add_executable(calibration 02_calibration.cpp)
+target_link_libraries(calibration ${OpenCV_LIBS})
+
+# Executable 3: 
+add_executable(imagelist_creator imagelist_creator.cpp)
+target_link_libraries(imagelist_creator ${OpenCV_LIBS})
+
+# Executable 4: 
+add_executable(imagelist_reader imagelist_reader.cpp)
+target_link_libraries(imagelist_reader ${OpenCV_LIBS})

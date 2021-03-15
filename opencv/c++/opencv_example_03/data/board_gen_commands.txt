@@ -1,0 +1,10 @@
+WATCH OUT: svgfig has a bug for Windows: SVG file is saved on Desktop!
+
+python gen_pattern.py -o chessboard.svg --rows 9 --columns 6 --type checkerboard --square_size 20
+    create a checkerboard pattern in file .\chessboard.svg with 9 rows, 6 columns and a square size of 20mm
+
+python gen_pattern.py -o circleboard.svg --rows 7 --columns 5 --type circles --square_size 15
+    create a circle board pattern in file .\circleboard.svg with 7 rows, 5 columns and a radius of 15mm
+
+python gen_pattern.py -o acircleboard.svg --rows 7 --columns 5 --type acircles --square_size 10 --radius_rate 2
+    create a circle board pattern in file .\acircleboard.svg with 7 rows, 5 columns and a square size of 10mm and less spacing between circle
