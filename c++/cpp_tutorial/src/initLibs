@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# SHORT FORM
+#export LD_LIBRARY_PATH=.:${DYLD_LIBRARY_PATH}
+#export DYLD_LIBRARY_PATH=.:${DYLD_LIBRARY_PATH}
+
+# IDENTIFY SYSTEM AND ENVIRONMENT ASKING SHELL/BASH
+SYSTEM=$(eval 'uname') #Darwin, Linux
+ENVIRONMENT=$(eval 'uname -m') #i386, i686, x86_64
+
+# LIBRARY PATHS STORED IN THIS VARIABLE 
+LIBRARY_PATHS='.'
+LIBRARY_PATHS=${LIBRARY_PATHS}':/usr/local/lib/'
+
+# SET LIBRARY PATHS
+if [ "$SYSTEM" == "Darwin" ]; then
+        echo "Setting these library paths"
+        echo $LIBRARY_PATHS
+        echo "for $SYSTEM $SHELL"
+        export DYLD_LIBRARY_PATH=${LIBRARY_PATHS}:${DYLD_LIBRARY_PATH}
+else
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${LIBRARY_PATHS}
+fi

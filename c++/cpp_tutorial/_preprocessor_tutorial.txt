@@ -1,0 +1,68 @@
+- Preprocessor executed BEFORE compilation
+- Syntax: '#directive paramters'
+	- No ';'
+	- New lines are new directives, except when we write '\'
+
+::: Macro definitions: #define, #undef
+
+#define <identifier> <replacement>
+	<identifier> is replaced in the following code by <identifier>
+		#define TABLE_SIZE 100
+	if also works with functions, in which function structure is found and replaced by its implementation
+		#define getmax(a,b) a>b?a:b
+
+#undef <identifier>
+	when found, previously defined <identifier> is removed
+
+:: Conditional inclusions: #if #ifdef, #ifndef, #elif, #else, #endif
+
+#ifdef TABLE_SIZE
+int table[TABLE_SIZE]; // created iff TABLE_SIZE is defined!!
+#endif
+
+#ifndef TABLE_SIZE
+#define TABLE_SIZE 100
+#else
+// ...
+#endif
+
+#if TABLE_SIZE<50
+#undef TABLE_SIZE
+#define TABLE_SIZE 100
+#elif TABLE_SIZE>100
+#undef TABLE_SIZE
+#define TABLE_SIZE 100
+#endif
+
+::: Error: #error
+
+#ifndef __cpluplus
+#error A C++ compiler is required
+#endif
+
+Error thrown in compilation.
+__cplusplus is a macro defined in all C++ compilers 
+
+::: File inclusion
+
+#include <iostream>
+	First looked in default directories
+	User with standard stuff: std, C++, etc
+#include "Header.h"
+	First looked in the file directory for Header.h, then in other default directories
+	Use with external libraries and own stuff
+
+::: Compiler options
+
+#pragma
+	Look manual, compiler specific
+
+::: Standard predefind macros
+
+google them up, there are many
+
+__cplusplus
+__LINE__
+__FILE__
+__DATE__
+__TIME__
