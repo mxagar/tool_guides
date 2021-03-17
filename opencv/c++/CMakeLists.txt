@@ -1,0 +1,4 @@
+add_subdirectory(opencv_example_00)
+add_subdirectory(opencv_example_01)
+add_subdirectory(opencv_example_02)
+add_subdirectory(opencv_example_03)
