@@ -36,7 +36,7 @@ Important: use tools like `pcl_viewer` along with the examples, if possible.
 
     - Get the list of fields that a point has: `voxel_grid.cpp`
     - Print cloud object: `statistical_removal.cpp`
-    - **Visualization** of points and coordinate ystem: `random_sample_consensus.cpp`
+    - **Visualization** of points and coordinate system: `random_sample_consensus.cpp`
     - A `PointCloud2` data structure is created: `extract_segmented_indices.cpp`
 
 5. `pcl_example_04`: Registration (= Matching) 
