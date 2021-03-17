@@ -10,6 +10,8 @@ if(WIN32)
     set(OpenCV_DIR C:/OpenCV/git_repos/build)
 elseif(APPLE)
     # After 'brew installl opencv'
+    # Update: now, the found version is another... 
+    # include = /usr/local/Cellar/opencv/4.5.0_5/include/opencv4
     set(OpenCV_DIR /usr/local/Cellar/opencv/4.4.0_2/lib/cmake/opencv4)
 elseif(LINUX)
     # TBD

@@ -115,11 +115,13 @@ int main(int argc, char** argv )
 
     cout << "\n-- Section 5: Other types & output:" << endl;
 
-    Point2f P(5, 1);
-    cout << "Point (2D) = " << endl << P << endl << endl;
+    Point2f P2f(5, 1);
+    cout << "Point (2D) = " << endl << P2f << endl << endl;
+    // P.x, P.y, P1.dot(P2), P1.cross(P2)
 
     Point3f P3f(2, 6, 7);
     cout << "Point (3D) = " << endl << P3f << endl << endl;
+    // P.x, P.y, P.z, P1.dot(P2), P1.cross(P2)
 
     vector<float> v;
     v.push_back((float)CV_PI);

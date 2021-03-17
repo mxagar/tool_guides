@@ -1,4 +1,4 @@
-# Notes
+# OpenCV: Camera Calibration
 
 This example examines the calibration functionalities of OpenCV as collected in
 
