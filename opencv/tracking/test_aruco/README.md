@@ -80,6 +80,7 @@ Calibrate the camera with the Charuco board: we get the cam params in camera_par
     all options are shown
 
 .\calibrateCamera "camera_params.txt" -w=5 -h=7 -sl="0.037" -ml="0.0225" -d=10
+.\calibrate_camera_charuco.exe "camera_params.txt" -w=5 -h=7 -sl="0.036" -ml="0.0215" -d=10
     w: number of squares in X direction
     h: number of squares in Y direction
     sl: square side length in meters: 3.7 cm; if floating point, use ""
