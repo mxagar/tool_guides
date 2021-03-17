@@ -102,11 +102,20 @@ namespace mkl {
 mkl::Cube c;
 ``` 
 
-
-
-
-
 ## Week 2: C++ Memory Model
+
+Key concepts:
+
+- Pointers
+- Heap memory
+- Stack memory
+
+### 2.1 Stack Memory and Pointers
+
+- We have access to the memory and lifecycle of variables
+- By default, variables are stored in the **stack memory**
+- Every variable has always 4 things: name, type, value, memory address
+- To get the memory address, we use the `&` operator
 
 ## Week 3: C++ Classes
 
