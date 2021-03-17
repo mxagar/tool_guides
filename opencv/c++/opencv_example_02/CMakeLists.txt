@@ -31,5 +31,11 @@ message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 include_directories(${OpenCV_INCLUDE_DIRS})
+
+# ./01_mat
 add_executable(01_mat 01_mat.cpp)
 target_link_libraries(01_mat ${OpenCV_LIBS})
+
+# 
+add_executable(02_scan_images 02_scan_images.cpp)
+target_link_libraries(02_scan_images ${OpenCV_LIBS})
