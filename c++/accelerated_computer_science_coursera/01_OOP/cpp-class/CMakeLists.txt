@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(cpp-class)
 
 set(SRC_DIR .)
-set(LIBS )
+set(LIBS '')
 
 include_directories(${SRC_DIR})
 
