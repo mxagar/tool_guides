@@ -11,8 +11,8 @@ Overview:
 1. Core data structures
 
     - `opencv_example_02/`: several core data structures
-        - `01_mat.cpp`: `cv::Mat`
-        - `02_mat.cpp`:
+        - `01_mat.cpp`: `cv::Mat`, `cv::Point2f`, `cv::Point3f`
+        - `02_scan_images.cpp`: access functions of `cv::Mat`, `cv::getTickCount()`, `cv::getTickFrequency()`, `cv::LUT()`
 
 2. Image Processing
 3. High Level GUI and Media

@@ -1,3 +1,10 @@
+/*
+ * This file show-cases the core functionalities of OpenCV.
+ * https://docs.opencv.org/4.4.0/db/da5/tutorial_how_to_scan_images.html
+ * The code was taken from the OpenCV tutorials and slightly modified.
+ * NOTE: on Mac, you need to run it on the native Terminal
+ */
+
 #include <opencv2/core.hpp>
 #include <opencv2/core/utility.hpp>
 #include "opencv2/imgcodecs.hpp"
@@ -13,12 +20,14 @@ static void help()
     cout
         << "\n--------------------------------------------------------------------------" << endl
         << "This program shows how to scan image objects in OpenCV (cv::Mat). As use case"
-        << " we take an input image and divide the native color palette (255) with the "  << endl
-        << "input. Shows C operator[] method, iterators and at function for on-the-fly item address calculation."<< endl
-        << "Usage:"                                                                       << endl
-        << "./how_to_scan_images <imageNameToUse> <divideWith> [G]"                       << endl
-        << "if you add a G parameter the image is processed in gray scale"                << endl
-        << "--------------------------------------------------------------------------"   << endl
+        << " we take an input image and divide the native color palette (255) with the " << endl
+        << "input. Shows C operator[] method, iterators and at function for on-the-fly item address calculation." << endl
+        << "Usage:" << endl
+        << "./how_to_scan_images <imageNameToUse> <divideWith> [G]" << endl
+        << "./02_scan_images <imageNameToUse> <divideWith> [G]" << endl
+        << "./02_scan_images ../../share/lena.jpg 10 G" << endl
+        << "if you add a G parameter the image is processed in gray scale" << endl
+        << "--------------------------------------------------------------------------" << endl
         << endl;
 }
 
@@ -58,6 +67,9 @@ int main( int argc, char* argv[])
         return -1;
     }
 
+    // Instead of performing the operation for each pixel value
+    // it is much more efficient to compute a look-up table
+    // and access pre-computed values from it!
     uchar table[256];
     for (int i = 0; i < 256; ++i)
        table[i] = (uchar)(divideWith * (i/divideWith));
@@ -66,6 +78,8 @@ int main( int argc, char* argv[])
     const int times = 100;
     double t;
 
+    // cv::getTickCount(): number of ticks of your systems CPU from a certain event (like since you booted your system)
+    // cv::getTickFrequency() : how many times your CPU emits a tick during a second
     t = (double)getTickCount();
 
     for (int i = 0; i < times; ++i)
@@ -77,7 +91,7 @@ int main( int argc, char* argv[])
     t = 1000*((double)getTickCount() - t)/getTickFrequency();
     t /= times;
 
-    cout << "Time of reducing with the C operator [] (averaged for "
+    cout << "1. Time of reducing with the C operator [] (averaged for "
          << times << " runs): " << t << " milliseconds."<< endl;
 
     t = (double)getTickCount();
@@ -91,7 +105,7 @@ int main( int argc, char* argv[])
     t = 1000*((double)getTickCount() - t)/getTickFrequency();
     t /= times;
 
-    cout << "Time of reducing with the iterator (averaged for "
+    cout << "2. Time of reducing with the iterator (averaged for "
         << times << " runs): " << t << " milliseconds."<< endl;
 
     t = (double)getTickCount();
@@ -105,7 +119,7 @@ int main( int argc, char* argv[])
     t = 1000*((double)getTickCount() - t)/getTickFrequency();
     t /= times;
 
-    cout << "Time of reducing with the on-the-fly address generation - at function (averaged for "
+    cout << "3. Time of reducing with the on-the-fly address generation - at function (averaged for "
         << times << " runs): " << t << " milliseconds."<< endl;
 
     //! [table-init]
@@ -125,7 +139,7 @@ int main( int argc, char* argv[])
     t = 1000*((double)getTickCount() - t)/getTickFrequency();
     t /= times;
 
-    cout << "Time of reducing with the LUT function (averaged for "
+    cout << "4. Time of reducing with the LUT function (averaged for "
         << times << " runs): " << t << " milliseconds."<< endl;
     return 0;
 }
@@ -143,17 +157,20 @@ Mat& ScanImageAndReduceC(Mat& I, const uchar* const table)
 
     if (I.isContinuous())
     {
+        // all rows are stacked and stores in a big row
         nCols *= nRows;
         nRows = 1;
     }
 
     int i,j;
     uchar* p;
-    for( i = 0; i < nRows; ++i)
+    for (i = 0; i < nRows; ++i)
     {
+        // get the pointer of the image and access all cells
         p = I.ptr<uchar>(i);
-        for ( j = 0; j < nCols; ++j)
+        for (j = 0; j < nCols; ++j)
         {
+            // change value using look-up table
             p[j] = table[p[j]];
         }
     }
@@ -180,6 +197,8 @@ Mat& ScanImageAndReduceIterator(Mat& I, const uchar* const table)
     case 3:
         {
             MatIterator_<Vec3b> it, end;
+            // we get start and end pointers and iterate in cv::Mat usint cv:MatIterator
+            // note that we need to access channels with separate [] operator
             for( it = I.begin<Vec3b>(), end = I.end<Vec3b>(); it != end; ++it)
             {
                 (*it)[0] = table[(*it)[0]];
