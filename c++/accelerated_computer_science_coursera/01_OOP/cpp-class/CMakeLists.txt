@@ -12,5 +12,5 @@ set (   SRC_FILES
 
 # ./main
 add_executable(main main.cpp ${SRC_FILES})
-target_link_libraries(main ${LIBS})
+#target_link_libraries(main ${LIBS})
 

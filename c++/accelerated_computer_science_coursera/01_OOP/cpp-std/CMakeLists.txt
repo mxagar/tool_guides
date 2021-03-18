@@ -12,8 +12,8 @@ set (   SRC_FILES
 
 # ./cout
 add_executable(cout cout.cpp)
-target_link_libraries(cout ${LIBS})
+#target_link_libraries(cout ${LIBS})
 
 # ./cout2
 add_executable(cout2 cout2.cpp)
-target_link_libraries(cout2 ${LIBS})
+#target_link_libraries(cout2 ${LIBS})
