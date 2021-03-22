@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(cpp-class)
+project(cpp-memory)
 
 set(SRC_DIR .)
 set(LIBS '')
@@ -11,8 +11,8 @@ set (   SRC_FILES
     )
 
 # ./main
-add_executable(main main.cpp ${SRC_FILES})
-#target_link_libraries(main ${LIBS})
+add_executable(main2 main.cpp ${SRC_FILES})
+#target_link_libraries(main2 ${LIBS})
 
 # ./foo
 add_executable(foo foo.cpp ${SRC_FILES})
