@@ -1,5 +1,8 @@
 # Object Oriented Data Structures in C++
 
+Notes made when following the course offered in Coursera by University of Illinois at Urbana-Champaign.
+Prof. Wade Fagen-Ulmschneider.
+
 ## Week 1: Writing C++ Programs
 
 ### 1.1 Introduction
@@ -149,6 +152,18 @@ int value_in_num = *p; // dereference
 
 - Given a pointer, its address nature is removed and replaced by the value with `*`
 
+- Arrow operator: `->`:
+
+```c++
+Cube* c;
+(*c).setLength(4);
+// It is better to use the arrow operator,
+// which is equivalent to the previous (*c).
+// -> works when we want to access the object memory of pointers
+// that contain addresses of classes
+c->setLength(4); 
+```
+
 #### Implications
 
 - We cannot return the address of a local variable created inside a function, because the memory allocated for that function is destroyed after we get out of the function! Usually, even the compiler alerts form those issues.
@@ -196,6 +211,10 @@ int main() {
 ```
 ### 2.2 Heap Memory
 
+-  Heap memory, in contrast to stack memory, usually has low memory values!
+    - It is in the opposite end of the memory
+    - It grows up (memory addresses become larger) as we allocate in it
+    - It is persistent: even when we exit the function/program using it, it is not de-allocated unless we do it manually
 - If memory needs to exist for longer than the lifecycle of the function, we must use heap memory: the only way to create heap memory in C++ is `new`.
     - `new` requires `delete` at the end so that we clean/reclaim the heap memory afterwards; that's the only way! (or restart the computer)
     - so, `new` and heap are extremely powerful, but we need to be extremely conscius of what we are doing to avoing filling the heap with rubish that remains even after we exit the program...
@@ -204,14 +223,70 @@ int main() {
     1. Allocate data on the heap for the data structure
     2. Initialize the data structure
     3. Return a pointer to the start of that data structure
+- The `delete` operator must be called after we finih to use our structures in the heap
+    - `delete` erases the heap memory, but not the pointer in the stack which contains the adress to it (see code below)
+    - therefore, we assign `nullptr` to the pointer in the stack
+    - `nullptr` is the address `0x0`: reserved to never be used
+        - if we use it, `Segmentation Fault` is raised
+        - we understand if a variable has the value `nullptr` it means its an non-initialized pointer
+        - `nullptr` exists since C++11 and it's equivalent to the C `NULL`
+        - `delete nullptr` is ignored, which is very convenient to avoid errors
+
+- Syntax and meaning:
 
 ```c++
+// VERY IMPORTANT: syntax + meaning (heap and stack)
 // numPtr contains an address to a heap memory part
 // but numPtr is in the stack!
 // the int value is stored in the heap
+// so: the pointer we use is in the stack, but the content is in the heap!
 int * numPtr = new int;
+// VERY IMPORTANT: use of numPtr and clean-up/memory re-claim
+// We need to perform delete to destroy the heap memory and free it
+// Since numPtr would still contain the address of the erased memory
+// we can assign it the reserved address 0x0
+// which is understood as a non-initialized memory part = non-initialized pointer
+delete numPtr; numPtr = nullptr;
 ```
 
+- Using `new` and `delete`: `cpp-heapMemory/heap1.cpp`
+
+```c++
+#include "Cube.h"
+using uiuc::Cube;
+int main() {
+  // p is in the stack and contains an address
+  // to an int in the heap
+  int *p = new int;
+  // c is in the stack and contains an address
+  // to a Cube in the heap
+  Cube *c = new Cube;
+
+  // De-reference (go to memory) and fill in values
+  *p = 42;
+  (*c).setLength(4);
+  // It is better to use the arrow operator,
+  // which is equivalent to the previous (*c).
+  // -> works when we wnat to access the object memory of pointers
+  // that contain addresses of classes
+  c->setLength(4); 
+
+  // delete destroys the heap memory allocated for the actual variables
+  // but the pointer in the stack still remains
+  // and it is pointing to a non-allocated address!
+  // Since C++11 we have nullptr, which refers to memory address 0x0
+  // nullptr is equivalent to the C NULL
+  // Address 0x0 is reserved and never used by the system
+  // so we understand if var == nullptr, var contains a non-initialized address
+  delete c;  c = nullptr;
+  delete p;  p = nullptr;
+  return 0;
+}
+```
+
+- See `cpp-heapMemory/heap2.cpp` for another point: What happens when we try to delete heap memory parts that have been already deleted?
+
+### Heap Memory Puzzels
 ## Week 3: C++ Classes
 
 ## Week 4: C++ Software Solutions
