@@ -15,7 +15,9 @@ int main() {
   c2->setLength( 10 );
 
   delete c2;
-  delete c1;  // !!
+  delete c1;  // !! ERROR:
+  // We have deleted the memory pointed by c2
+  // which is the same as the one pointed by c1
 
   return 0;
 }
