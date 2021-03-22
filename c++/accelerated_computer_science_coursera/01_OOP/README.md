@@ -125,6 +125,10 @@ std::cout << &num << std::endl; // address returned, since in stack, usually lar
 - Typical stack addresses are large values, eg.: `0xFFF...`
 - Stack memory is associated with the current function: the memory lifecycle is tied to that function! If function ends/returns, variable is lost, because the stack memory is realeased to the system
 - Stack memory starts at high memory values and grows down to lower values towards 0, in the order we allocate variables, functions, etc.
+    - Note that when we call a function from `main()`, memory is allocated for it in the stack
+    - When we exit the function, its memory in the stack is destroyed
+    - When a new function or variable is instantiated, the same memory part can be allocated
+    - Note also: although stack memory usually grows downwards, C++ compilers often use optimization strategies that flex that rule; therefore, it's not impossible to find cases in which memory addresses change unexpectedly
 
 - **Pointers** are variables that store memory addresses of data
 - Pointers are created with `*`
@@ -149,15 +153,64 @@ int value_in_num = *p; // dereference
 
 - We cannot return the address of a local variable created inside a function, because the memory allocated for that function is destroyed after we get out of the function! Usually, even the compiler alerts form those issues.
 
-**I am in min 12:00**
+- The source files for the above points are:
 
-`cpp-memory/addressOf.cpp`
+```bash
+cpp-memory/addressOf.cpp
+cpp-memory/foo.cpp
+```
 
-`cpp-memory/foo.cpp`
+- A very interesting file in which the effect of allocating and destroying stack memory as we enter in functions is depicted: `cpp-memory/puzzle.cpp`
+    - An address of a variable allocated in the stack memory of a function is returned
+    - Since the function's stack memory lives only during the execution of the function, it is afterwards destroyed
+    - Any function/variable we execute in the main afterwards will overwrite the previous memory
+    - Therefore, best practices
+        - Initialize variables to avoid undefined behavior
+        - Do not deliver or access invalid memory, keep in mind what part of memory your are using and how long it lives
 
-`cpp-memory/puzzle.cpp`
+- Summary of pointer-related concepts in `cpp-memory/main.cpp`:
 
-`cpp-memory/main.cpp`
+```c++
+#include <iostream>
+
+int main() {
+  int num = 7;
+  std::cout << " num: " <<  num << std::endl; // 7
+  std::cout << "&num: " << &num << std::endl; // address of num
+
+  int *p = &num; // pointer p stores te address of num
+  std::cout << " p: " <<  p << std::endl; // address of num
+  // the address of p is slightly smaller than the address contained by p
+  // because it's the next (downwards) element to num in the stack memory 
+  std::cout << "&p: " << &p << std::endl;
+  // the value of teh address contained by p = the value of num
+  std::cout << "*p: " << *p << std::endl; 
+
+  // The value of the variable stored in the address is changed
+  *p = 42;
+  std::cout << "*p changed to 42" << std::endl; 
+  std::cout << " num: " <<  num << std::endl;
+
+  return 0;
+}
+```
+### 2.2 Heap Memory
+
+- If memory needs to exist for longer than the lifecycle of the function, we must use heap memory: the only way to create heap memory in C++ is `new`.
+    - `new` requires `delete` at the end so that we clean/reclaim the heap memory afterwards; that's the only way! (or restart the computer)
+    - so, `new` and heap are extremely powerful, but we need to be extremely conscius of what we are doing to avoing filling the heap with rubish that remains even after we exit the program...
+    - `new` returns a pointer to the memory storing the data, not an instance of the data itself
+- The `new` operator does **always** 3 things
+    1. Allocate data on the heap for the data structure
+    2. Initialize the data structure
+    3. Return a pointer to the start of that data structure
+
+```c++
+// numPtr contains an address to a heap memory part
+// but numPtr is in the stack!
+// the int value is stored in the heap
+int * numPtr = new int;
+```
 
 ## Week 3: C++ Classes
 
