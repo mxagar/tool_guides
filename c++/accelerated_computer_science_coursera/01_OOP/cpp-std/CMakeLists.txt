@@ -10,6 +10,11 @@ set (   SRC_FILES
         Cube.cpp 
     )
 
+# Compilation -> add_executable / add_library
+set (CMAKE_CXX_FLAGS "-std=c++14 -O0 -pedantic -Wall -Wfatal-errors -Wextra")
+# Linking -> target_link_libraries
+set (LDFLAGS "-std=c++14")
+
 # ./cout
 add_executable(cout cout.cpp)
 #target_link_libraries(cout ${LIBS})
