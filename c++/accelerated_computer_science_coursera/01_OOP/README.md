@@ -287,6 +287,144 @@ int main() {
 - See `cpp-heapMemory/heap2.cpp` for another point: What happens when we try to delete heap memory parts that have been already deleted?
 
 ### Heap Memory Puzzels
+
+Puzzle 1: `cpp-heapPuzzles/puzzle1.cpp`:
+
+```c++
+// Since we have no new keyword, everything is in the stack
+int  i =  2,  j =  4,  k =  8;
+int *p = &i, *q = &j, *r = &k;
+k = i; // k = i = 2
+cout << i << j << k << *p << *q << *r << endl; // 2 4 2, 2 4 2
+p = q; // the adress in p is the one in q -> j = 4
+cout << i << j << k << *p << *q << *r << endl; // 2 4 2, 4 4 2
+*q = *r; // the value pointed by q (j) is the one pointed by r (k) -> j = k = 2
+cout << i << j << k << *p << *q << *r << endl; // 2 2 2, 2 2 2
+```
+
+Puzzle 2: `cpp-heapPuzzles/puzzle2.cpp`: **stack vs heap**, **referencing or aliasing with &**
+```c++
+// Since we have the new keyword
+// the value pointed by new is in the heap!
+
+// STACK: x = 0x1...: it contains an address to heap memory (small)
+// HEAP: *x = 0: it contains an int value, still uninitialized
+int *x = new int;
+
+// & is used for referencing variables: aliases/links to memory parts
+// y is equivalent to the content pointed by x
+// &y is the the address contained by x!
+int &y = *x; // y is linking to the content pointed by x
+y = 4; // content pointed by x is filled
+
+cout << &x << endl; // 0xF...: address in the stack (large)
+cout << x << endl; // 0x1...: address in the heap (small)
+cout << *x << endl; // 4: value in the heap assigned through alias y
+cout << &y << endl; // 0x1... the address contained in x
+cout << y << endl; // 4: value pointed by x in the heap
+// cout << *y << endl; // it does not make sense: an int is not an address pointing somewhere...
+```
+
+Puzzle 3: `cpp-heapPuzzles/puzzle3.cpp`:
+```c++
+// Since we use new, some variables live in the heap!
+// Pointers in the stack
+int *p, *q;
+// p points to a memory part in the heap
+p = new int;
+q = p; // q contains the same address as p
+*q = 8; // fill in heap memory
+cout << *p << endl; // 8
+
+q = new int; // we create a new memory part in the heap
+*q = 9; // fill in latter heap memory
+cout << *p << endl; // 8
+cout << *q << endl; // 9
+```
+
+Puzzle 4: `cpp-heapPuzzles/puzzle4.cpp`: **arrays** in the heap
+
+```c++
+  // Pointer in the stack
+  int *x;
+  int size = 3;
+  // Content in the heap
+  // Arrays
+  x = new int[size]; // we allocate a sequence of ints of size size = 3
+  for (int i = 0; i < size; i++) {
+    x[i] = i + 3;
+  }
+  delete[] x; // since x points to a sequence, all sequence must be de-allocated
+```
+
+### Additional notes
+
+- Comments: `// Single line`, `/* Multi-line */`
+- Header and source files: declarations and implementation
+- Headers have `#pragma once` at the top to prevent including them several times (preprocessor directive)
+- The preprocessor directive `#include` copies the include code into the source code temporarily!
+- Headers contain class member declarations/signatures only, not the implementation
+- Source files need to include the headers with the declarations
+
+```c++
+#include "Cube.h" // "" for local or user-defined libraries and locations
+#include <iostream> //<> for system-wide libraries and standard locations
+```
+
+- If we have `main.cpp`, `Cube.cpp`, `Cube.h`:
+    - `Cube.cpp` and `main.cpp` include `Cube.h`; `#pragma once` avoids double declarations
+    - Compiler creates compiled objects: `main.o` and `Cube.o`
+    - Linker combines all `.o` objects into an executable: `main`
+
+- When compiling, header declarations must be known, but not the exact implementation
+- When linking, the missing implementations are solved and a whole executable or library is created
+- We link against our classes, libraries, and automatically also against system-wide libraries (e.g., `iostream`)
+
+- Copiling with `Makefile`
+
+```bash
+cd folder
+make
+./main
+make clean
+```
+
+- Typical Linux bash commands:
+
+```bash
+sudo, man, pwd, ls, cd, cp, mkdir, mv, rm
+```
+
+- Conditionals (`if-else`), ternary operator `A>B?C:D`
+- Casting and implicit conversion: usually to higher precission, but also to `bool`.
+
+- Block scope: we create a new isolated stack on top of the current stack if we encapsulate code in `{}`; variables prior to the block stack remain hidden and the variables in the block stack are destroyed when we exit the block.
+
+```c++
+  int x = 2;
+  std::cout << "Outer scope value of x (should be 2): " << x << std::endl;
+  {
+    int x = 3;
+    int y = 4;
+    std::cout << "Inner scope vaue of x (should be 3): " << x << std::endl;
+    std::cout << "Inner scope vaue of y (should be 4): " << y << std::endl;
+  }
+  std::cout << "Outer scope value of x (should be 2): " << x << std::endl;
+```
+
+- Some keywords like `if () {}` can have a block stack:
+
+```c++
+int x = 2;
+if (true) {
+    int x = 3;
+    std::cout << x << std::endl; // 3
+}
+std::cout << x << std::endl; // 2
+```
+- Loops: `for`, `while`
+- Modern range-based for loops: `for (temp variable: container) {body}`
+
 ## Week 3: C++ Classes
 
 ## Week 4: C++ Software Solutions
