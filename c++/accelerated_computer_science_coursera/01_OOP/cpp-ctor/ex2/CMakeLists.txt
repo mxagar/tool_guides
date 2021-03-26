@@ -16,5 +16,5 @@ set (CMAKE_CXX_FLAGS "-std=c++14 -O0 -pedantic -Wall -Wfatal-errors -Wextra")
 set (LDFLAGS "-std=c++14")
 
 # ./ex1
-add_executable(ex1 main.cpp ${SRC_FILES})
-#target_link_libraries(ex1 ${LIBS})
+add_executable(ex2 main.cpp ${SRC_FILES})
+#target_link_libraries(ex2 ${LIBS})

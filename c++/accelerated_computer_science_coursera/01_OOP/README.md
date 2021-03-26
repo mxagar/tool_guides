@@ -427,7 +427,7 @@ std::cout << x << std::endl; // 2
 
 ## Week 3: C++ Classes
 
-- Every class has an automatic default constructor, and all member values are initialized to default values; default primitive values are undefined.
+- Every class has an **automatic default constructor**, and all member values are initialized to default values; default primitive values are undefined.
 - If we want to control the default values, we need to define a **custom default constructor**: a constructor without arguments that we write with custom initialization values. Three conditions necessary for default constructor
     - Member function with same name as the class
     - Function takes no params
@@ -449,6 +449,7 @@ Cube::Cube() {
 - We can also define not default, but **custom constructors**
     - That happens when we pass arguments
 - We can have several constructors!
+- **VERY IMPORTAT NOTE**: if we define any constructor, the **automatic default constructor** is not created for us! That means we need to take care of any necessary initialization on our own!
 
 ```c++
 // Header: Cube.h
