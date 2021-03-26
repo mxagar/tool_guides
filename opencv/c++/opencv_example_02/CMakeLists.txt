@@ -36,6 +36,10 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 add_executable(01_mat 01_mat.cpp)
 target_link_libraries(01_mat ${OpenCV_LIBS})
 
-# 
+# ./02_scan_images ../../share/lena.jpg 10 G
 add_executable(02_scan_images 02_scan_images.cpp)
 target_link_libraries(02_scan_images ${OpenCV_LIBS})
+
+# ./03_mat_mask_operations ../../share/lena.jpg
+add_executable(03_mat_mask_operations 03_mat_mask_operations.cpp)
+target_link_libraries(03_mat_mask_operations ${OpenCV_LIBS})
