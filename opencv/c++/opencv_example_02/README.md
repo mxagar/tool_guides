@@ -28,3 +28,12 @@ Some `cv::Mat` functions not mentioned in this code:
     2. `ScanImageAndReduceIterator()`: a `cv::MatIterator_` is used with start & end pointers
     3. `ScanImageAndReduceRandomAccess()`: (i,j) cells are accessed; inefficient for change all the image, only sensible for random pixel access
     4. `cv::LUT()` is used passing it the look-up table and the image: fastest method
+
+
+## `03_mat_mask_operations.cpp`
+
+- An image is convoluted (1) manually and (2) using the custom `cv::filter2D()` function with a `cv::Mat` kernel
+- `cv::CV_Assert(Image.depth() == cv::CV_8U)`: only accept unsigned char imagess
+- `filter2D()` is 9x faster than the manual option on my Mac
+- `filter2D()` has several optional arguments: center of kernel, treatment of border pixels, etc.
+- The manual code is interesting though: you learn how to efficiently iterate and apply neighboring operations pixel-wise on an image
