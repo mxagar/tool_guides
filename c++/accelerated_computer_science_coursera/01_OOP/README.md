@@ -450,6 +450,7 @@ Cube::Cube() {
     - That happens when we pass arguments
 - We can have several constructors!
 - **VERY IMPORTAT NOTE**: if we define any constructor, the **automatic default constructor** is not created for us! That means we need to take care of any necessary initialization on our own!
+    - For example, if we create custom constructors with parameters, we need to create a default constructor too in order to just instantiate objects without params, eg: `Cube c;`
 
 ```c++
 // Header: Cube.h
@@ -469,6 +470,100 @@ uiuc::Cube c(2); // The costom constructor with argument double is and executed
 std::cout << Volume << c.getVolume() << std::endl; // 2^3 = 8
 ```
 
-- Examples in `cpp-ctor`: `ex1`, `ex2`, `ex3`
+- See examples in `cpp-ctor`: `ex1`, `ex2`, `ex3`
+
+### Copy Constructors
+
+- If we do not provide any copy constructor, an **automatic copy constructor** is created implicitly for us; it copies all variables, which can be good and bad -- bad (1) if no copy operator is defined for all member variables, or (2) if want to control how copy is made, or (3) if we want to share resources between objects.
+
+- **Custom copy constructor**: defined when we have: (1) a class constructor and (2) exactly one argument: const reference of class type
+
+```c++
+// Custom copy constructor
+// Constant Cube/same-class-type passed by reference
+Cube::Cube(const Cube& c);
+...
+// Implementation
+// In this case, an automatic copy constructor would do the same
+// But, we'll see that we usually are going to need custom copy constructors
+// and manual transference/copy of data
+Cube::Cube(const Cube& c) {
+    length_ = c.length_;
+}
+```
+
+- **VERY IMPORTANT**: Copy constructors are invocated all the time:
+    - When passing an object by values as a param
+    - Returning an object by value from a function
+    - Initializig a new object (with =) 
+
+```c++
+// Remember each function has its stack space
+// If we pass variables by value, we need to copy them between stack spaces
+void foo(Cube c) {
+    // Nothing done.
+}
+Cube foo() { 
+    Cube c; // Default constructor invoked
+    return c; // Copy constructor invoked, since passed by value
+}
+int main() {
+    Cube c; // Default constructor invoked
+    foo(c); // Copy constructor invoked, since passed by value
+    // First, the constructors in foo() are invoked: default & copy
+    // Then, the copy constructor '=' is invoked to pass object to c2
+    Cube c2 = foo();
+    return 0;
+}
+```
+
+- Constructors are invoked only when objects are created in the memory space, not when objects are assigned one to another after being already created.
+
+```c++
+Cube c1; // Default constructor
+Cube c2 = c1; // Copy constructor
+Cube c3; // Default constructor
+// No constructor invoked!
+// Instead: we have a copy assignment, not a creation!
+// See next section on the copy assignment operator =
+c3 = c1; 
+```
+### Copy Assignment Operator `=`
+
+- Whereas a copy constructor creates a new object, the copy assignment operator assigns or replaces values to an existing object; in other words, the copy assignment operator `=` is always called on objects that have previously been created.
+- Again, if not manually defined, C++ provides us with an **automatic assignment operator** `=`
+- The automatic assignment operator will suffice if we do simple things, but we need our own assigment operator in more complex cases, eg, when we have:
+    - externally allocated resources, like memory
+    - multiple objects pointing to the same resources
+- A **custom assignment operator** needs 4 things to be true
+    - Public member
+    - Function name: `operator=`
+    - Return value: reference of class
+    - Argument: exactly one, const reference of class
+
+```c++
+// Custome assignment operator
+// The values of c will be copied to the instance of the class it's called upon
+Cube& Cube::operator=(const Cube& c)
+...
+Cube& Cube::operator=(const Cube& c) {
+    length_ = c.length_
+    // We always return *this: the instance of the class itself!
+    return *this;
+}
+```
+
+### Summary of Constructor and Copying Functions
+
+- We have three automatically generated functions (i.e., compiled even if no code is explicitly present)
+    - Automatic default constructor: `Cube::Cube()`
+    - Automatic copy constructor: `Cube::Cube(double length)`
+    - Automatic copy assignment operator: `Cube& Cube::operator=(const Cube& c)`
+- All three are invoked in several stages of object instatiation and copy
+- All three can be manually overloaded and defined; in that case, they are not automatic
+
+### Variable Storage
+
+### Class Destructor
 
 ## Week 4: C++ Software Solutions

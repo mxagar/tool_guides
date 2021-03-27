@@ -9,7 +9,7 @@
 #include <iostream>
 
 int main() {
-  uiuc::Cube c;  // !!!
+  uiuc::Cube c;  // !!! ERROR: we don't have a param-less or default constructor!
   std::cout << "Volume: " << c.getVolume() << std::endl;
   return 0;
 }
