@@ -562,8 +562,136 @@ Cube& Cube::operator=(const Cube& c) {
 - All three are invoked in several stages of object instatiation and copy
 - All three can be manually overloaded and defined; in that case, they are not automatic
 
-### Variable Storage
+### Variable Storage: Creating, Passing and Returning by Value / Reference / Pointer
+
+- In C++, an instanbce of a variable can be stored in 3 was
+    - stored directly in memory
+    - accessed by a pointer
+    - accessed by a reference
+
+```c++
+// 1. Direct storage
+// - type has no modifiers
+// - object takes its size in memory
+Cube c;
+int i;
+uiuc::HSLAPixel p;
+
+// 2. Storage by pointer
+// - Type is modified with *
+// - A pointer takes a "memory address width" = 64 bits in 64B systems
+// - The pointer points to the alölocated space of the object
+Cube* c; // Pointer to Cube
+int* i; // Pointer to int
+uiux::HSLAPixel* p;
+
+// 3. Storage by reference
+// - A reference variable is an alias: it takes 0 bytes of memory to reference a variable
+// - Type is modified by &
+// - A reference does not store memory itself, it is an alias to another variable!
+// - The alias must be assigned when the variable is initialized
+Cube& c = cube; // Alias to cube
+int& i = count; // Alias to count
+uiuc::HSLAPixel& p; // ILLEGAL! It must alias sth when variable initialized! This won't compile
+```
+
+- An alias is like a link: given `int& i = count`, when we change either `i` or `count`, the other is changed, too
+- It is important to be aware of what we are creating in memory with each approach; see `cpp-memory2/ex1` and the following lines
+
+```c++
+Cube c(10);
+
+// By value
+// Effect: we CREATE 2x1000 units volume
+Cube myCube = c;
+
+// By reference
+// Effect: the cube is constructud once, when creating c, not myCube!
+// We have only 1000 units in volume altogether!
+// We have two variables owning the same cube!
+// It's said we have two variables aliasing the same object
+// So an alias is like a name: we have an object with two names
+Cube & myCube = c;
+
+// By pointer
+// Effect: the cube is constructud once, when creating c, not myCube!
+// BUT: we create a pointer myCube which is pointing to c
+// We have 2 variables: the pointer and the cube itself
+// We have 1000 units of volume altogether
+Cube * myCube = &c;
+```
+
+- Something similar happens when **passing variables by value / reference / pointer**
+
+```c++
+bool sendCubeValue(Cube c);
+bool sendCubeReference(Cube& c);
+bool sendCubePointer(Cube* c);
+
+Cube c(10);
+
+// By value: we make a copy of c and pass it
+sendCubeValue(c);
+
+// By reference: we make no copies of c, we pass an alias/reference 
+sendCubeReference(c);
+
+// By pointer: we make no copies of c, we pass an address/pointer to it
+sendCubePointer(&c);
+```
+
+- Finally, we can also return by value / pointer / reference
+    - return by value: default, no modifiers
+    - return by pointer: modified with `*`
+    - return by reference: `&`; **BUT: never return a reference to a stack vaiable created on the stact of your current function, because it will be destroyed when leaving the function!**
 
 ### Class Destructor
+
+- Class destructors are called at the end of te lifecycle of the class and they clean up the memory allocated to the class instance
+- There is an **automatic default destructor** provided if we do nothing
+    - The only action by it is to call the default destructor of all member objects
+    - So, if we want some logging or additional clean-up (e.g., free heap memory with `delete`), we need our custom destructor
+- **We should not call the destructor explicitly**: the compiler places its calls whenever (1) we leave stack scopes or frames (e.g., function returns) or (2) clear heap memory with `delete` in code; then, it is called in runtime at those points
+- Custom destructor:
+
+```c++
+// Custom destructor: to add some custom action to the end-of-life of Cube
+// - member function
+// - name: name of class preceeded by ~
+// - all destructors have zero arguments and no return type
+Cube::~Cube();
+```
+
+- An example is provided in `coo-dtor/main.cpp`
+    - Cube instances are created within functions in stack and heap (`new`)
+    - When we leave the functions, the objects created within are destroyed with the destructor: output is displayed
+    - Whenever we create Cube instances on the heap with `new`, the construstors are called; when we destroy one instance with `delete`, the destructor is called
+
+```c++
+double cube_on_stack() {
+  Cube c(3); // Construtor called, object memory allocated on function stack
+  return c.getVolume(); // We leave the function stack, destructor called
+}
+
+void cube_on_heap() {
+  Cube * c1 = new Cube(10); // Constructor called, object memory allocated in heap
+  Cube * c2 = new Cube; // Constructor called, object memory allocated in heap
+  delete c1; // We delete one object from te heap
+  // BUT: one object instance remeins in the heap when we leave the function!
+}
+
+int main() {
+  cube_on_stack(); // create 1, destroy 1
+  cube_on_heap(); // create 2, destroy 1
+  cube_on_stack(); // create 1, destory 1
+  return 0;
+}
+```
+
+- Therefore, destructors are necesssary for
+    - Clearing stack memory automatically
+    - Cleaing heap memory: that is not done automatically, we need to do it manually in the destructor
+    - Clean open files
+    - Manage shared memory
 
 ## Week 4: C++ Software Solutions
