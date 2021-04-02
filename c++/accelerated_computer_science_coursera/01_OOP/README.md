@@ -694,4 +694,132 @@ int main() {
     - Clean open files
     - Manage shared memory
 
+### Errors due to Missuse of Pointers
+
+- **Segmentation fault** (Unix) occurs when we access a restricted memory part
+
+```c++
+int* n = nullptr;
+std::cout << *n << std::endl; // Segmentation Fault: the content of nullptr is restricted!
+```
+
+- **Undefined behavior** occurs when we unintentionally access undesired memory parts that might or might not be initialized; basically, we handle memory address with pointers wrongly, but it compiles, and we can access the memory parts, but these are random uninitialized regions
+
+- **Initialization** of variables is a good practice and necessary for pointers!
+
+```c++
+// No initialization: Dangerous, because x contains no address!
+// This can lead to careless mistakes and crashes when dereferencing x
+int* x;
+// Better: Explicitly initializing a pointer to nullptr
+// while there is no address to be assigned yet
+// BUT: we need to check y != nullptr before dereferencing or using it
+int* y = nullptr;
+// Equivalent
+int* y2(nullptr);
+int* y2{nullptr}; // Since C++11, for better differetiation from initialization vs function call
+
+// Initialize EVERYTHING, at least with default values
+int i = 0;
+int* z = &i;
+Cube c; // Initialization with default constructor
+```
+
+- **Initialization is also necessary with heap memory**
+
+```c++
+int* q = new int; // *q points to a rubbish heap memory value, depending on the compiler, unreliable 
+int* r = new int(0); // *r points to value 0 in the heap memory, better
+```
+
+- **IMPORTANT**: Reset `deleted` pointers to `nullptr`, because the heap is freed, but we need to somehow signal that to the stack pointer to avoid
+    - `deleting` it again
+    - dereferencing it mistakenly
+ 
+```c++
+// Allocate an integer on the heap:
+int* x = new int;
+// Now x holds some memory address to a valid integer.
+// Do some kind of work with the integer.
+// We'll just set that integer to 7:
+*x = 7;
+// Now delete the pointer to deallocate the heap memory:
+delete x;
+// This destroys the integer on the heap and frees the memory.
+// But now x still holds the memory address!
+// Set x to nullptr for safety:
+x = nullptr;
+```
+
+### Modern Range-based `for`-Loops
+
+```c++
+std::vector<int> int_list;
+int_list.push_back(1);
+int_list.push_back(2);
+int_list.push_back(3);
+for (int x : int_list) {
+    // This version of the loop makes a temporary copy of each
+    // list item by value. Since x is a temporary copy,
+    // any changes to x do not modify the actual container.
+    x = 99;
+}
+for (int& x : int_list) {
+    // This version of the loop will modify each item directly, by reference!
+    x = 99;
+}
+for (const int& x : int_list) {
+    // This version uses references, so it doesn't make any temporary copies.
+    // However, they are read-only, because they are marked const!
+    std::cout << "This item has value: " << x << std::endl;
+    // This line would cause an error:
+    //x = 99;
+}
+```
+
+### Unsigned Integers
+
+- Unsigned `ints` have no negative values, instead, double the positive values.
+- The underlying bit representation is the same for both, therefore, a negative signed `int` can be interpreted as a very large `unsigned int`, or vice versa (so negative values have higher bit values)
+- If `signed` and `unsigned ints` are summed or subtracted, issues might arise if we operate in large bit sizes (either negative values or high positive values)
+    - We need to explicitly cast them to work securely
+- Comparing `signed` and `unsigned ints` can lead to issues
+- Conclusion: use `unsigned ints` only when you really need them
+    - Counters without complex arithmetics operations on them
+    - When we want to optimize memory for large integer values
+
+```c++
+unsigned int x = 10;
+unsigned int y = 20;
+std::cout << x - y << std::endl; // 4294967286, close to the maximum for an unsigned 32-bit integer
+std::cout << (int) (x - y) << std::endl; // -10
+int z = x - y;
+std::cout << z << std::endl; // -10
+```
+
+- Conrainers = generic data structure classes; the STL provides many of these, e.g., `std::vector`
+- Container sizes are often `unsigned ints`, which might lead to issues in comparisons if `signed ints` are used
+
+```c++
+std::vector<float> v;
+// Warning
+for (int i = 0; i < v.size(); ++i) {
+    std::cout << v[i] << std::endl;
+}
+// Correct, but i is unsigned,
+// so consider that if arithmetics done inside the loop
+for (unsigned int i = 0; i < v.size(); ++i) {
+    std::cout << v[i] << std::endl;
+}
+// Error: unsigned 0 - 1 -> very large value for v.size()-1
+// -> we alwas enter the loop -> some large i value won't have v[i] -> SegFault
+for (int i = 0; i <= v.size()-1; ++i) {
+    std::cout << v[i] << std::endl;
+}
+// Correct
+for (int i = 0; i <= (int)v.size()-1; ++i) {
+    std::cout << v[i] << std::endl;
+}
+```
+
 ## Week 4: C++ Software Solutions
