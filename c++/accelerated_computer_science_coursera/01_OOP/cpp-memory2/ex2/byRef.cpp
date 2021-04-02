@@ -22,5 +22,7 @@ int main() {
   // Send the cube to someone
   sendCube(c);
 
+  // Effect: we pass a reference, an alias, no copies are made!
+
   return 0;
 }

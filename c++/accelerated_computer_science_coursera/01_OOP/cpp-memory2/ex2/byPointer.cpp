@@ -20,7 +20,9 @@ int main() {
   Cube c(10);
 
   // Send the cube to someone
-  sendCube(&c);
+  sendCube(&c); // With &, we are sending a memory address of c
+
+  // Effect: we pass a pointer, not the cube itself, no copies are made 
 
   return 0;
 }

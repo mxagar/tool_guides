@@ -20,5 +20,7 @@ int main() {
   // Send the cube to someone
   sendCube(c);
 
+  // Effect: we make a copy of c when passing it to sendCube()!
+
   return 0;
 }
