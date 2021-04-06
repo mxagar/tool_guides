@@ -3,7 +3,7 @@
 Notes made when following the course offered in Coursera by University of Illinois at Urbana-Champaign.
 Prof. Wade Fagen-Ulmschneider.
 
-## Week 1: Writing C++ Programs
+## Week 1: Introduction to Writing C++ Programs
 
 ### 1.1 Introduction
 
@@ -822,4 +822,80 @@ for (int i = 0; i <= (int)v.size()-1; ++i) {
 }
 ```
 
-## Week 4: C++ Software Solutions
+## Week 4: C++ Software Solutions: Templates, Class Inheritance
+
+- Template type: it can take different underlying types when initialized, eg: the containter `std::vector` can be of the form `std::vector<char>`, `std::vector<int>`, `std::vector<Cube>`.
+
+- `std::vector` basics:
+    - many functions available
+    - they grow dynamically, we don't have to take care of memory allocation
+
+```c++
+#include <vector>
+//std::vector<T> v; T is the type: int, char, Cube, etc
+std::vector<int> v;
+v.push_back(4); // append an entry
+v.size(); // get number of elements
+v[0]; // access element # 0 for rw
+```
+
+### Tower of Hanoi
+
+Problem description:
+
+- We have cubes of ascending size stacking one on top of the other on a location.
+- We want to move the cubes two locations to the right one by one without stacking a larger cube on top of a smaller one.
+- One cube can be moved at a time, ie., the top cube on a stack.
+- We can move the cubes back and forth between any stack.
+
+Problem analysis from a programming perspective:
+
+- We have 3 stacks/locations in which cubes can be stacked.
+- All 3 stacks form the game.
+- Each cube has a size and a color
+
+The game structure is in `cpp-tower/`
+- `Cube.h/cpp`: `length_`, `color_`
+- `Stack.h/cpp`: we want to be able to
+    - contain ordered cubes stacked one on the other
+    - be able to add a cube on top
+    - be able to remove/pop/take one cube from the top
+    - get size of stack
+    - have a look at the cube at the top, ie., get its `length_`
+- `Game.h/cpp`: here we have the game itself
+    - 3 stacks of cubes, initialized in the constructor
+    - `Game::solve()`: solve the game: that is the task to be solved
+
+`cpp-tower/Stack.h`:
+```c++
+class Stack {
+  public:
+    void push_back(const Cube & cube);
+    Cube removeTop();
+    Cube & peekTop();
+    unsigned size() const;
+
+    // An overloaded operator<<, allowing us to print the stack via `cout<<`
+    // Always this form, the only thing that changes is the type to be printed
+    friend std::ostream& operator<<(std::ostream & os, const Stack & stack);
+
+  private:
+    std::vector<Cube> cubes_;
+};
+```
+
+`cpp-tower/Game.h`:
+```c++
+class Game {
+  public:
+    Game();
+    void solve();
+
+    // An overloaded operator<<, allowing us to print the stack via `cout<<`
+    // Always this form, the only thing that changes is the type to be printed
+    friend std::ostream& operator<<(std::ostream & os, const Game & game);
+
+  private:
+    std::vector<Stack> stacks_;
+};
+```
