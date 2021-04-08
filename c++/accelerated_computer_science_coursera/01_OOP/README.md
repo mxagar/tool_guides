@@ -918,6 +918,8 @@ stack 1 -> stack 2
 
 The direction of the arrow `<->` is decided depending on the size of the top cube on each pair of stacks, but the sequence `[[0,1],[0,2],[1,2]]` is constant.
 
+Hence, **we have done the first steps of the solution manually and have identified by induction a pattern.**
+
 We program then, the code in `cpp-tower-solution/`, summarized like this:
 
 ```c++
@@ -956,4 +958,103 @@ void Game::_move(unsigned index1, unsigned index2) {
 ```
 
 ### Tower of Hanoi: Solution 2
+
+Another approach for solving the problem consists in designing a broader strategy rather than obtaining by induction. The master plan would look like this:
+
+- We want to transfer the cubes from stack 0 (left) to stack 2 (right), following the rule having a smaller cube on top of a bigger at any moment.
+- If we have 4 cubes stacked in stack 0, we want to
+    1. transfer the top 3 to a spare stack (1) temporarily
+    2. transfer the bottom biggest cube to the stack 2
+    3. transfer the top 3 from the spare stack (1) to final stack 2
+
+- We notice that the stack can be separated in layers from bottom to top; deeper layers can be ignored while working  on top ones - thus, we simplify th eproblem to the top sub-towers and work recursively
+- The 3 stacks are leballed to be `Source`, `Spare`, `Target`, and each time, each of the `Source` and `Spare` labels are re-assigned to different stacks
+
+The generic recursion pseudocode is the following:
+```
+Initial state:
+Stacks 0, 1, 2 = Source, Spare, Target
+Blocks in Source: 0, 1, 2, 3
+
+move(Source[0,1,2,3] -> Target (Stack 2))
+    move(Source[1,2,3] -> Spare (Stack 1)) // We sawp Spare & Target
+        here, we recursively call move():
+        move(Source[2,3] -> Spare)
+            ...
+        move(Source[1] -> Target)
+        move(Source[2,3] -> Target)
+            ...
+    move(Source[0] -> Target)
+    move(Spare[1,2,3] -> Target)
+        recursion, again
+
+move(Source[start,...,end] -> Target)
+    move(Source[start+1,...,end] -> Spare) // We sawp Spare & Target
+    move(Source[start] -> Target)
+    move(Spare[start+1,...,end] -> Target)
+
+```
+
+The code is implemented in `cpp-tower-solution2`, in the function `void Game::_move(...)`:
+
+```c++
+// Move the cubes in the range [start...end] from `source` to `target`, using spare as a spare spot:
+void Game::_move(
+  unsigned start, unsigned end,
+  Stack & source, Stack & target, Stack & spare,
+  unsigned depth
+) {
+  cout << "Planning (depth=" << depth++ << "): Move [" << start << ".." << end << "] from Stack@" << &source << " -> Stack@" << &target << ", Spare@" << &spare << "]" << endl;
+
+  // Check if we are only moving one cube:
+  if (start == end) {
+    // If so, move it directly:
+    _moveCube( source, target );
+    cout << *this << endl;
+  } else {
+    // Otherwise, use our move strategy:
+    _move(start + 1, end  , source, spare , target, depth);
+    _move(start    , start, source, target, spare , depth);
+    _move(start + 1, end  , spare , target, source, depth);
+  }
+}
+```
+
+### Templates and Classes
+
+C++ allows creating template functions and classes, which are basically objects that have parameters of types defined at another point in code.
+
+- Templates are defined declaring `template <typename T>` before the beginning of the class/function, where `T` is the type later defined.
+- Templated variables are checked at compile time.
+
+```c++
+// Class
+template <typename T>
+class List {
+    ...
+    private:
+        T data_;
+}
+
+// Function
+template <typename T>
+int my_max(T a, T b) {
+    if (a > b) { return a; }
+    return b;
+}
+
+// Templated variables are checked at compile time
+
+// OK: max() is instantiated automatically as max<int>
+my_max(4, 7);
+// OK: two chars compared
+my_max('a', 'b');
+// OK: since '>' is defined for std:strings
+my_max(std::string('hello'), std::string('world'));
+// ERROR: if no '>' operator is defined for Cube
+my_max(Cube(4), Cube(7));
+
+```
+
+### Inheritance
 
