@@ -839,7 +839,7 @@ v.size(); // get number of elements
 v[0]; // access element # 0 for rw
 ```
 
-### Tower of Hanoi
+### Tower of Hanoi: Game Explanation
 
 Problem description:
 
@@ -899,3 +899,61 @@ class Game {
     std::vector<Stack> stacks_;
 };
 ```
+### Tower of Hanoi: Solution 1
+
+Game strategy: if we look closely at the movements that need to be taken, we see that the following sequence is repeated:
+
+```
+stack 0 -> stack 1
+stack 0 -> stack 2
+stack 1 -> stack 2
+stack 0 -> stack 1
+stack 0 <- stack 2
+stack 1 <- stack 2
+stack 0 -> stack 1
+stack 0 -> stack 2
+stack 1 -> stack 2
+...
+```
+
+The direction of the arrow `<->` is decided depending on the size of the top cube on each pair of stacks, but the sequence `[[0,1],[0,2],[1,2]]` is constant.
+
+We program then, the code in `cpp-tower-solution/`, summarized like this:
+
+```c++
+void Game::solve() {
+    while (stacks_[2].size() != 4) {
+        _legalMove(0,1);
+        _legalMove(0,2);
+        _legalMove(1,2);
+    }
+}
+
+void Game::_legalMove(unsigned index1, unsigned index2) {
+    
+    if (stacks_[index1].size() == 0 &&
+        stacks_[index2].size() > 0) {
+        _move(index2, index1);
+    } else if ( stacks_[index1].size() > 0 &&
+                stacks_[index2].size() == 0) {
+        _move(index1, index2);
+    } else if ( stacks_[index1].size() > 0 &&
+                stacks_[index2].size() > 0) {
+        if (stacks_[index1].peekTop().getLength() <
+            stacks_[index2].peekTop().getLength()) {
+            _move(index1, index2);
+        } else {
+            _move(index2, index1);
+        }
+    }
+    std::cout << *this << std::endl;
+}
+
+void Game::_move(unsigned index1, unsigned index2) {
+    Cube cube = stacks_[index1].removeTop();
+    stacks_[index2].push_back(cube);
+}
+```
+
+### Tower of Hanoi: Solution 2
+
