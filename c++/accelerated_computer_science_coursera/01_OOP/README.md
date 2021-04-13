@@ -1020,7 +1020,7 @@ void Game::_move(
 }
 ```
 
-### Templates and Classes
+### Templates
 
 C++ allows creating template functions and classes, which are basically objects that have parameters of types defined at another point in code.
 
@@ -1057,4 +1057,87 @@ my_max(Cube(4), Cube(7));
 ```
 
 ### Inheritance
+
+- We can generate generic classes which are then inherited by more specific classes, e.g. `Shape -> Cube`; we call them **base** class and **derived** class
+- Base classes have all member variables and methods declarations that are share by all derived ones.
+- Usually public inheritance is done: `class Cube : public Shape { ... }`: the derived class
+    - can access all **public** members (variables & methods) of the base class
+    - cannot access the **private** members of the base class
+
+- When a derived class is initilized, the derived class **must** construct the base class:
+    - `Cube` must construct `Shape`
+    - Default constructor is used by default
+    - Custom constructor can be used with an **initialization list**
+
+- Initializer list: custom constructor which can
+    - Initialize the base class
+    - Initialize the current class using another constructor
+    - Initialize the default values of member variables
+
+Example in `cpp-inheritance/`
+```c++
+//// Shape.h
+class Shape {
+  public:
+    Shape();
+    Shape(double width);
+    // All derived classes will have this method
+    double getWidth() const;
+
+  private:
+    // All derived classes will have this variable
+    double width_;
+};
+
+//// Cube.h
+namespace uiuc {
+  class Cube : public Shape {
+    // Since we inherit from Shape,
+    // we get all public methods and variables from it
+    // Public methods from Shape should give access
+    // to private variables, eg: getWidth() -> width_
+    public:
+      Cube(double width, uiuc::HSLAPixel color);
+      double getVolume() const;
+
+    private:
+      uiuc::HSLAPixel color_;
+  };
+}
+
+//// Shape.cpp
+
+// From the default constructor
+// We call the custom constructor below by using Shape(1)
+Shape::Shape() : Shape(1) {
+  // Nothing.
+}
+
+// We have an initialized list
+// with which we initialize the member varieble width_
+// Initializer list: MyClass::MyClass(double var) : var_(var)
+// With the initializer list we avoid writing redundant lines of code
+// and initialize everything in one place in the code!
+Shape::Shape(double width) : width_(width) {
+  // Nothing.
+}
+
+double Shape::getWidth() const {
+  return width_;
+}
+
+//// Cube.cpp
+namespace uiuc {
+  // width value is passed to the Shape constructor
+  Cube::Cube(double width, uiuc::HSLAPixel color) : Shape(width) {
+    color_ = color;
+  }
+
+  double Cube::getVolume() const {
+    // We cannot access Shape::width_ due to it being `private`
+    // ...instead we use the public Shape::getWidth(), a public function
+    return getWidth() * getWidth() * getWidth();
+  }
+}
+```
 

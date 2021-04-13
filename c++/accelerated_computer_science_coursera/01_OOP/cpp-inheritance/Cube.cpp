@@ -9,14 +9,14 @@
 #include "Shape.h"
 
 namespace uiuc {
+  // width value is passed to the Shape constructor
   Cube::Cube(double width, uiuc::HSLAPixel color) : Shape(width) {
     color_ = color;
   }
 
   double Cube::getVolume() const {
-    // Cannot access Shape::width_ due to it being `private`
+    // We cannot access Shape::width_ due to it being `private`
     // ...instead we use the public Shape::getWidth(), a public function
-
     return getWidth() * getWidth() * getWidth();
   }
 }
