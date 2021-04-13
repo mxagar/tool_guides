@@ -6,8 +6,16 @@
  *
  * that stores its two arguments in
  * two private member variables of Pair.
- *
- * Class sumPair has also already been
+ */
+
+class Pair {
+    public:
+        Pair(int a, int b) { a_ = a; b_ = b; };
+    private:
+        int a_, b_;
+};
+
+/* Class sumPair has also already been
  * defined as follows:
  *
  * class sumPair : public Pair {
@@ -15,8 +23,16 @@
  *   int sum;
  *   sumPair(int,int);
  * };
- * 
- * Implement the constructor
+ */
+
+class sumPair : public Pair {
+    public:
+        int sum;
+        //sumPair(int a, int b) : Pair(a, b) { sum = a + b; };
+        sumPair(int a, int b);
+};
+
+/* Implement the constructor
  * sumPair(int,int) such that it
  * loads the two member variables of
  * the base Pair class with its
@@ -24,11 +40,17 @@
  * member variable sum with their sum.
  */
 
+sumPair::sumPair(int a, int b) : Pair(a, b) {
+    sum = a + b;
+}
+
 /* Below is a main() function
  * you can use to test your
  * implementation of the
  * sumPair constructor.
  */
+
+#include <iostream>
 
 int main()
 {
