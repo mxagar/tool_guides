@@ -1140,4 +1140,24 @@ namespace uiuc {
   }
 }
 ```
+### Week 4 Assignment
 
+The assignment code ans instructions are in `week_4_assignment/`.
+Files that need to be edited and submitted:
+
+- `ImageTransform.h`
+- `ImageTransform.cpp`
+- `uiuc/HSLAPixel.h`
+- `uiuc/HSLAPixel.cpp`
+
+The project consists in loading and processing/transforming a PNG image. The PNG handling library code is probided in `uiuc/PNG.h/cpp` and `uiuc/lodepng/lodepng.h/cpp`.
+
+#### Part 1: Colo Spaces
+
+- RGB and HSL color spaces described
+    - H, Hue: color itself, 0-360 degrees, rainbow order: red - yellow - green - cyan - blue - magenta - red
+    - S, Saturation: degree to which the hue differs from a neutral gray: 0 (no color saturation; gray) - 100 (full)
+    - L, Luminance: level of illumination: 100 (white, full illumination) - 0 (black, no illumination)
+- Addiiotional channel Alpha used for blending colors (tranparency/opacity)
+- HSL color space is like a 3D ellipsoid
+- 
