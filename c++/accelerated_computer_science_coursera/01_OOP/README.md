@@ -1152,7 +1152,7 @@ Files that need to be edited and submitted:
 
 The project consists in loading and processing/transforming a PNG image. The PNG handling library code is probided in `uiuc/PNG.h/cpp` and `uiuc/lodepng/lodepng.h/cpp`.
 
-#### Part 1: Colo Spaces
+#### Part 1: Color Spaces
 
 - RGB and HSL color spaces described
     - H, Hue: color itself, 0-360 degrees, rainbow order: red - yellow - green - cyan - blue - magenta - red
@@ -1160,4 +1160,122 @@ The project consists in loading and processing/transforming a PNG image. The PNG
     - L, Luminance: level of illumination: 100 (white, full illumination) - 0 (black, no illumination)
 - Addiiotional channel Alpha used for blending colors (tranparency/opacity)
 - HSL color space is like a 3D ellipsoid
-- 
+
+Task: implement `HSLAPixel` class in `uiuc/HSLAPixel.h`:
+```c++
+  class HSLAPixel {
+    public:
+      double h;
+      double s;
+      double l;
+      double a;
+  };
+```
+
+#### Part 2: Using uiuc::PNG
+
+- PNG = Portable Network Graphics
+    - No compression
+    - Larger size than JPEG for photographs, but small size for siple graphics with colors
+- `PNG.h/cpp`: PNG class that loads and saves PNG files
+
+Some interfaces in the code:
+```c++
+bool PNG::readFromFile(const std::string & fileName)
+bool PNG::writeToFile(const std::string & fileName)
+unsigned int PNG::width() const
+unsigned int PNG::height() const
+HSLAPixel & getPixel(unsigned int x, unsigned int y)
+// Watch out: passed by value, not the best style, because entire image is copied
+PNG grayscale(PNG image)
+// pixel.s = 0
+```
+
+Task: finish implementing in `ImageTransform.cpp` the functions `illinify`, `sporlight` and `watermark`.
+Solutions:
+
+```c++
+PNG grayscale(PNG image) {
+  for (unsigned x = 0; x < image.width(); x++) {
+    for (unsigned y = 0; y < image.height(); y++) {
+      HSLAPixel & pixel = image.getPixel(x, y);
+      pixel.s = 0;
+    }
+  }
+
+  return image;
+}
+
+PNG createSpotlight(PNG image, int centerX, int centerY) {
+  for (unsigned x = 0; x < image.width(); x++)
+  {
+    for (unsigned y = 0; y < image.height(); y++)
+    {
+      HSLAPixel &pixel = image.getPixel(x, y);
+      double distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+      double factor = 0.005*distance;
+      if (factor > 0.8)
+        factor = 0.8;
+      pixel.l *= (1.0 - factor);
+    }
+  }
+  return image;
+  
+}
+ 
+PNG illinify(PNG image) {
+
+  for (unsigned x = 0; x < image.width(); x++)
+  {
+    for (unsigned y = 0; y < image.height(); y++)
+    {
+      HSLAPixel &pixel = image.getPixel(x, y);
+      double orange = 11.0;
+      double blue = 216.0;
+      double h = pixel.h;
+      // h - orange
+      double min_difference = abs(h - orange);
+      double is_orange = true;
+      // h - blue
+      if (abs(h - blue) < min_difference) {
+        is_orange = false;
+        min_difference = abs(h - blue);
+      }
+      // blue + 360 - h
+      if (h > blue) {
+        if (abs(orange + 360.0 - h) < min_difference)
+        {
+          is_orange = true;
+          min_difference = abs(orange + 360.0 - h);
+        }
+      }
+      if (is_orange) {
+        pixel.h = orange;
+      } else {
+        pixel.h = blue;
+      }
+    }
+  }
+  return image;
+}
+ 
+PNG watermark(PNG firstImage, PNG secondImage) {
+  for (unsigned x = 0; x < firstImage.width(); x++)
+  {
+    for (unsigned y = 0; y < firstImage.height(); y++)
+    {
+      if ((x < secondImage.width()) && (y < secondImage.height())) {
+        HSLAPixel &secondPixel = secondImage.getPixel(x, y);
+        if (secondPixel.l > 0.999f) {
+          HSLAPixel &firstPixel = firstImage.getPixel(x, y);
+          firstPixel.l += 0.2;
+          if (firstPixel.l > 1.0f) {
+            firstPixel.l = 1.0;
+          }
+        }
+      }
+    }
+  }
+  return firstImage;
+}
+```
