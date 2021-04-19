@@ -63,7 +63,7 @@ def view_classify(img, ps, classes):
     ps = ps.data.numpy().squeeze()
 
     fig, (ax1, ax2) = plt.subplots(figsize=(6, 9), ncols=2)
-    ax1.imshow(img.resize_(1, img.shape[2], img.shape[2]).numpy().squeeze())
+    ax1.imshow(img.resize_(1, img.shape[2], img.shape[3]).numpy().squeeze())
     ax1.axis('off')
     ax2.barh(np.arange(10), ps)
     ax2.set_aspect(0.1)

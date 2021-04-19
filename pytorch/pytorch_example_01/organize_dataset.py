@@ -10,6 +10,9 @@
     2. Dataset is split in train and test groups.
     For that, a fraction of the images already ordered in class forlders are moved
     from ../data/cat_dog_small/train/ to ../data/cat_dog_small/test/
+    
+    Note: for reading XLSX files, pandas needs the correct xlrd version; if that's not possible
+    modify the code and use CSVs instead :)
     (c) Mikel Sagardia, 2020.
 '''
 

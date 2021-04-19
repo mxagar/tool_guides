@@ -1,4 +1,5 @@
-This is an example file with text.
+Writing this to the file.
+th text.
 New line appended at the end of the file.
 New line appended at the end of the file.
 New line appended at the end of the file.
