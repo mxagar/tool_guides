@@ -1,2 +1,2 @@
-#add_subdirectory(cpp-project)
+add_subdirectory(array)
 
