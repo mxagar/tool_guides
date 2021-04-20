@@ -11,15 +11,15 @@
 using uiuc::Cube;
 
 int main() {
-  // Create an array of 3 `Cube`s:
+  // Create an array of 3 `Cube`s
   Cube cubes[3] = { Cube(11), Cube(42), Cube(400) };
   
-  // Print the size of each type `Cube`:
-  std::cout << sizeof(Cube) << std::endl;
+  // Print the size of each type `Cube`
+  std::cout << sizeof(Cube) << std::endl; // 8 bytes
 
   // Using pointer arithmetic, ask the computer to calculate
-  // the offset from the beginning of the array to [2]:
-  int offset = (long)&(cubes[2]) - (long)&(cubes[0]);
+  // the offset from the beginning of the array to [2]
+  int offset = (long)&(cubes[2]) - (long)&(cubes[0]); // 2 x 8 bytes
   std::cout << offset << std::endl;
 
   return 0;
