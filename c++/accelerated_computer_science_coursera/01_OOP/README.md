@@ -1279,3 +1279,146 @@ PNG watermark(PNG firstImage, PNG secondImage) {
   return firstImage;
 }
 ```
+
+
+## General Notes on Classes
+
+I made these notes while reading the C++ tutorial from `cplusplus.com` (not while doing the Coursera course).
+Extensive examples are in `templates/c++/cpp_tutorial`.
+
+### Object-Oriented Programming in C++
+
+- Data is structured complex in classes which embed member variables (information) and methods to process that information
+- Classes are structs with extended characteristics:
+  - they hold member variables (attributes) and methods/functions
+  - they can be inherited to form new classes
+  - each member is ordered under an access specifier: private, protected, public
+    - private (default, if nothing specified): members accessible **ONLY** from **INSIDE** the class or their **FRIENDS**
+      - for private member variables, `set()` and `get()` methods are often implemented
+      - private specifier is to avoid misuse of data
+    - protected: like PRIVATE, but members also accessible from members of DERIVED classes
+    - public: members accessible from ANYWHERE, even from outside
+- An object is an instantiation of a class; a class is a new type, user-defined
+- Use ';' always after a class definition - BUT method implementations dont need ';'
+- About the member variables and methods
+  - accessed/assigned with '.' with instantiated objects, with '->' if pointers to an object
+  - operator scope '::' used in function/method implementation: `type ClasName::method_name(...) {...}`
+  - function/method implementation can be in class definition or somewhere else (e.g., same file, or another file)
+    - if implemented in definition, compiler considers it `inline`
+- Constructors and Destructors
+  - Constructors
+    - Same name as class, **NO TYPE**
+    - Can be overloaded
+    - Initialization done in them
+    - Dynamic memory (heap) allocation with 'new'
+  - Destructors
+    - Same name as class preceded by `~`, **NO TYPE**
+    - Dynamic memory (heap) freed up here with `delete` (and consider using `nullptr` afterwards)
+  - Default: 4 things are done automatically by the compiler if programmer doesnt take care of them
+    - If nothing explicitly declared/defined, compiler implements implicitly
+      - (NOT ALWAYS) A default constructor ClassName(): **THIS IS AKA DEFAULT CONSTRUCTOR OR CONSTRUCTOR WITHOUT PARAMETERS**. Only if no other custom constructor is declared/defined; if a custom constructor is declared/defined, this default must be declared/defined manually. Example: `ClassName::ClassName() {m_variable = 0;}`
+      - (ALWAYS) A default destructor `~ClassName()`
+      - (ALWAYS) A default copy constructor that copies all member variables: `ClassName c1; ClassName c2(c1);`. Example: `ClassName::ClassName(const ClassName& rv) {m_variable = rv.m_variable;}`
+      - (ALWAYS) A default copy assignment operator (=) that copies all member variables: `ClassName c1; ClassName c2 = c1;`. Example: `ClassName& ClassName::operator= (const ClassName& rv) {m_variable = rv.m_variable; return *this;}`
+    - If any default constructor/destructor is explicitly declared/defined, its implicit default definition/implementation is not performed by the compiler. Therefore, **IMPORTANT**:
+      - if we create a custom constructor, we need to create also the default `ClassName()` constructor (at least, try to initialize variables with 0)
+      - it is not necessary to do that for the copy / assignment constructor
+- Operators can be overloaded to perform class specific tasks
+  - Prototype syntax: `return_type operator sign (parameters) {implementation}`
+  - Basically it consists in substituting `function_name` by `operator sign` and add always `(parameters)`
+  - Parameters refer to the ones on the right
+  - Parameter must go in (), although no () used later (e.g., operator +)
+  - Example: `v_1 + v_2 == v_1.operator+(v-2)` (and can be used like that)
+  - Overloadable operators: `+, -, *, /, >, <, [], (), ->, +=, ..., <<, >>, %, ^, !, ..., new, delete, ...`
+- `this` == pointer to the object itself
+  - Use cases:
+      1. Check if passed object is the object itself
+      2. Implement the default copy assignment operator (=):
+        `ClassName& ClassName::operator= (const ClassName& rv) {m_variable = rv.m_variable; return *this;}`
+- `static` member of a class = class variable, same for all objects of that class: global within the class
+  - Use case: counter of the objects of a class
+  - Cannot be initialized within the class, because otherwise it's initialized every time we create an object
+  - They are initialized at the beginning of the code, like a global, outside the class (and type is included). Example: `unsigned int ClassName::n = 0`
+  - static members can be accessed from the object or the class
+    `ClassName c; a.n; ClassName::n;`
+  - static functions are possible also: analogous to static member variables
+    - they can use **only static member variables**
+    - they cannot use `this`
+    - use case: process static data?
+- Friends
+  - friend function: declared/defined outside the class but has access to **ALL** class members (including private)
+    - function is declared/defined outside as if it had access to its members and a prototype (with `friend`) is added to class
+    - prototype goes also to the top of the code (header), as with normal functions
+    - forward declaration of used class might be necessary before header prototype
+    - whenever possible, use member functions instead of friends - e.g., this could be a member function
+    - using friends is not OOP
+    - use case of members: a function needs access to members of several classes
+  - friend class: analogous: class A {friend class B;} -> B has now access to all the members of A (not the other way around!)
+    - if a class has a friend class, the use of this friendship is executed in the other class - maybe a better token than `friend` would have been `allow_access_to`
+    - if we want 2 classes to be friends of each other, we need to explicitly do that: 
+      `class A {friend class B;}`
+      `class B {friend class A;}`
+    - class friends are not transitive: the friend of a friend is not considered a friend, unless explicitly specified
+    - forward declarations are usually necessary
+    - methods that make use of friend class might need to be implemented in source code (not header), because friend interface might be declared after the class using it
+    - use case: convert or merge
+- Inheritance: children classes created comfortably to replicate certain members of base classes
+  - How to do that (example: CShape base, CSphere child):
+    `class CShape {...}; -> class CSphere: public CShape {...};`
+    - CShape should contain common members to all its children
+    - the access specifier `public` can be replaced by `private` or `protected`: all inherited members will be forced to have this maximum access specifier; e.g.: `public`: no change (most common); `protected`: all `public` will become `protected`; `private`: all will become `private`
+    - if no access specifier given, compiler assumes PRIVATE for classes, PUBLIC for structs
+  - What is inherited
+    - all PUBLIC and PROTECTED members; NOT PRIVATE members -> **base classes rarely have private members**
+    - inherit could be interpreted more like 'grant access' rather than 'copy member'
+  - What is NOT inherited
+    - PRIVATE members; use PROTECTED if you want inheritable private members
+    - Base class default CONSTRUCTOR and DESTRUCTOR;
+      - VERY IMPORTANT BUT THESE DEFAULT BASE CONSTRUCTOR/DESTRUCTORS ARE CALLED WHEN INSTATIATING/DESTROYING CHILD OBJETC
+      - IF YOU WANT A SPECIFIC BASE CONSTRUCTOR (AND NOT THE DEFAULT) TO BE CALLED, SPECIFY IT IN CHILD CONSTRUCTOR DEFINITION
+        `class CSphere: public CShape {...};`
+          in CSphere:
+            `CSphere(float size) {...}; // will call default CShape()`
+            `CSphere(float size): CShape(size) {...}; // will call CShape(float)`
+    - Base class FRIENDS
+    - Assign operator (=) members
+  - Multiple inheritance
+    - Put all desired base classes in commas: `class CCube: protected CShape, public COutput {...};`
+- Usually:
+  - In header (`.h`), class structure declared: member variables + member function prototypes
+  - In source file (`.cpp`), implementation of memeber functions done: `type CClasName::method_name(...) {...}` 
+  - Source file which implements class declared in a header needs to include that header
+    - Exception: forward declaration
+- Useful conventions
+  - Class names often are chosen to start with capitals or even capital C: `class Rectangle, class CRectangle`
+  - Class member variables are often chosen to start with `m_`
+  - Note that `class` is equivalent to `struct` except that structs have public members per default (classes, private)
+  - structs can have also member functions
+  - unions can also have member functions; all members are public in them
+
+### Polymorphism
+
+- Key idea: **A pointer to a derived class is type-compatible with a pointer to its base class**
+  - Polymorphism consists in using this idea
+- Strategy:
+  - Base class is instantiated as a pointer with address to a child class
+  - This pointer can be passed to functions without type conflicts
+  - Since pointer targets concrete child classes, specific child methods are accessible!
+- Virtual functions (of a base class)
+  - Functions that can be re-defined in derived child classes
+  - For creating them, just precede function prototype with keyword `virtual`
+  - IMPORTANT: Keyword `virtual` allows a member of a derived class with the same name as in base class to be called from the pointer of a base class
+  - Pure virtual functions
+    - Virtual functions that have no implementation and are re-defined in derived children
+    - For creating them: `virtual function_prototype = 0;`
+    - A base class with at least one pure virtual function is a ABSTRACT CLASS or an INTERFACE: it cannot be instantiated as an object, only as a POINTER
+
+### Additional Glossary
+
+- Data encapsulation = basically working with classes, in which data and functions are bound together and different access categories are declared (private, protected, public) to avoid misuse
+- Data abstraction = exposing interfaces and hiding implementation
+- Interface = Abstract class = base class with at least one pure virtual function that can be instantiated only as a pointer
+- Polymorphic class = (base) class that inherits a virtual function (not pure virtual)
+- declaration = prototype, definition = implementation
+  - Declaration = prototype: form of the method, type of variable
+  - Definition = implementation: coding of the algorithm/commands performed by the method
