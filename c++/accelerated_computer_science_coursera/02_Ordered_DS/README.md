@@ -54,4 +54,74 @@ int offset2 = (long)&(cubes[3]) - (long)&(cubes[0]); // 3 x 8 -> they are sequan
 
 ### 1.2 Lists = Linked Memory
 
-- Linked memory lists store data elements together with a link/pointer to the location in memory of the next list node.
+- Linked memory lists store data elements together with a link/pointer to the location in memory of the next list node. So basically we have
+    - **List nodes**: element (data) + pointer to next node
+    - **Linked list** itself: set of list nodes; a head pointer (e.g., `head_`) marks the memory location where the list begins, `nullptr` marks the end of the list (the pointer to the next element of the last element is `nullptr`)
+
+A **list node** is defined with data + pointer to the next node, as shown in `linked-memory/List.h`:
+```c++
+template <typename T>
+class ListNode {
+public:
+    const T & data;
+    ListNode *next;
+    ListNode(const T & data) : data(data), next(nullptr) { }
+};
+```
+
+A **linked list** is as shown in `linked-memory/List.h`, here simplified:
+```c++
+template <typename T>
+class List {
+  public:
+    const T & operator[](unsigned index); // access elements with []
+    void insertAtFront(const T & data);
+
+  private:
+    class ListNode {
+      public:
+        const T & data;
+        ListNode *next;
+        ListNode(const T & data) : data(data), next(nullptr) { }
+    };
+
+    ListNode *head_;  // head pointer    
+};
+```
+
+- Differences wrt. arrays:
+    - Now, if want the element in `[4]` we need to visit all previous elements before it, in chain. So here we have $O(n)$ complexity.
+    - Now we can insert an element between other two elements. Usually, new elements are inserted at the front, since that requires basically creating a new node and changing the head pointer.
+    - In a list, the capacity is bounded to the available (heap) memory of the system; we don't need to resize as we needed with the array
+    - Both arrays and lists contain elements of the same type
+    - Summary: lists are more flexible than arrays, but with runtime disadvantages
+
+
+How to access/return a list element, as shown in `linked-memory/List.hpp`:
+```c++
+template <typename T>
+const T & List<T>::operator[](unsigned index) {
+    // We step starting in head pointer index times 
+    ListNode *thru = head_;
+    while (index > 0 && thru->next != nullptr) {
+        thru = thru->next;
+        index--;
+    }  
+    return thru->data;
+}
+```
+
+How to insert a new list element, as shown in `linked-memory/List.hpp`:
+```c++
+template <typename T>
+void List<T>::insertAtFront(const T & data) {
+    // Create a new ListNode on the heap
+    // bacause the node needs to live beyond the scope of this function
+    ListNode *node = new ListNode(data);
+    // Set the new node’s next pointer point the current
+    // head of the List = the current first node
+    node->next = head_;
+    // Set the List’s head pointer to be the new node
+    head_ = node;
+}
+```

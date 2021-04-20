@@ -12,6 +12,8 @@
 
 template <typename T>
 const T & List<T>::operator[](unsigned index) {
+  // We step starting in head pointer index times
+
   // Start a `thru` pointer to advance thru the list:
   ListNode *thru = head_;
 
@@ -28,14 +30,15 @@ const T & List<T>::operator[](unsigned index) {
 
 template <typename T>
 void List<T>::insertAtFront(const T & data) {
-  // Create a new ListNode on the heap:
+  // Create a new ListNode on the heap
+  // bacause the node needs to live beyond the scope of this function
   ListNode *node = new ListNode(data);
 
   // Set the new node’s next pointer point the current
-  // head of the List:
+  // head of the List = the current first node
   node->next = head_;
 
-  // Set the List’s head pointer to be the new node:
+  // Set the List’s head pointer to be the new node
   head_ = node;
 }
 

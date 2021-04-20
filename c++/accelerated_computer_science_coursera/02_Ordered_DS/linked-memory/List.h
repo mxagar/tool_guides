@@ -17,7 +17,7 @@
 template <typename T>
 class List {
   public:
-    const T & operator[](unsigned index);
+    const T & operator[](unsigned index); // access elements with []
     void insertAtFront(const T & data);
 
     // We define this constructor to make sure that head_ is null-initialized.
