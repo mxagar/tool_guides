@@ -125,3 +125,73 @@ void List<T>::insertAtFront(const T & data) {
     head_ = node;
 }
 ```
+
+### 1.3 Run Time Analysis: Access, Insert
+
+- Run time analysis compare speed of an algorithm as the size of the data grows
+    - Big-O notation: the most dominant term when counting the number of operations
+- Access of elements in arrays and lists
+    - Arrays: access to index `i`
+        - `offset = sizeof(element) x i`
+        - $O(1)$: one operation, no matter the size; that is called constant time
+    - Lists: access to index `i`
+        - We need to traverse `i` one by one
+        - $O(n)$: n operations; that is called linear time
+- Resizing of arrays (if capacity = size, ie., array full)
+    - Everytime we exceed capacity, we need to allocate a new memory block and copy all the data there
+    - If we keep on extending the array later in time, we're going to copy the data several times!
+    - Strategy 1: we append the initial the capacity `c` is exceeded (eg., `c = 2`)
+        - The number of copies required is quadratic (= polynomial) in the number of elements: $O(n^2)$
+        - First time `r = 1`, we copy `c = 2 = r`
+        - Then `r = 2`, we copy `2c = r*c`
+        - Then `r = 3`, `3c = r*c`
+        - If `r = n/2`, being `n` the final total number of elements
+        - The total number of copies is `sum(c, 2c, ...) = c*sum(1, 2, ..., r) = c*r(r+1)/2 = r^r + r`
+        - Since `r = n/2` -> $O(n^2)$ !!
+    - Strategy 2: we double the size/capacity when we hit the limit
+        - The number of copies required is linear in the number of elements: $O(n)$
+        - First time we do `c = 2` copies, then `2c`, `2*2c`, `2*2*2c`, ...
+        - Total copies = `sum(2, 4, 6, ..., 2^r) = 2(2^r - 1)`
+        - We know: `c^r = n` -> `r = log2(n)`
+        - Therefore: `2(2^log2(n) - 1) = 2(n-1)` -> $O(n)$ < $O(n^2)$ !!
+        - **Thus, doubling the capacity every time we hit the limit leads to a linear effort of copies**
+        - However, the average insertion time is $O(1)$, because 
+            - We very rarely copy the entire array when inserting a new element
+            - For every copying effort of $O(n)$ we have inserted `n` elements without copy
+            - Therefore, the average insertion effort is $O(n)/n = O(1)*$ !!
+            - That is called **amortized running time**
+        
+### 1.4 Array and List Operations: Find, Insert After
+
+- Summary of complexities so far
+    - **Access** index `i`
+        - Array: $O(1)$: direct access via offset
+        - List: $O(n)$: must traverse all nodes until `i`
+    - **Insert** at the front/back
+        - Array: $O(n)$ (if copy due to capacity exceeded), $O(1)*$ (amortized)
+        - List: $O(1)$: new node at the head
+- What about **finding** data?
+    - In both, in the data is *unsorted*, we need to traverse all elements until finding the one: $O(n)$
+    - However, we can improve that for the arrays if the data is *sorted*
+        - Say we want to find the cube with length 17
+        - We start in the middle of the container
+        - Has the element a larger length? If so, we continue in the first part, otherwise in the second
+        - This way, we check only half of the branch each time: `log2(n)` checks performed: $O(log2(n))$
+        - This is called **binary serach**
+    - For the lists, no binary search is possible: all lists have $O(n)$ find complexity
+- Last operation: **insert after**
+    - Given an index `i`, insert element fater it
+    - With an array we need to move all data after `i`; worst case, we need to move all `n` elements -> $O(n)$
+    - With a list, we just need to change the pointer of element `i` -> $O(1)$
+
+- Conclusions
+    - Arrays and linked memory lists are the basis for other data structures built on top of them
+    - Depending on what we want to achieve (which operations is critical), we choose the array or the list as basis
+    - Similarly, we consider to sort or not
+
+### 1.5 Queue (Data Structure)
+
+
+
+### 1.6 Stack (Data Structure)
+
