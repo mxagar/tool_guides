@@ -191,7 +191,17 @@ void List<T>::insertAtFront(const T & data) {
 
 ### 1.5 Queue (Data Structure)
 
+- FIFO array/list: First in, First Out
+- Abstract Data Type description of a Queue:
+    - `create`: create an emty queue
+    - `push`: add data to the back of the queue
+    - `pop`: remove data from the top of the queue
+    - `empty`: return true if queue is empty
 
+There is a `std::queue<type>` in the STL. Example from `queue/main.cpp`:
+```c++
+
+```
 
 ### 1.6 Stack (Data Structure)
 
