@@ -8,7 +8,7 @@ No warranties.
 
 ## Section 1: Introduction
 
-### 3. What is Docker? Why Docker?
+### What is Docker? Why Docker?
 
 Created in 2013 as open source project, now maintained by Docker Inc.
 
@@ -23,7 +23,7 @@ Why docker?
 - Containers reduce complexity: we package our code in a container and it runs everywhere
 - Applications usually don't need to be changed to be used on docker containers, but they need to be packaged
 
-### 4. 
+### Resources
 
 
 Original repo in
@@ -39,3 +39,11 @@ Additional material in my Dropbox:
 - Cheat Sheet
 - Slides
 - Commads TXT files
+
+See also the **FAQ** section.
+
+## Section 2: Setting Up: Installation & Co.
+
+### Versions
+
+
