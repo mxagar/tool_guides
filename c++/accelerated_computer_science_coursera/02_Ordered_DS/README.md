@@ -191,17 +191,75 @@ void List<T>::insertAtFront(const T & data) {
 
 ### 1.5 Queue (Data Structure)
 
-- FIFO array/list: First in, First Out
-- Abstract Data Type description of a Queue:
+- **FIFO** array/list: First in, First Out; it mimicks waiting in a line
+- Abstract Data Type (ADT) description of a Queue, all $O(1)$:
     - `create`: create an emty queue
     - `push`: add data to the back of the queue
     - `pop`: remove data from the top of the queue
     - `empty`: return true if queue is empty
+- A queue can be implemented with an undelying array or list:
+    - Array implementation
+        - We need to keep track of an index of where we should be removing from the queue
+        - Adding elements is pushing to the array
+        - The first elements of the array have the priority to be popped
+            - Although be might not pop, but just modify the front index
+        - All operations are $O(1)$: `create`, `push`, `pop`, `empty`
+            - But: `push` and `pop` are $O(1)$ in amortized runtime, assuming capacity is doubled when exceeded
+    - List implementation
+        - We insert upfront at $O(1)$
+        - We store a new `tail_` pointer which is pointing to the last element
+        - For the queue implementation we build a doubly linked list: elements have **two pointers: the one of the next element and the one of the previous element**
+        - Every time we `push`, we add before the `head_` by using the forward pointer
+        - Every time we `pop`, we remove and update the `tail_` by using the backward pointer
+        - All operations are $O(1)$: `create`, `push`, `pop`, `empty`
+
 
 There is a `std::queue<type>` in the STL. Example from `queue/main.cpp`:
 ```c++
-
+#include <queue>
+...
+std::queue<std::string> q;
+q.push( "Orange" );
+q.push( "Blue" );
+q.push( "Illinois" );
+// Print the front of the queue out and pop it off:
+std::cout << "First pop(): " << q.front() << std::endl; // Orange
+q.pop(); // Orange removed
+q.push( "Illini" );
+std::cout << "Second pop(): " << q.front() << std::endl; // Blue
 ```
 
 ### 1.6 Stack (Data Structure)
 
+- **LIFO** array/list: Last In First Out; it mimicks a pile of dishes/papers
+- Abstract Data Type (ADT) description of a Sueue, all $O(1)$:
+    - `create`: create an emty queue
+    - `push`: add data to the top of the stack
+    - `pop`: remove data from the top of the stack
+    - `empty`: return true if stack is empty
+- A stack can be built with any type of collection, array/list:
+    - Array-based
+        - We insert bacwards from n to 0; when we arrive 0, the array is expanded
+        - A counters/index is kept for the last inserted element position
+        - If we pop, the element on the front (index previous to the insert conter) is removed
+    - List-based: it's even easier
+        - We insert at the front with `push`,
+        - We remove from the frot with `pop`, and update the `head_` pointer
+        - Nothing new/additional is required
+    - All operations are $O(1)$: `create`, `push`, `pop`, `empty`
+        - But for the array-based version, `push` and `pop` are $O(1)$ in amortized runtime, assuming capacity is doubled when exceeded
+
+There is a `std::stack<type>` in the STL. Example from `stack/main.cpp`:
+```c++
+#include <stack>
+...
+std::stack<std::string> s;
+s.push( "Orange" );
+s.push( "Blue" );
+s.push( "Illinois" );
+// Print the front of the stack out and pop it off:
+std::cout << "First pop(): " << s.top() << std::endl; // Illinois
+s.pop(); // Illinois removed
+s.push( "Illini" );
+std::cout << "Second pop(): " << s.top() << std::endl; // Illini
+```
