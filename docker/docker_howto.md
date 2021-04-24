@@ -127,12 +127,121 @@ See also the **FAQ** section.
 ## Section 3: Creating and Using Containers
 
 - Containers are the building blocks of docker
+- Example: check docker is running by querying its version
 
 ```bash
-
+# Version information, check if docker is installed and runnig
 docker version
 
+# A lot of config info
+docker info
+
+# Get all possible commands
+# Some of them are management commands that accept a subcommand
+# These were introduced later as the number of commands increased
+# docker <command> <subcommand>
+# Example: 
+# (old, but backward compatible) docker run
+# (new style) docker container run
+docker
 ```
 
-## Section 4: Contanier Images
+- Images vs. containers
+	- The image is the collection of binaries and libraries of our application
+	- The container is a running instance of the image: you can have many containers running the same image
+- Registries: as Github is a registry for code, the registry of docker images is Docker Hub: [hub.docker.com](hub.docker.com)
+	- Official SW providers create and maintain their images, which can be downoaded/pulled and started locally as docker containers
+	- Examples: nginx, ubuntu, python, golang, node, mongodb, postgres, ...
+- We run a container with `docker container run` and the following happens
+	- Docker looks for th eimage locally, if not found, it downloads it from Docker Hub; it is stored in the image cache
+	- Latest version is download by default, but we canspecify concrete versions
+	- When a container is run, a new layer of changes is generated on the image, the image is not copied
+	- A running container has a virtual IP on a private network and we can forward data to its ports
+	- We can define a `CMD` in the image and pass the command when starting/running the container
+- Example: Running an nginx server container:
+
+```bash
+# Docker looks for an image called nginx
+# nginx is a web server
+# Docker pulls the nginx image from Docker Hub
+# and it starts it as a new process/container
+# It opens the port 80 the host IP and sends all traffic through it
+# to the port 80 of our container
+# if host port 80 is taken, we could try 8888:80
+docker container run --publish 80:80 nginx
+# Open browser and go to localhost (or localhost:8888)
+# nginx server notification appears
+
+# Run in the background
+# We get the container id back, to stop it with docker stop
+docker container run --publish 80:80 --detach nginx
+
+# If we open VS Code, containers & images appear in the tab
+
+# List running containers shown, with id
+docker container ls
+docker ps
+
+# Stop with Ctrl+C, or if detached
+# docker stop <container id/name>
+# BUT: we only stop the container, not remove it
+# Note: using the first 3 letters of the id is enough
+docker stop fecc962e3e6e
+docker container stop fecc962e3e6e
+
+# Show all containers that run at some point: running now and exited
+# We get a table
+# CONTAINER_ID, IMAGE, COMMAND, CREATED, STATUS, PORTS, NAMES
+# Names are automatic (hacker & cypher names)
+# unless we choose one with --name
+docker container ls -a
+
+# Start a nginx server container with name webhost
+docker container run --publish 80:80 --detach --name webhost nginx
+
+# Use container to generate some logs, e.g.,
+# with nginx refresh the browser
+# Display logs of container with name webhost
+docker container logs webhost
+
+# See top processes running in container named webhost
+docker container top webhost
+
+# See all subcommands commands for container
+docker container --help
+
+# Remove containers with their id; they won't appear with ls -a
+# If running, we need to stop and rm, or force with rm -f
+docker container ls -a
+docker container rm 8db fec d76 880 889
+docker container rm -f 3fd
+```
+
+- Containers are not really virtual machines, they are in fact just processes!
+	- On Mac, a mini virtual machine is started and the container run in there
+	- But on Linux, even containers are processes running on the host, not inside a virtual machine
+	- Windows containers are different to the other (linux) containers: since 2017, Windows containers are EXEs running on the Windows kernel
+	- Related links
+		- [https://www.youtube.com/watch?v=sK5i-N34im8&list=PLBmVKD7o3L8v7Kl_XXh3KaJl9Qw2lyuFl](https://www.youtube.com/watch?v=sK5i-N34im8&list=PLBmVKD7o3L8v7Kl_XXh3KaJl9Qw2lyuFl)
+		- [https://github.com/mikegcoleman/docker101/blob/master/Docker_eBook_Jan_2017.pdf](https://github.com/mikegcoleman/docker101/blob/master/Docker_eBook_Jan_2017.pdf)
+		- [https://www.bretfisher.com/docker-for-mac-commands-for-getting-into-local-docker-vm/](https://www.bretfisher.com/docker-for-mac-commands-for-getting-into-local-docker-vm/)
+		- [https://www.bretfisher.com/getting-a-shell-in-the-docker-for-windows-vm/](https://www.bretfisher.com/getting-a-shell-in-the-docker-for-windows-vm/)
+
+```bash
+# Start a MongoDB
+# -d = --detach
+docker run --name mongo -d mongo
+
+# See the mongo container process: mongod
+docker container top mongo
+
+# On Linux, we'd see that mongod is a process on th ehost itself
+ps aux | grep mongo
+
+# If we stop and rm the container
+# No mongod process will appear with ls -a nor with ps aux
+docker container rm -f mongo
+```
+
+## Section 4: Container Images
 
