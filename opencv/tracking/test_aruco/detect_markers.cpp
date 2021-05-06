@@ -212,9 +212,11 @@ int main(int argc, char *argv[]) {
             aruco::drawDetectedMarkers(imageCopy, corners, ids);
 
             if(estimatePose) {
-                for(unsigned int i = 0; i < ids.size(); i++)
+                for(unsigned int i = 0; i < ids.size(); i++) {
                     aruco::drawAxis(imageCopy, camMatrix, distCoeffs, rvecs[i], tvecs[i],
                                     markerLength * 0.5f);
+                    std::cout << "id " << i << ": x, y, z = " << tvecs[i][0] << ", " <<  tvecs[i][0] << ", " << tvecs[i][0] << std::endl;
+                }
             }
         }
 
