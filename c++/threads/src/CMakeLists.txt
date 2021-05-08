@@ -11,10 +11,14 @@ set (   SRC_FILES
     )
 
 # Compilation -> add_executable / add_library
-#set (CMAKE_CXX_FLAGS "-std=c++14 -O0 -pedantic -Wall -Wfatal-errors -Wextra")
+set (CMAKE_CXX_FLAGS "-std=c++14 -O0 -pedantic -Wall -Wfatal-errors -Wextra")
 # Linking -> target_link_libraries
-#set (LDFLAGS "-std=c++14")
+set (LDFLAGS "-std=c++14")
 
-# ./main
-add_executable(mainApp mainApp.cpp ${SRC_FILES})
-#target_link_libraries(mainApp ${LIBS})
+# ./simple_mutex
+add_executable(simple_mutex simple_mutex.cpp ${SRC_FILES})
+#target_link_libraries(simple_mutex ${LIBS})
+
+# ./simple_mutex
+add_executable(producer_consumer producer_consumer.cpp ${SRC_FILES})
+#target_link_libraries(producer_consumer ${LIBS})
