@@ -10,6 +10,7 @@
 #include <thread>
 #include <mutex>
 #include <chrono>
+#include <atomic>
 
 // Complex data structure: Container
 struct Container
@@ -21,6 +22,11 @@ struct Container
     };
 };
 
+// Atomic data can be safely accessed from different threads
+// However, if complex operatiors and synchronization is required on them
+// specific functions are defined for them: .load(), .fetch_add(), .store(), ...
+std::atomic<int> g_number;
+// Mutex for avoiding simultanoeus access of non-atomic data
 std::mutex g_mutex;
 
 void threadFunction(Container* c, int num, bool flag)
@@ -36,14 +42,17 @@ void threadFunction(Container* c, int num, bool flag)
             std::cout << "Thread 1" << std::endl;
             c->a += 5;
             c->b *= 2.0;
+            g_number += 5;
         }
         else
         {
             std::cout << "Thread 2" << std::endl;
             c->a -= 1;
             c->b *= 0.9;
+            g_number -= 1;
         }
         c->print();
+        std::cout << g_number << std::endl;
         // We can put a thread to sleep this ways (although not necessary here)
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         //g_mutex.unlock();
@@ -66,8 +75,10 @@ int main(int argc, char** argv) {
     std::thread t2(threadFunction, c, 1000, false);
 
     // Join all threads
-    t1.join();
-    t2.join();
+    if (t1.joinable())
+        t1.join();
+    if (t2.joinable())   
+        t2.join();
 
     // Delete Container object from the heap
     delete c;
