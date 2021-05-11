@@ -11,6 +11,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <chrono>         // std::chrono::seconds
 using namespace std;
 
 std::mutex g_mutex;
@@ -21,11 +22,15 @@ int g_data = 0;
 
 int produceData() {
   int randomNumber = rand() % 1000;
+  //std::this_thread::sleep_for (std::chrono::seconds(1));
   std::cout << "produce data: " << randomNumber << "\n";
   return randomNumber;
 }
 
-void consumeData(int data) { std::cout << "receive data: " << data << "\n"; }
+void consumeData(int data) { 
+  //std::this_thread::sleep_for (std::chrono::milliseconds(100));
+  std::cout << "receive data: " << data << "\n";
+}
 
 void consumer() {
   int data = 0;
@@ -35,6 +40,7 @@ void consumer() {
     consumeData(g_data);
     g_ready = false;
     ul.unlock();
+    // WARNING: lock-unlock in a while loop might block the mutex...
     g_cv.notify_one();
   }
 }
