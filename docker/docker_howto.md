@@ -153,8 +153,8 @@ docker
 	- Official SW providers create and maintain their images, which can be downoaded/pulled and started locally as docker containers
 	- Examples: nginx, ubuntu, python, golang, node, mongodb, postgres, ...
 - We run a container with `docker container run` and the following happens
-	- Docker looks for th eimage locally, if not found, it downloads it from Docker Hub; it is stored in the image cache
-	- Latest version is download by default, but we canspecify concrete versions
+	- Docker looks for the image locally, if not found, it downloads it from Docker Hub; it is stored in the image cache
+	- Latest version is download by default, but we can specify concrete versions
 	- When a container is run, a new layer of changes is generated on the image, the image is not copied
 	- A running container has a virtual IP on a private network and we can forward data to its ports
 	- We can define a `CMD` in the image and pass the command when starting/running the container
@@ -242,6 +242,30 @@ ps aux | grep mongo
 # No mongod process will appear with ls -a nor with ps aux
 docker container rm -f mongo
 ```
+
+Exercise: managing several containers with env variables and looking for log output
+```bash
+# Start 3 containers with their typical ports open: nginx, https, mysql
+# If images not available, downloaded from registries
+# MySQL: we pass an environment variable with --env = -e
+docker container run -d --name nginx --publish 80:80 nginx
+docker container run -d --name mysql --publish 3306:3306 --env MYSQL_RANDOM_ROOT_PASSWORD=yes mysql
+docker container run -d --name httpd --publish 8080:80 httpd
+
+# For MySQL, we need to copy the random password generated to log in to it
+# We must look at the logs for that
+# ... "GENERATED ROOT PASSWORD: eilei1shohngohYaig4CohNohpouta1o"
+docker container logs myql
+
+# Stop and remove containers; check they are removed
+# We can use the name or the ID, which is obtained also tabbing after stop
+docker container stop mysql nginx https
+docker container rm mysql nginx https
+docker container ls -a
+```
+
+### CLI Process Monitoring
+
 
 ## Section 4: Container Images
 
