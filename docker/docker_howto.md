@@ -146,6 +146,8 @@ docker info
 docker
 ```
 
+### Running Containers
+
 - Images vs. containers
 	- The image is the collection of binaries and libraries of our application
 	- The container is a running instance of the image: you can have many containers running the same image
@@ -266,6 +268,91 @@ docker container ls -a
 
 ### CLI Process Monitoring
 
+It is useful to observe the properties and performance of containers from a our host.
+
+```bash
+# Start some containers
+docker container run -d --name nginx nginx
+docker container run -d --name mysql --env MYSQL_RANDOM_ROOT_PASSWORD=yes mysql
+
+# For MySQL, if pw needed, we can check the output
+docker container logs mysql
+
+# Check the processes within the containers
+docker container top nginx
+
+# Inpect: JSON with information about how the container was started
+# VERY IMPORTANT!
+docker container inspect mysql
+
+# Show live performance of all running containers
+# CPU, mem usage, networking, etc.
+docker container stats
+
+# Show live performance of mysql container
+docker container stats mysql
+```
+
+### Getting a shell inside a container
+
+It is not necessary doing `ssh` to a container to get a shell within it.
+That can be done with the options `-it`, `-ai` and `exec`.
+Note that once inside, we can install software on the container.
+However, if the container is exited, unless with `start` it again, a new container of the same image won't have the installed software.
+
+```bash
+# Start a container and get a shell to it with -it
+# -t: pseudo TTY, a pseudo shell
+# -i: keep session of TTY open
+# bash: optional command passed to the container; in our case, bash shell
+# the container is nginx, but its name is proxy
+# we log in as root to our container, we can use the shell there as usual!
+# root@container_id
+docker container run --name proxy -it nginx bash
+# For exiting: exit; BUT: the container stops!
+exit
+
+# Same with a Ubuntu container: run it with a shell
+# A light version of ubuntu is installed if not available
+docker container run --name ubuntu -it ubuntu bash
+
+# The Ubuntu version is so light that it has nothing
+# We can install curl on it using the package manager
+apt-get update
+apt-get install -y curl
+# We can use curl now!
+curl google.com
+# Exit: it stops the container
+exit
+
+# If we want to re-run our Ubuntu again use
+# `start -ai` instead of `run -it`
+# that way, the previous container with installed stuff is started
+# otherwise, with run, we start a new container without installed things
+docker container start -ai ubuntu
+curl google.com
+
+# If we want to open a shell of a running container that was lauched without -it
+# we do `exec -it` + container_name + command (=bash)
+docker container exec -it proxy bash
+exit
+# Note that now, conatiner is not stopped when we exit
+# because an extra process for the shell was created with exec
+```
+
+If we want to use a super-light Linux distro, we need Alpine; but it has no `bash` installed.
+
+```bash
+# We pull the linux image of the smallest Linux distro: Alpine
+docker pull alpine
+# Alpine image is smaller than 6MB
+docker image ls
+# Alpine does not have bash installed, but sh
+docker container run --name alpine -it alpine sh
+# The package manager of Alpine is apk; we can install bash with it to use it later
+apk
+exit
+```
 
 
 ## Section 4: Container Images
