@@ -263,3 +263,7 @@ s.pop(); // Illinois removed
 s.push( "Illini" );
 std::cout << "Second pop(): " << s.top() << std::endl; // Illini
 ```
+
+### Week 1 Assignment: Linked Lists and Merge Sort
+
+See `week_1_assignment/README.md`.
