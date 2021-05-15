@@ -25,7 +25,6 @@ Why docker?
 
 ### Resources
 
-
 Original repo in
 
 https://github.com/bretfisher/udemy-docker-mastery
@@ -88,6 +87,7 @@ See also the **FAQ** section.
 - Use the terminal, and check docker is running: `docker version`
 - Install docker-machine with the commad line in: https://docs.docker.com/machine/install-machine/
 - Command+TAB completion installation (really cool util that shows options with TABx2): https://docs.docker.com/docker-for-mac/#install-shell-completion
+
 ```bash
 	# Install bash completion utility with brew
 	brew install bash-completion
@@ -354,6 +354,45 @@ apk
 exit
 ```
 
+### Docker Networks: Private and Public Communications
+
+Docker is designed under the motto *batteries included, but removable*; that means we have already many features running out-of-the-box, but we can still change them at our will.
+
+Docker container communication management is very flexible.
+Some important communication/networking concepts:
+
+- We can create virtual networks with groups of containers; the default virtual network is called `docker0` or `bridge`,  which appears if we do `ifconfig`
+- We have a firewall protecting communications (in/out) with the internet and also between virtual networks 
+- Containers within a virtual network can communicate between each other freely, no port forward needs to be done
+- If we want to allow communication between a container and the internet or with a container from another virtual network on the same hoset, we need to forward ports; then, the communication would go through the firewall
+- Only one container can be forwarded to a host port!
+
+```bash
+# Create an nginx container with port 80 forwarded: -p == --publish
+# host port 80 traffic forwarded to -> container port 80
+# We also say port 80 of the host was exposed
+docker container run -p 80:80 --name webhost -d nginx
+
+# Check the forwarded ports (exposed) of our container
+docker container port webhost
+
+# The IP address of the container is not necessary that of the host
+# Check it with inspect
+docker container inspect webhost | grep IP
+
+# We can also use --format if we know the name of the JSON node
+docker container inspect --format '{{ .NetworkSettings.IPAddress }}' webhost
+# and we get sth like 172.17.0.2
+# while our host IP is
+ifconfig en0
+# sth like 192.168.179.12
+```
+
+More on the `--format` option: [https://docs.docker.com/config/formatting/](https://docs.docker.com/config/formatting/).
+
+### Docker Networks: CLI Management of Virtual Networks
+
+**Note: nginx has no `ping` anymore: either install it with `apt-get` or use `nginx:alpine` instead of `nginx`**.
 
 ## Section 4: Container Images
 
