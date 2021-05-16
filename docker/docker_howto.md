@@ -87,6 +87,8 @@ See also the **FAQ** section.
 - Use the terminal, and check docker is running: `docker version`
 - Install docker-machine with the commad line in: https://docs.docker.com/machine/install-machine/
 - Command+TAB completion installation (really cool util that shows options with TABx2): https://docs.docker.com/docker-for-mac/#install-shell-completion
+- **IMPORTANT NOTE**: always use TAB autocompletion and `--help` as we type commands!
+
 
 ```bash
 	# Install bash completion utility with brew
@@ -390,9 +392,66 @@ ifconfig en0
 
 More on the `--format` option: [https://docs.docker.com/config/formatting/](https://docs.docker.com/config/formatting/).
 
+Note: **nginx has no `ping` anymore: either install it with `apt-get` or use `nginx:alpine` instead of `nginx`**.
+
 ### Docker Networks: CLI Management of Virtual Networks
 
-**Note: nginx has no `ping` anymore: either install it with `apt-get` or use `nginx:alpine` instead of `nginx`**.
+How networks work (as far as I understand):
+
+- We have the internet and local networks, which can be divided into subnets inside the local network.
+- Every device conneted to the internet has 2 IP addresses, or, in other words, its complete IP address has two identifiers: the host identifier and the network identifier. The network identifier is the IP visible to the rest of the Internet, the host iddentifier is the IP visible to the local network.
+- An IP address has 32 bits divided in 4 octets of bits, like `X.X.X.X`, with `X=[0,255]`.
+- The gateway device (router) connects local devices to other networks: every device in a local network talks to the gateway which forwards packets back and forth.
+- A subnet mask is used to divide the current network in subnets, or in other words, we further branch the local host IP with addditional *surnames*. A mask of the type `X.X.X.X` is assigned to the subnet with `X = {0,255}`, depending on the number of devices in the subnet. The value `255` means *allocated for the network prefix*, while the value `0` means *free to subdivide for host addressing*; thus, if the first three octets are `255` and the last `0`, i.e., `255.255.255.0`, we'd have 24 bits for the network and 8 bits for further devices, that is 256 ddevices.
+- However, I think for brevity, the subnet mask is given with the IP address followed by the number of network bits in the mask: `10.0.1.1/24`, which really means IP `10.0.1.1` and subnet mask `255.255.255.0`
+- NIC = Network interface controller = network card = physical IP; when creating conatiners and virtual networks, we create virtual NICs, and connect and disconnect them.
+
+For more, see: [https://avinetworks.com/glossary/subnet-mask/](https://avinetworks.com/glossary/subnet-mask/)
+
+
+```bash
+# Show networks
+# usually, we see 3 networks:
+# - bridge = docker0: default bridge connecting our docker containers to our physical host network; all our containers are by default attached to it 
+# - host: special network which attaches the container to the host interface wiithout the bridge; there are pros & cons: no protection, but sometimes better performance for high throughput networking
+# - none: like having an interface which is not attached to anything, it removes eth0 and leaves the container with localhost
+docker network ls
+
+# Inspect a network: we get a JSON with many infos:
+# containers attached to it, etc.
+# Dafault subnet mask is usually 172.17.0.0/16, gateway IP: 172.17.0.1
+# Subnet mask:  
+# Gateway IP: 
+docker network inspect <network name, eg: bridge>
+
+# Create a new virtual network called my_app_net
+docker network create my_app_net
+# We can check our new network
+# The default drive is bridge: functionalities taken from bridge
+docker network ls
+# We could also specify the driver we'd like to use, and many other options, see with --help
+docker network create --help
+
+# We can specify a network when creating a container
+docker container run -d --name new_nginx --network my_app_net nginx
+# We can check that with
+docker network inspect my_app_net
+
+# But we can also attach/connect a network to an existing container
+docker network connect --help
+docker network connect [options] <network> <container>
+docker network connect my_app_net webhost
+# We see my_app_net has two conatiners attached: new_nginx, webhost
+docker network inspect my_app_net
+# We see webbhost is connected to two networks: bridge, my_app_net
+docker conatiner inspect webhost
+
+# Detach a network from container
+docker network disconnect [options] <network> <container>
+```
+
+### Docker Networks: DNS and How Containers Find Each Other
+
 
 ## Section 4: Container Images
 
