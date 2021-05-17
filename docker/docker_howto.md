@@ -452,6 +452,27 @@ docker network disconnect [options] <network> <container>
 
 ### Docker Networks: DNS and How Containers Find Each Other
 
+- Virtual IP addresses of our container will change, so we need to use DNS naming to allow comms between them reliably
+- The name of the container is its DNS!
+- BUT: the default `bridge` network does not do it automatically, so we have two options
+	1. Create our custom networks and attch containers to them (recommended); custom networks create DNS servers with container names
+	2. Use the `--link list` option whe creating a container
+
+Example: `ping` from a container to another:
+```bash
+# We start two containers and set them in the same custom network
+docker container run -d --name webhost1 nginx
+docker container run -d --name webhost2 nginx
+docker network connect my_app_net webhost1
+docker network connect my_app_net webhost2
+# Install ping in a container
+docker container exec -it webhost1 /bin/bash
+apt-get update
+apt-get install inetutils-ping
+exit
+# Ping from the container with ping to the other using the container name (DNS) 
+docker container exec -it webhost1 ping webhost2
+```
 
 ## Section 4: Container Images
 
