@@ -267,3 +267,53 @@ std::cout << "Second pop(): " << s.top() << std::endl; // Illini
 ### Week 1 Assignment: Linked Lists and Merge Sort
 
 See `week_1_assignment/README.md`.
+
+#### `const` correctness
+
+```c++
+// if a function name is continued by const
+// it implies no data is changed within it
+bool LinkedList<T>::empty() const { return !head_; }
+
+// here, we deliver a link/reference to an internal value
+// note that we deliver the link to the internal variable and we can change it!
+T& LinkedList<T>::front() { return head_->data; }
+
+// here, we pass a link/reference to a function
+// with const, we force it to remein unchanged
+void function(const T& data);
+// without const, we could change data inside
+void function(T& data);
+
+// in case we want to pass to another function a LInkedList as const reference: const LinkedList<T>& myList
+// we need to overload LinkedList's (public) member functions
+// with a const function + const return version
+const T& LinkedList<T>::front() const { return head_->data; }
+
+// Always use const after the function name if it does not change anything!
+```
+
+#### Insertion and Merge Sort
+
+Insertion Sort: `O(n^2)`
+
+```pseudocode
+a <- {a0, a1, a2, ...} // a[0] == a0
+i <- 1
+while i < length(a)
+    x <- a[i]
+    j <- i - 1
+    while j >= 0 and a[j] > x
+        a[j+1] <- a[j]
+        j <- j - 1
+    end
+    a[j+1] <- x
+    i <- i + 1
+end
+```
+
+Merge Sort, `O(n*log(n))`: efficient sorting algorithm, from Wikipedia:
+
+1. Divide the unsorted list into n sublists, each containing one element (a list of one element is considered sorted).
+2. Repeatedly merge sublists to produce new sorted sublists until there is only one sublist remaining. This will be the sorted list.
+
