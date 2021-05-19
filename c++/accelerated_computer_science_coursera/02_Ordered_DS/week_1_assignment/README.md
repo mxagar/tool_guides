@@ -76,6 +76,7 @@ which inserts a new item in a previously sorted `LinkedList` before the earliest
 item in the list that is greater.
 
 Steps:
+
 - Create a new node on the heap
 - Traverse nodes to find the next greater
 - Insert in found place (could be also at front=head/back=tail)
@@ -83,6 +84,7 @@ Steps:
 - Update `size_`
 
 Notes:
+
 - No `push`, `pop`
 - Tips: check if list empty, insert at begining, reached end?
 - Handle the `nullptr` correctly: do no de-reference it!
@@ -102,6 +104,7 @@ LinkedList<int> mergedList = leftList.merge(rightList);
 ```
 
 Notes:
+
 - It should run `O(n)`, so we cannot append and then sort
 - Assume extreme cases too: empty lists, different lengths, repeating elements
 - We can make copies inside, if needed
