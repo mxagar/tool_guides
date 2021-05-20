@@ -5,6 +5,7 @@
 *submission*.zip
 *starter*zip
 #zephyr_output
+*.zip
 
 test
 main

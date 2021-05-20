@@ -128,7 +128,7 @@ void LinkedList<T>::insertOrdered(const T& newData) {
   // to update all next, prev, head_, and tail_ pointers as needed on your
   // new node or on those existing nodes that are adjacent to the new node.
 
-  // allocate a new node
+  // allocate a new node on the heap
   Node *newNode = new Node(newData);
 
   if (!head_)
@@ -298,6 +298,44 @@ LinkedList<T> LinkedList<T>::merge(const LinkedList<T>& other) const {
   //    time or worse, and not O(n).
   // 4. Remember, DO NOT try to use insertOrdered here. That would be
   //    very slow.
+
+  // Empty checking flags
+  bool left_empty = left.empty();
+  bool right_empty = right.empty();
+
+  while (!left_empty || !right_empty) {
+
+    T front_data_left, front_data_right;
+
+    if (!left_empty)
+      front_data_left = left.front();
+    if (!right_empty)
+      front_data_right = right.front();
+
+    if (!left_empty && !right_empty) {
+      if (front_data_left < front_data_right) {
+        merged.pushBack(front_data_left);
+        left.popFront();
+      } else {
+        merged.pushBack(front_data_right);
+        right.popFront();
+      }      
+    } else {
+      if (!left_empty) {
+        merged.pushBack(front_data_left);
+        left.popFront();
+      } else {
+        merged.pushBack(front_data_right);
+        right.popFront();
+      }
+    } 
+
+    // Update empty flags
+    left_empty = left.empty();
+    right_empty = right.empty();
+  
+  }
+
 
   // -----------------------------------------------------------
 

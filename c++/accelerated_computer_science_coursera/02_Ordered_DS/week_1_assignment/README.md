@@ -11,7 +11,7 @@ Notes extracted from the instructions and while completing the assignment.
     - `LinkedList.h`: `LinkedList` class
     - `main.cpp`: `main`
     - `tests/week1_test.cpp`: configuration of the `test` program
-- For submission: `make zip`
+- For submission: `make zip` and upload
 
 ## `LinkedList` class
 
