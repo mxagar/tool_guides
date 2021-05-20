@@ -474,5 +474,57 @@ exit
 docker container exec -it webhost1 ping webhost2
 ```
 
+Assignment 1: check `curl --version` in 2 different Linux distributions
+```bash
+# Run CentOS 7
+# Option --rm: automatically remove container when it exits
+docker container run --rm -it centos:7 bash
+# In CentOS
+yum update curl
+curl --version
+exit
+# Run Ubuntu from another shell
+docker container run --rm -it ubuntu:14.04 bash
+# In Ubuntu
+apt-get update && apt-get install -y curl
+curl --version
+exit
+# Since we used --rm, now no containers should be running/paused
+docker container ls -a
+```
+
+Assignment 2: DNS Round Robin Test.
+*Round Robin* is a load balancing technique which consists in distributing resources cicularly as requests come. For instance, if we have 10 kernels and launch 20 threads, we would start running threads 1, 2, 3, ... in kernels 1, 2, 3, ... and then threads 11, 12, 13 in kernels 1, 2, 3... again.
+*Round Robin DNS*, analogously, consists in having several servers and their respetcive IPs behind a DNS name. For instance, the DNS google.com is extenced to have several IP adresses and servers behind, which are assigned in ROund Robin order to requests from the internet as they arise.
+```bash
+# We can assign the same alias DNS name to multiple containers 
+# Create a network called dude
+# --network-alias = --net-alias
+docker network create dude
+# We launch two containers of th eimage elasticsearch:2
+# We assign the alias name 'search'
+docker container run -d --net dude --network-alias search elasticsearch:2
+docker container run -d --net dude --network-alias search elasticsearch:2
+# Check the container running: 2x elasticsearch
+# Note that the port tcp/9200 is open
+docker container ls -a
+# We can now start alpine/centos and look for DNS names
+# with --rm the container is remooved after executing
+# the image elasticsearch is especially useful for the example
+# because it delivers a JSON with container info in port 9200 when requested,
+# eg, with centos.
+# As wee query the container ID or name changes between the 1st alasticsearch and the 2nd
+# even though we query the same DNS name. That's Round Robin DNS balancing
+docker container run --rm --net dude alpine nslookup search
+docker container run --rm --net dude centos curl -s search:9200
+docker container run --rm --net dude centos curl -s search:9200
+docker container run --rm --net dude centos curl -s search:9200
+...
+# Stop elasticsearch containers
+docker container stop 0e3 319
+docker container stop rm 319
+docker container ls -a
+```
+
 ## Section 4: Container Images
 
