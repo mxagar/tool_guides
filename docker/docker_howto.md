@@ -528,3 +528,45 @@ docker container ls -a
 
 ## Section 4: Container Images
 
+An image is basically (1) the application binaries and dependencies (2) and the metadata on how to run it.
+
+Images do not have a complete OS, no kernel or kernel modules (= drivers) either! Usually they are of a similar size as the application. However, we could also have a very big image, for instance, when the container has a whole distribution of Ubuntu.
+
+Some basic commands:
+```bash
+# Check the images we have pulled/downloaded
+docker image ls
+# Download/pull an image, latest tag
+docker pull nginx
+# Download/pull an image, specific version and tag
+docker pull nginx:1.19.10-alpine
+```
+###  Docker Hub
+
+Sign up at [Docker Hub](hub.docker.com).
+We can have our images in our account.
+Explore which containers are available, eg, nginx.
+
+Analyzing images:
+- There is always one official one, with a simple image name; the others follow the template `org_name/image-property`, eg: `centos/nginx-112-centos7`.
+- Look always at the number of pulls/downloads and stars.
+- Official images are a great way to start, look at their documentation; [list of official images](https://github.com/docker-library/official-images/tree/master/library).
+- Then, usually, we take an official image and modify it and save it as our own image; when can later upload it to docker hub, in a similar fashion as with Github.
+- Look at the version tags of the official images; usually we download the tag `latest`, if nothing specified. However, the best practice is to track the exact version and pull it specifically.
+- Note that a version can have several tags, eg: `latest`, `1.19.10`, `mainline`, `1`, `1.19`; however, all point to version `1.19.10`. We can see that by pull them all and then checking the image id with `docker image ls`: they all have the same SHA or id.
+
+### Image Layers
+
+Images are designed using the union file system concept, making layers around the changes.
+The main idea is that we have a basis layer (eg., Ubuntu) and we add layers of changes to it: add a server, open a port, install something, etc. Each command or change is a layer and the sum of all layers together with the initual set of files (ie., Ubuntu) is the image. The key is that we store the layers, not the image as a monolith; that way, we can easily make branches from images, and the remain compact.
+
+Containers are basically a running copy and write layer: they access the read only image and create an outside layer on top of it; if we add or move something in the image, the content is copies from the image to the container layer and modified in it - that is called *copy on write*.
+
+```bash
+# List all the changes done to the image through its history
+# Each change is a layer, and we can see the command related to it 
+docker image history nginx:latest
+# Check many infos of the image
+# Ports opened, command called when run, architecture, OS, author, etc.
+docker image inspect nginx
+```
