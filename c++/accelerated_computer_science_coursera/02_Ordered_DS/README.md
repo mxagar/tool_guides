@@ -336,6 +336,35 @@ In contrast, hierarchical data structures like trees allow having elements with 
     - Must have directed edges
     - Must not have a cycle
 
-### Binary Trees
+### 2.2 Binary Trees
 
 A binary tree is a tree where **every node has at most two children**. One child is the **left child** and the other is the **right child**.
+
+Properties of a binary tree:
+
+- **Height** (`h`) of a binary tree: number of edges in the *longest path from the root to the leaf*
+- A binary tree is **full** iff every node has either zero or two children.
+- A binary tree is **perfect** iff all interior nodes have two children and all leaves are at the same level.
+- A binary tree is **complete** iff the tree is perfect until the last level (before the leaves) and all leaf nodes on the last level are pushed to the left; that means that there could be missing some leaves on the right until a node from which we have leafs to the left. Note that complete trees are not necessarily full, or vice-versa.
+
+Definition of a binary tree in `binary-tree/BinaryTree.h`:
+```c++
+template <typename T>
+class BinaryTree {
+  public:
+    // ...
+  private:
+    class TreeNode {
+      public:
+        T & data;
+        TreeNode* left;
+        TreeNode* right;
+        TreeNode(T & data) : data(data), left(nullptr), right(nullptr) { }
+    };
+    TreeNode *root_;
+};
+```
+
+### 2.3 Tree Traversals
+
+
