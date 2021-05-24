@@ -317,3 +317,25 @@ Merge Sort, `O(n*log(n))`: efficient sorting algorithm, from Wikipedia:
 1. Divide the unsorted list into n sublists, each containing one element (a list of one element is considered sorted).
 2. Repeatedly merge sublists to produce new sorted sublists until there is only one sublist remaining. This will be the sorted list.
 
+## Week 2: Binary Search Trees
+
+Until now we have studied flat data structures consisting of lists or sequences of elements.
+In contrast, hierarchical data structures like trees allow having elements with relationships to each other.
+
+### 2.1 Tree Terminology
+
+- Elements are **nodes** (often depicted as circles); the **root node** is the first node
+- Nodes are connected by **edges**: arrows that connect parant nodes with children nodes
+    - The root node has no parents (ie., incomming edges)
+- Nodes that have no children are called leaf nodes; they could be at any level
+- Nodes contain often the data
+- Edges are often not labelled and contain no data
+- Ancestry terms apply to trees: siblings, ancestors, granchildren, grandparent
+- **Three conditions** must be true for a tree: **rooted, directed and acyclic**
+    - Must have a root
+    - Must have directed edges
+    - Must not have a cycle
+
+### Binary Trees
+
+A binary tree is a tree where **every node has at most two children**. One child is the **left child** and the other is the **right child**.
