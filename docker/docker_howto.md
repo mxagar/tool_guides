@@ -570,3 +570,32 @@ docker image history nginx:latest
 # Ports opened, command called when run, architecture, OS, author, etc.
 docker image inspect nginx
 ```
+
+### Image Tags + Pushing
+
+Image tags are pointers to specific image commits, similarly as in Github.
+Different tags might be pointing to the same version, eg.: `latest`, `2`, `2.1`, `2.1.3`, `mainline`.
+However, the same version will have the same ID; if we download 2 tags pointing to the same image version, only one image will be downloaded even though we see two images (two tags).
+Note that `latest`is usually the latest version in the official repos, but not necessarily in other personal repos.
+
+```bash
+# List all images on our machine
+# Note that official ones have just the <image-name>
+# The others usually are of the form <org|user-name>/<image-name>
+docker image ls
+# How to use image tagging
+docker image tag --help
+# docker image tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+# Following that, we can tag any image we have, for instance
+docker image tag nginx msagardia/nginx
+# We can push our tagged image to Docker Hub if we log in
+docker login
+# username, pw
+# if we want to log out: docker logout
+# Push image
+docker image push msagardia/nginx
+# Now, the image is in Docker Hub
+# By default, pushed images are public
+# But we can create private image stoo via the web interface
+# Create Repository > ... check Private; then, upload it
+```
