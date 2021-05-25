@@ -367,4 +367,55 @@ class BinaryTree {
 
 ### 2.3 Tree Traversals
 
+A traversal consists in visiting all the nodes of the tree and accessing their values.
+It can be done in many ways, depending what we'd like to prioritize.
+In general, we want to have dofferent ways in which the data in the nodes is accessed, aka shouted.
 
+Summary of basic traversals for BTs:
+- `preOrder`
+- `inOrder`
+- `postOrder`
+- `levelOrder`
+
+Example: `preOrder` traversal: starting with the root node, traverse all nodes by
+1. shouting (displaying or accessing/using) the value of the **current** node and the
+2. shouting the one on the **left** and
+3. shouting the one on the **right**.
+
+```c++
+// preOrder traversal: shout current, go left, go right
+template<class T>
+void BinaryTree<T> preOrder(TreeNode* current) {
+    if (current != nullptr) {
+        shout(current); // shout = display node's stored value
+        preOrder(current->left); // recursive call
+        preOrder(current->right);
+    }
+}
+```
+
+Example: `inOrder` traversal: go left, shout current, go right:
+```c++
+// inOrder traversal: go left, shout current, go right
+template<class T>
+void BinaryTree<T> inOrder(TreeNode* current) {
+    if (current != nullptr) {
+        inOrder(current->left); // recursive call
+        shout(current); // shout = display node's stored value
+        inOrder(current->right);
+    }
+}
+```
+
+Example: `postOrder` traversal: go left, go right, shout current:
+```c++
+// postOrder traversal: go left, go right, shout current
+template<class T>
+void BinaryTree<T> postOrder(TreeNode* current) {
+    if (current != nullptr) {
+        inOrder(current->left); // recursive call
+        inOrder(current->right);
+        shout(current); // shout = display node's stored value
+    }
+}
+```
