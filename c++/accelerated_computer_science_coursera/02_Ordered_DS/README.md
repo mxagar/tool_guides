@@ -368,14 +368,15 @@ class BinaryTree {
 ### 2.3 Tree Traversals
 
 A traversal consists in visiting all the nodes of the tree and accessing their values.
-It can be done in many ways, depending what we'd like to prioritize.
+It is different to a search: the search does not have to visit all nodes, just the necessary ones until the sought one is found.
+A tree traversal can be done in many ways, depending what we'd like to prioritize.
 In general, we want to have dofferent ways in which the data in the nodes is accessed, aka shouted.
 
 Summary of basic traversals for BTs:
-- `preOrder`
-- `inOrder`
-- `postOrder`
-- `levelOrder`
+- `preOrder`: depth first, shouting/displaying current node first, then the children
+- `inOrder`: depth first, shouting/displaying current node between the children
+- `postOrder`: depth first, shouting/displaying current node last, after the children
+- `levelOrder`: breadth first, each level completely one after the other
 
 Example: `preOrder` traversal: starting with the root node, traverse all nodes by
 1. shouting (displaying or accessing/using) the value of the **current** node and the
