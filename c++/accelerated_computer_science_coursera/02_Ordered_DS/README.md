@@ -317,7 +317,7 @@ Merge Sort, `O(n*log(n))`: efficient sorting algorithm, from Wikipedia:
 1. Divide the unsorted list into n sublists, each containing one element (a list of one element is considered sorted).
 2. Repeatedly merge sublists to produce new sorted sublists until there is only one sublist remaining. This will be the sorted list.
 
-## Week 2: Binary Search Trees
+## Week 2: Binary (Search) Trees
 
 Until now we have studied flat data structures consisting of lists or sequences of elements.
 In contrast, hierarchical data structures like trees allow having elements with relationships to each other.
@@ -370,7 +370,7 @@ class BinaryTree {
 A traversal consists in visiting all the nodes of the tree and accessing their values.
 It is different to a search: the search does not have to visit all nodes, just the necessary ones until the sought one is found.
 A tree traversal can be done in many ways, depending what we'd like to prioritize.
-In general, we want to have dofferent ways in which the data in the nodes is accessed, aka shouted.
+In general, we want to have different ways in which the data in the nodes is accessed, aka. shouted.
 
 Summary of basic traversals for BTs:
 - `preOrder`: depth first, shouting/displaying current node first, then the children
@@ -418,5 +418,162 @@ void BinaryTree<T> postOrder(TreeNode* current) {
         inOrder(current->right);
         shout(current); // shout = display node's stored value
     }
+}
+```
+
+### 2.3 Binary Search Tree (BST)
+
+A Binary Search Tree (BST) is an ordered binary tree capable of being used as a search structure. A binary tree is a BST if for every node in the tree:
+
+- nodes in the **left** are **less** than iteself
+- nodes in the **right** are **greater** than iteself
+
+If we apply recursively this definition, we can store data that can be searched very quickly, for instance a `Dictionary` which associates `keys` with `values`:
+
+- email/username: profile
+- phone number: record
+- url: webpage
+- address: home
+
+Note that the nodes contain the `key` values as well as a pointer to the `value`; we omit the `value` for our purposes.
+
+`Dictionary` Abstract Data Type (ADT):
+
+- `find()`: given a `key`, find and return its `value`
+- `insert()`: given a `key:value` pair, insert is properly into the dictionary
+- `remove()`: remove a `key`
+- `empty()`: is the dictionary empty?
+
+Dictionary structure `bst/Dictionary.h`:
+```c++
+template <typename K, typename D>
+class Dictionary {
+  public:
+    Dictionary() : head_(nullptr) { }
+    const D& find(const K& key);
+    void insert(const K& key, const D& data);
+    const D& remove(const K& key);
+    bool empty() const;
+
+  private:
+    class TreeNode {
+      public:
+        const K& key;
+        const D& data;
+        TreeNode* left;
+        TreeNode* right;
+        // Note nodes have nullptr value for left/right
+        TreeNode(const K& key, const D& data)
+          : key(key), data(data), left(nullptr), right(nullptr) { }
+    };
+    TreeNode *head_;
+    ///...
+}
+```
+
+Intuition of the `find()` function:
+
+- We have a value `v` we want to find.
+- We start with the root: is `v` the root, smaller, greater? Answer determines: finish, go left, go right.
+- Process repeats with current node until either: we find the node or we reach a leaf without finding it.
+- Worst-case: visiting the longest path, i.e., if `h` is the height: `O(h)`. Note that the very worst case for `h` is th esituation in which our tree is a linked list, i.e., we have only left/right nodes; in that case `h` = `n` -> `O(n)`.
+
+Implementation of `find()` in `bst/Dictionary.hpp`:
+```c++
+// Public function we call from outside
+// It calls our helper function _find
+template <typename K, typename D>
+const D& Dictionary<K, D>::find(const K& key) {
+  TreeNode*& node = _find(key, head_);
+  if (node == nullptr) { throw std::runtime_error("error: key not found"); }
+  return node->data;
+}
+...
+// Helper function _find
+// A node alias is returned
+template <typename K, typename D>
+typename Dictionary<K, D>::TreeNode*& Dictionary<K, D>::_find(const K& key, TreeNode*& cur) const {
+  // In case leaf reached
+  if (cur == nullptr) { return cur; }
+  // If key found
+  else if (key == cur->key) { return cur; }
+  // Recursion left/right
+  else if (key < cur->key) { return _find(key, cur->left); }
+  else { return _find(key, cur->right); }
+}
+```
+
+Intuition of the `insert()` function:
+
+- We basically `find()` the `key` we want to insert in th etree until we find the leaf.
+- We insert the `key` left or right to the detected leaf.
+
+Implementation of `insert()` in `bst/Dictionary.hpp`:
+```c++
+template <typename K, typename D>
+void Dictionary<K, D>::insert(const K& key, const D& data) {
+  // _find 
+  // if leaf reached, its left/right node pointer is returned
+  TreeNode *& node = _find(key, head_);
+  // new node is created on the heap and its pointer stored in the returned/aliased pointer 
+  node = new TreeNode(key, data);
+}
+```
+
+Intuition of the `remove()` function:
+
+- We basically `find()` the `key` we want to insert in th etree until we find the node. The node can be
+    1. leaf (= no children) or
+    2. somewhere in a middle level with one child or
+    3. two children or the root node
+- The cases (1) and (2) are straightforward: we remove the node (case 1) and re-link the nodes as in a linked list if necessary (case 2).
+- The case (3) is more complicated because we need to find a best new node. **The best cadidate for that is the node which has the closest `key` to the node we are removing**. That is called the **In-Order Predecessor** or IOP:
+    - That IOP node is the previous node to the one we are eliminating in an in-order traversal, i.e., a traversal of nodes with ascending `keys`.
+    - It turns out that **the IOP node is always the rightmost node of the nodes's left sub-tree**, so
+        - We go to the left tree
+        - We take always the right node until we reach our leaf
+        - We swap the IOP and the node we are removing
+        - We delete the new leaf as in case 1
+
+Implementation of `remove()` in `bst/Dictionary.hpp`:
+```c++
+template <typename K, typename D>
+const D& Dictionary<K, D>::remove(const K& key) {
+  TreeNode*& node = _find(key, head_);
+  return _remove(node);
+}
+
+template <typename K, typename D>
+const D& Dictionary<K, D>::_remove(TreeNode*& node) {
+  // Zero child remove
+  if (node->left == nullptr && node->right == nullptr) {
+    const D& data = node->data;
+    delete node;
+    node = nullptr;
+    return data;
+  }
+  // One-child (left) remove
+  else if (node->left != nullptr && node->right == nullptr) {
+    const D& data = node->data;
+    TreeNode* temp = node;
+    node = node->left;
+    delete temp;
+    return data;
+  }
+  // One-child (right) remove
+  else if (node->left == nullptr && node->right != nullptr) {
+    // This case is symmetric to the previous case.
+    const D& data = node->data;
+    TreeNode* temp = node;
+    node = node->right;
+    delete temp;
+    return data;
+  }
+  // Two-child remove
+  else {
+    TreeNode*& iop = _iop_of(node);
+    TreeNode*& moved_node = _swap_nodes(node, iop);
+    return _remove(moved_node);
+  }
 }
 ```
