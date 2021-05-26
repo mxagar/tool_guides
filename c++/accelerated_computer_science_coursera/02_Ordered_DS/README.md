@@ -421,7 +421,7 @@ void BinaryTree<T> postOrder(TreeNode* current) {
 }
 ```
 
-### 2.3 Binary Search Tree (BST)
+### 2.4 Binary Search Trees (BST)
 
 A Binary Search Tree (BST) is an ordered binary tree capable of being used as a search structure. A binary tree is a BST if for every node in the tree:
 
@@ -537,12 +537,14 @@ Intuition of the `remove()` function:
 
 Implementation of `remove()` in `bst/Dictionary.hpp`:
 ```c++
+// Public interface
+// Note that we return the data, an alias to it??
 template <typename K, typename D>
 const D& Dictionary<K, D>::remove(const K& key) {
   TreeNode*& node = _find(key, head_);
   return _remove(node);
 }
-
+// Helper
 template <typename K, typename D>
 const D& Dictionary<K, D>::_remove(TreeNode*& node) {
   // Zero child remove
@@ -556,8 +558,8 @@ const D& Dictionary<K, D>::_remove(TreeNode*& node) {
   else if (node->left != nullptr && node->right == nullptr) {
     const D& data = node->data;
     TreeNode* temp = node;
-    node = node->left;
-    delete temp;
+    node = node->left; // node pointer is replaced by left child's
+    delete temp; // node is deleted from heap
     return data;
   }
   // One-child (right) remove
@@ -565,8 +567,8 @@ const D& Dictionary<K, D>::_remove(TreeNode*& node) {
     // This case is symmetric to the previous case.
     const D& data = node->data;
     TreeNode* temp = node;
-    node = node->right;
-    delete temp;
+    node = node->right; // node pointer is replaced by right child's
+    delete temp; // node is deleted from heap
     return data;
   }
   // Two-child remove
@@ -577,3 +579,6 @@ const D& Dictionary<K, D>::_remove(TreeNode*& node) {
   }
 }
 ```
+
+### 2.5 BST Analysis
+
