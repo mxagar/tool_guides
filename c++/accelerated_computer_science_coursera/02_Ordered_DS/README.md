@@ -374,7 +374,7 @@ In general, we want to have different ways in which the data in the nodes is acc
 
 Summary of basic traversals for BTs:
 - `preOrder`: depth first, shouting/displaying current node first, then the children
-- `inOrder`: depth first, shouting/displaying current node between the children
+- `inOrder`: depth first, shouting/displaying current node between the children. Effect: **Items are displayed in order.**
 - `postOrder`: depth first, shouting/displaying current node last, after the children
 - `levelOrder`: breadth first, each level completely one after the other
 
@@ -525,7 +525,7 @@ Intuition of the `remove()` function:
 - We basically `find()` the `key` we want to insert in th etree until we find the node. The node can be
     1. leaf (= no children) or
     2. somewhere in a middle level with one child or
-    3. two children or the root node
+    3. with two children or the root node
 - The cases (1) and (2) are straightforward: we remove the node (case 1) and re-link the nodes as in a linked list if necessary (case 2).
 - The case (3) is more complicated because we need to find a best new node. **The best cadidate for that is the node which has the closest `key` to the node we are removing**. That is called the **In-Order Predecessor** or IOP:
     - That IOP node is the previous node to the one we are eliminating in an in-order traversal, i.e., a traversal of nodes with ascending `keys`.
@@ -582,3 +582,32 @@ const D& Dictionary<K, D>::_remove(TreeNode*& node) {
 
 ### 2.5 BST Analysis
 
+Depending on the insertion order of the data (`keys`), the BST that contains the same data can take very different shapes. For instance, consider for the values `{1, 2, 3, 4, 5, 6, 7}`:
+
+- Insert order 1: `4, 2, 3, 6, 7, 1, 5`. It produces a balanced tree (ie., left and right branches have a similar size), because we start with 4.
+- Insert order 2: `1, 3, 2, 4, 5, 7, 6`. Since we start with 1 (smallest value), everything will be on the right. This is a bad case, because the BST resembles a linked list in which we need to traverse almost all nodes down to the leaf level to find the deepest node; i.e., `O(n)`.
+
+![BST Forms depending on inserrtion order](pics/bst_insert_order.png)
+
+Performance considerations:
+
+- How many possible ways can we insert the same data into a BST? $n!$. In our example with 7 elements, we have 7 options to choose for the first insertion, then 6 for the second, 5... So factorial of the number of elements.
+- We want to avoid BST structures that resemble a linked list; instead we want to have balanced BSTs, ie., trees that have left and right branches similar in size (recursively).
+- An **average balanced BST outforforms** any of these data structures for `find()`, `insert()` and `remove()` operations combined, bacause it requires `O(log(n))` for all of these operations:
+    - Sorted list: `find(): O(n)`, `insert(): O(n)`, `remove(): O(n)`
+    - Sorted array: `find(): O(log(n))`, `insert(): O(n)`, `remove(): O(n)`
+    - BST worst case (similar to a linked list): `find(): O(n)`, `insert(): O(n)`, `remove(): O(n)`
+
+We define the **height balance factor**: the difference in height between its two left and right subtrees:
+
+`b = height(T_r) - height(T_l)`
+
+- `b = 0`, BST is perfectly balanced
+- `b > 0`, the higher, the more inbalanced to the right
+- `b < 0`, the bigger the nagative, the more inbalanced to the left
+
+Note that the height of a node with no children is `h = -1`; each level of children given a height unit to a node.
+
+A tree is considered balanced if `b in {0,-1,1}`. For that, all its sub-trees need to have a `b in {0,-1,1}` recursively. Usually, we start from the leaf level and go upwards to see where the inbalance starts happening (i.e., `abs(b) > 1`); once we find and inbalance, it propagates upwards.
+
+There are algorithms that maintain the balance of a BST!
