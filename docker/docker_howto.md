@@ -599,3 +599,163 @@ docker image push msagardia/nginx
 # But we can create private image stoo via the web interface
 # Create Repository > ... check Private; then, upload it
 ```
+
+### Building Images: Dockerfile Basics
+
+Images are created with a `Dockerfile`, which is scripts or recipy for creating images. The standard filename is `Dockerfile`, and we build the image with `docker build` in the directory we have the file. If the filename is another, we need to execute `docker build -f some-dockerfile`.
+
+Each command (aka step) inside the `Dockerfile` consitutes a layer on top of the previous; typical commands appear in this order:
+
+- `FROM`: we specify the basic linux distro we start building our image on
+- `ENV`: define key:pair variables for later use
+- `RUN`: download packages with package manager (eg., `apt-get`)
+- `EXPOSE`: make desired port accessible; these still need to be opened with `-p`
+- `CMD`: last command to run when launching container
+
+For more information:
+[https://docs.docker.com/engine/reference/builder/](Dockerfile reference).
+
+Example of a `Dockerfile` from the cloned repository:
+`~/git_repositories/udemy-docker-mastery/dockerfile-sample-1/Dockerfile`:
+```docker
+# Note that every command is a layer stacked on top of the previous
+# First, a minimal linux distribution is loaded, like debian/alpine
+FROM debian:stretch-slim
+
+# Set environment variables: main way we set key:value pairs
+ENV NGINX_VERSION 1.13.6-1~stretch
+ENV NJS_VERSION 1.13.6.0.1.14-1~stretch
+
+# Run commands in the linux distro: run shell scripts, shell commands, etc.
+# Lines broken with \ and commands concatenated with &&; all after RUN is a layer
+# Usually, first we install requires packages with the package manager
+RUN apt-get update \
+	&& apt-get install...
+	...
+
+# Typical lines: we point our log files to our stdout and stderr
+# Docker handles our logging, but we need to spit out the logs to the shell
+# Here, we output the nginx logs
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+		&& ln -sf /dev/stderr /var/log/nginx/error.log
+
+# We expose our desired ports here: since it's a webhost, ports 80 and 443
+# But we still need to use -p or -P to open/forward them!
+EXPOSE 80 443
+
+# Final (obligatory) command we run every time we launch a container of the image
+# Only one allowed, so the last one
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Building Images: Docker Builds
+
+We generate the images by building/executing the `Dockerfile`. In the previous example, we would pull/download the `debian:stretch-slim` distro (`FROM`) and add the changes specified in the file to build the image.
+
+```bash
+cd ~/git_repositories/udemy-docker-mastery/dockerfile-sample-1
+# Build image using Dockerfile in .
+# Tag of image (-t) customnginx
+docker image build -t customnginx .
+# Note that each command/step produces an output
+# When a step is finished, a hash is displayed
+# Docker tracks hashes of the images to avoid repeating installations/builds of layers
+# The hashed layers are saved in the cache, and used if no changes applied -> build is fast!
+# Therefore, the order of the docker commands is important:
+# always put at the end any any commands associated to possible changes
+
+# Check that our image was built
+docker image ls
+```
+
+Docker images are stored in
+- Linux: `/var/lib/docker`
+- Windows: `C:\ProgramData\DockerDesktop`
+- Mac: `~/Library/Containers/com.docker.docker/Data/vms/0/`
+
+### Building Images: Docker Builds
+
+Usually we pull images from Docker Hub and extend them, for example the official `nginx`.
+
+Example of a `Dockerfile` from the cloned repository:
+`~/git_repositories/udemy-docker-mastery/dockerfile-sample-2/Dockerfile`:
+
+```docker
+# This shows how we can extend/change an existing official image from Docker Hub
+FROM nginx:latest
+
+# Change working directory to root of nginx webhost
+# Using WORKDIR is preferred to using 'RUN cd /some/path'
+WORKDIR /usr/share/nginx/html
+
+# Copy the file index.html for our local host to our image
+# nginx is a web server
+COPY index.html index.html
+
+# We don't have to specify EXPOSE or CMD because they're in my FROM
+```
+
+We run the default docker container of `nginx` first to check the web server and then build our custom `nginx` image.
+
+```bash
+# Run web server
+docker container run -p 80:80 --rm nginx
+# Open browser and go to localhost: Welcome page of nginx appears
+
+# Build custom image/container with the previous Dockerfile
+# Recall we copy the index.html file from the local host in dockerfile-sample-2
+cd ~/git_repositories/udemy-docker-mastery/dockerfile-sample-2
+docker image build -t nginx-with-html .
+# Run container of new image
+docker container run -p 80:80 --rm nginx-with-html
+# Open browser again at localhost
+# We should see a new message
+# Now we can push the new image to Docker Hub
+```
+
+### Assignment
+
+Assignment/Example: Build a Node.js image and push it to Docker Hub:
+`~/git_repositories/udemy-docker-mastery/dockerfile-assignment-1/Dockerfile`
+
+```docker
+# These commands are written following the instructions in the Dockerfile
+FROM node:6-alpine
+EXPOSE 3000
+RUN apk add --update tini
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+COPY package.json package.json
+RUN npm install && npm cache clean
+COPY . . 
+# This is the command '/sbin/tini -- node ./bin/www'
+# Look at the docker cmd reference for more information
+CMD ["tini", "--", "node", "./bin/tini"]
+```
+
+After writing the `Dockerfile`, we build it and run the container:
+
+```bash
+cd ~/git_repositories/udemy-docker-mastery/dockerfile-assignment-1/
+# Edit the Dockerfile as above
+# Build and run
+docker build -t testnode .
+docker container run --rm -p 80:3000 testnode
+# Open browser: localhost
+# Tag image
+docker tag testnode msagardia/testing-node
+docker push msagardia/testing-node
+```
+
+**Note: I could not make it work because there was a problem with Node.js**
+
+### Prune
+
+```bash
+# System usage for conatiners/images/volumes
+docker system df
+# Remove everything that is not being used
+docker system prune
+# Remove images that are not being used
+docker image prune -a
+```
