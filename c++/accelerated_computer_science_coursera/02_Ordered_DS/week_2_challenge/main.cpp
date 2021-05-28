@@ -33,10 +33,13 @@ of Node n (including Node n itself).
 
 int count(Node *n)
 {
-
-  // Implement count() here.
-
-  return 0;
+  if (n != nullptr) {
+    int l = count(n->left);
+    int r = count(n->right);
+    return (1+l+r);
+  } else {
+    return 0;
+  }
 }
 
 int main()
