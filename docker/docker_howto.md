@@ -758,4 +758,6 @@ docker system df
 docker system prune
 # Remove images that are not being used
 docker image prune -a
+# Remove an image
+docker image rm msagardia/testing-node
 ```
