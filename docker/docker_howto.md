@@ -56,7 +56,7 @@ See also the **FAQ** section.
 - The version matters because the industry is advancing very fast!
 - Three types of installations
 	1. Direct local: Linux only; each kernel and architecture has its version/edition, do not use default generic packages!
-	2. Mac/Windows suite: they do not support Docker natively, but need to start a small virtual machine; however, we get a suite of tools and a GUI for interacting with Docker
+	2. Mac/Windows suite: they do not support Docker natively, but need to start a small linux virtual machine; however, we get a suite of tools and a GUI for interacting with Docker
 	3. Cloud: AWS/Azure/Google; these are usually teh Linux version but with extended features for cloud platforms
 - Since 2017 and version `1.13`, the `YY.MM` versioning convention is used, like with Ubuntu: `17.03`, `17.04`, ...
 
@@ -760,4 +760,116 @@ docker system prune
 docker image prune -a
 # Remove an image
 docker image rm msagardia/testing-node
+```
+
+## Section 5: Section 5: Container Lifetime & Persistent Data (Volumes)
+
+Some interesting resources mentioned in the course:
+- [An introduction to immutable infrastructure](https://www.oreilly.com/radar/an-introduction-to-immutable-infrastructure/)
+- [The 12 Factor App](https://12factor.net)
+- [12 Fractured Apps](https://medium.com/@kelseyhightower/12-fractured-apps-1080c73d481c#.cjvkgw4b3)
+- [Manage data in Docker](https://docs.docker.com/storage/)
+
+Containers are usually **immutable** and **ephemeral**:
+we can re-deploy containers from an image without any change.
+However, the data produced inside the container are destroyed if we delete (`rm`) the container, they are not **persistent**, they are not stored in the image!
+If we want to have **persistent** data that is stored, we have two options: **volumes** and **bind mounts**:
+
+- **Volumes** are special locations outside from the container `union file system` (UFS), that can be accessible by several containers, but which are seen as a local path by the containers themselves.
+- **Bind Mounts**: we share or mount a host path/file to a container, so that the container thinks it is its own file/path - bit it's host's.
+
+### Persistent Data: Volumes
+
+Volumes are created in the `Dockerfile` with the command `VOLUME`; for instance, for `mysql`: `VOLUME /var/lib/mysql`. The volumes outlive the containers when they are `rm`-d.
+
+It is also possible to create volumes ahead of time with `docker volume create`. Checking `docker volume create --help`, we see that is necessary if we want different drivers (or driver options) and volume metadata.
+
+```bash
+# Remove all local volumes not used by at least one container
+docker volume prune
+# Pull mysql
+docker pull mysql
+# Inspect
+# Look for Volumes
+docker image inspect mysql
+# Run container
+docker container run -d --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=True mysql
+# Check that our container is running
+docker container ls
+# Inspect our running mysql container
+# We see Volumes, and more importantly,
+# Mounts: the source file location on the host and the destination on the container appear
+# On Linux, we can navigate to that host file
+# On Mac/Windows, docker has a linux virtual machine running, and the volumes ar ein there...
+# When we do volume prune, the host volumes are removed
+docker image inspect mysql
+# List all volumes
+docker volume ls
+# Inspect a particular volume:
+# Usually, 3 first letters from ls are enough, the TAB!
+docker volume inspect 0a9
+# When we start another mysql (of container which creates volumes)
+# new volumes are created
+# When containers are rm-d, volumes are still there!
+# We know the volumes of each container,
+# but, unfortunately, not the containers of each volume
+# To add some clarification, we can use named containers
+# Adding `-v /var/lib/mysql` is equivalent to `VOLUME /var/lib/mysql` in the Dockerfile
+# If we pre-write `<vol-name>:` to the vol destination, then the volume has a name
+docker container run -d --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=True -v mysql-db:/var/lib/mysql mysql
+# List volumes
+# Volumes with names ar emuch clearer
+docker volume ls
+# Now, calling inspect is user-friendlier
+docker volume inspect mysql-db
+# VERY IMPORTANT:
+# More importantly, everytime we rm a mysql container but create a new one
+# we use the same volume/database if we specify it with -v!
+# That is necessary to keep using the same database!
+docker container stop mysql
+docker container rm mysql
+docker container run -d --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=True -v mysql-db:/var/lib/mysql mysql
+docker volume ls
+```
+
+### Persistent Data: Bind Mounting
+
+Bin mounting maps a host file/directory to a container file/directory; the data is stored on the host, and the container has a link to it.
+We cannot create them in the `Dockerfile`, we need to create them when calling `container run` with the option `-v`: this time, we pass the absolute host path instead of the name of the volume.
+We can specify things also to be read only.
+
+**That is very powerful, because we can basically develop our code on the host, in a preferred folder, and the container maps a local directory to the host's.**
+
+```bash
+# Mac/Linux
+... run -v /Users/mikel/stuff:/path/container
+# Windows
+... run -v //c/Users/mikel/stuff:/path/container
+```
+
+Example in `~/git_repositories/udemy-docker-mastery/dockerfile-sample-2`:
+```bash
+# Got to sample
+cd ~/git_repositories/udemy-docker-mastery/dockerfile-sample-2
+# Check Dockerfile in the directory
+# We do `COPY index.html index.html`
+cat Dockerfile
+# Run container with bind mount
+# $(pwd) is the current directory
+docker container run -d --name nginx -p 80:80 -v $(pwd):/usr/share/nginx/html nginx
+# Open the browser and go to localhost
+# The index.html file is opened!
+# BUT: if we do not mount the local directory, teh default index.html is used
+docker container run -d --name nginx2 -p 8080:80 nginx
+# If we create any file on the host's linked directory $(pwd)
+# and check the container directory /usr/share/nginx/html
+# we see that the freshly created file is there!
+touch test.txt
+docker container exec -it nginx bash
+cd /usr/share/nginx/html
+ls -la
+echo "this is a test file, shared by the host and the container" > test.txt
+exit
+less test.txt
+# Thus, we can develop code on our host machine, bind mount the directory to the container, and that's it!
 ```
