@@ -241,4 +241,190 @@ Docker-compose
 
 Exercise 4
 
+    See exercise notes.
+
+# Module 3: Create your own images
+
+Creating images
+
+    We create a file named Dockerfile
+    Typical structure/recipy
+        FROM php:7.1-apache
+            we specify the base or parent image
+            FROM <image name>[:tag]
+            FROM scratch
+                when we want to create an image from scratch
+        RUN
+            we execute a command inside the containert
+            typically, first we need to install all depencencies with a package manager
+            RUN apt-get update && apt-get install -y \
+                curl
+                wget
+                ...
+            -y: yes to all
+            \ try to put everything in one command line
+            packages: put them in alphabetical order
+        COPY
+            then, we need to copy local files to the container
+        ENTRYPOINT
+            say which binary is executed when container starts
+            ENTRYPOINT ["exec", "param1"]
+            ENTRYPOINT ["entrypoint.sh"]
+            ENTRYPOINT ["/bin/sh","-c"]
+        CMD
+            the command passed to ENTRYPOINT
+            CMD ["exec", "param1"]
+            for example: 
+                FROM ubuntu
+                ENTRYPOINT ["/bin/cat"]
+                CMD ["/etc/os-release"]
+            the main difference is that we can overwrite CMD when runnning the container
+            note that ENTRYPOINT and CMD are not necessary
+            if not written, the ones in the base image are taken
+        WORKDIR
+            we say which is the working directory inside the container
+        EXPOSE
+            ports that are exposed
+            it's a good practice to write them
+            however, without EXPOSE, we can always use -p
+            but -P works only if we have EXPOSE
+        USER <user>[:<group>]
+            username of the user inside of the container
+        ARG <name>[=<default value>]
+            the only instruction used before from
+            once used, it disappears
+            we pass through --build-arg the value of the <name> used
+
+            ARG IMAGE=python:3.9
+                default value for IMAGE
+            FROM $IMAGE
+            ...
+            docker build --build-arg IMAGE=python:3.8
+                now, default value is overwritten
+        ENV
+        RUN
+    After writing the Dockerfile, we build the image
+        docker build -t <image name> <context>
+            context: path wehere all the necessary files are
+    
+Exercise 5
+
+    See exercise.
+
+Optimizing images
+
+    When we re-build, the cache is usually used.
+    Each line/command in the Dockerfile is a layer which is built, hashed and stacked.
+    If we do not change commands, in a sequence, no new layers are built.
+    Therefore, COPY should go at the end
+        because if the copied source files are changed locally
+        their cchecksum is different
+        and a new layer must be created, even if the command in the Dockerfile is the same
+
+    Note that the sum of layer sizes yields the size of the image
+        it is like in git: every new layer added is stacked
+        even if we remove the layer (the commit), it is still in the image
+
+        that is important for compiled code: every compilation is an added information
+        for that, we can use multistage builds
+
+        MULTISTAGE builds
+            in a Dockerfile, we create compile the binaries
+            in another Dockerfile or in following section of the same file
+            we import with COPY --from the binaries
+
+    docker history <image name>
+        we see all layers
+
+    We want to build our images continuously: every time we change our code
+        therefore, it makes sense to optmize build-time
+    
+Exercise 6
+
+    See exercise.
+
+Best practices
+
+    Containers must be ephemeral: disposable!
+        that doesn't mean they don't last long up in time
+    Concatenate run instructions with && and \
+    Do not install any shit which is not necessary    
+    Remove temp files with rm
+    Order instructions by refresh frequency
+        to leverage cached layers
+    Use .dockerignore, equivalent to .gitignore; add, at least:
+        .git
+    Use the instruction USER
+    Use tags for images
+    Avoid the use of ADD, instead use COPY
+        ADD is more powerful, though
+        it can download files from internet
+        it can also decompress images
+
+# Module 4: Publishing images
+
+We login to a registry and push there
+
+    docker login -u <username> -p <token> registry.gitlab.com
+        if we do not add a registry URL, it logs to docker hub
+    docker build ...
+    docker push <user>/<reponame>:<tag>
+    docker logout
+
+Registries in Vicomtech
+
+    https://gitlab.vicomtech.es
+        non accessible from outside
+    https://quay.io
+        accessible from outside
+
+    docker hub: https://hub.docker.com
+
+    Note that the same image can have different tags
+        6.5.0 = 6.5 = 6
+
+Exercise 7
+
+    See exercise.
+
+Utilities / Troubleshooting
+
+    docker stats
+    docker top <container>
+    docker-compose top <service>
+    docker conatiner|image inspect <name>
+    docker exec -ti <name/id> sh
+        open a terminal
+    docker-compose exec <name> sh
+        same, but for docker compose, note we need no -ti
+    docker image ls <patter*>
+    docker image ls my_*
+        we can also use --filter
+    docker system df
+        size in disk of images, containers, volumes
+    docker system df -v
+        same, but verbose, more info
+        note that layers are shared between different images
+        intermediate stage image builds appear as <none>
+            aka dangling images, not tagged
+            we can remove them with docker image prune
+    docker image prune
+        dangling images removed
+    docker image prune -a
+        all images not being used in comntainers removed
+        be careful
+    docker system prune
+
+    ctop
+    lazydocker
+
+Exercise 8
+Exercise 9
+
+Windows particularities
+
+    We use the Linux subsystem from Windows: WSL2
+    Line endings: be aware of them: CRLF vs LF
+    You cannot ping containers
+    File permissions are different if the files are on Windows and not on the WSL subsystem
     
