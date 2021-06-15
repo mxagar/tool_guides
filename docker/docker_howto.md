@@ -834,7 +834,7 @@ docker volume ls
 
 ### Persistent Data: Bind Mounting
 
-Bin mounting maps a host file/directory to a container file/directory; the data is stored on the host, and the container has a link to it.
+Bind mounting maps a host file/directory to a container file/directory; the data is stored on the host, and the container has a link to it.
 We cannot create them in the `Dockerfile`, we need to create them when calling `container run` with the option `-v`: this time, we pass the absolute host path instead of the name of the volume.
 We can specify things also to be read only.
 
@@ -873,3 +873,22 @@ exit
 less test.txt
 # Thus, we can develop code on our host machine, bind mount the directory to the container, and that's it!
 ```
+
+Example in `~/git_repositories/udemy-docker-mastery/bindmount-sample-1`:
+Bind mount with a [Jekyll](https://jekyllrb.com) page defined locally.
+Used image: [https://hub.docker.com/r/bretfisher/jekyll-serve](https://hub.docker.com/r/bretfisher/jekyll-serve)
+```bash
+# Create jekyll server using Bret Frisher's image
+# We can stop it with Ctrl+C
+# The local folder which contains al necesary files is mounted!
+# That means, if we change a post content file on the host
+# the visualized website will update!
+docker run -p 80:4000 -v $(pwd):/site bretfisher/jekyll-serve
+# Open browser and go to localhost
+# Website appears
+# Modfy the file in _posts/ and the post website will change
+```
+
+## Section 6: Docker-Compose for Starting Several Containers
+
+
