@@ -891,4 +891,51 @@ docker run -p 80:4000 -v $(pwd):/site bretfisher/jekyll-serve
 
 ## Section 6: Docker-Compose for Starting Several Containers
 
+With Docker-compose we can configure, start and handle several containers and their relationship!
+First we need to generate a `docker-compose.yaml` configuration file using the YAML format.
+Then, we use the `docker-compose` CLI tool.
 
+YAML: Yet another markup language.
+Easy format to describe config files consisting of key-value pairs.
+Some properties:
+- indentation is important
+- we have `key: value` pairs
+- if a `key` has several values, we have a list where each element is preceeded by `-`
+
+More resources on YAML:
+- [Get started](https://yaml.org/start.html)
+- [Reference card](https://yaml.org/refcard.html)
+
+Very good docker-compose file reference: [Compose file v3](https://docs.docker.com/compose/compose-file/compose-file-v3/).
+
+Typical `docker-compose.yaml` structure:
+```yaml
+version: '3.1'  # if no version is specified then v1 is assumed.
+
+services:  # containers, same as docker run
+  servicename: # a friendly name, this is also DNS name inside network
+    image: # optional if you use build:
+    command: # optional, replace the default CMD specified by the image
+    environment: # optional, same as -e in docker run
+    volumes: # optional, same as -v in docker run
+	depends_on: # which other services need to be started too
+  servicename2:
+
+volumes: # Optional, same as docker volume create
+
+networks: # Optional, same as docker network create
+```
+
+Example of `docker-compose.yaml`:
+```yaml
+version: '3.1'
+# same as 
+# docker run -p 80:4000 -v $(pwd):/site bretfisher/jekyll-serve
+services:
+  jekyll:
+    image: bretfisher/jekyll-serve
+    volumes:
+      - .:/site
+    ports:
+      - '80:4000'
+```
