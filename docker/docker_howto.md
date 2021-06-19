@@ -901,6 +901,7 @@ Some properties:
 - indentation is important
 - we have `key: value` pairs
 - if a `key` has several values, we have a list where each element is preceeded by `-`
+- if a `key` has several `key: value` pairs and values, these are note preceeded by `-`
 
 More resources on YAML:
 - [Get started](https://yaml.org/start.html)
@@ -913,13 +914,14 @@ Typical `docker-compose.yaml` structure:
 version: '3.1'  # if no version is specified then v1 is assumed.
 
 services:  # containers, same as docker run
-  servicename: # a friendly name, this is also DNS name inside network
+  servicename1: # a friendly name, this is also DNS name inside network
     image: # optional if you use build:
     command: # optional, replace the default CMD specified by the image
     environment: # optional, same as -e in docker run
     volumes: # optional, same as -v in docker run
 	depends_on: # which other services need to be started too
   servicename2:
+	...
 
 volumes: # Optional, same as docker volume create
 
@@ -938,4 +940,89 @@ services:
       - .:/site
     ports:
       - '80:4000'
+```
+
+### Docker-Compose CLI Tool
+
+The `docker-compose` CLI tools comes automatically for Win/Mac, but it needs to be downloaded for Linux. It is thought for local development, bot for production. It uses `docker` on the background, so many CLI arguments are similar to those  in `docker`.
+
+Most common commands:
+```bash
+# Setup all volumes and networks and start containers
+docker-compose up
+# Stop all containers and remove all volumes and networks
+docker-compose down
+```
+
+Example in `~/git_repositories/udemy-docker-mastery/compose-sample-2`:
+```yaml
+version: '3'
+
+services:
+  proxy:
+    image: nginx:1.13 # this will use the latest version of 1.13.x
+    ports:
+      - '80:80' # expose 80 on host and sent to 80 in container
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  web:
+    image: httpd  # this will use httpd:latest
+```
+
+That `docker-compose.yaml` can be handled as follows:
+```bash
+cd ~/git_repositories/udemy-docker-mastery/compose-sample-2
+ls # docker-compose.yml nginx.conf
+docker-compose up
+# Note that it is recommended to launch without -d, so that we get the logs in the shell
+# since we are dealing with more tha one container usually
+# Docker-compose nicely puts the container/service name before the log
+browser(localhost) # It works!
+Ctrl+C
+docker-compose down
+# If we want to start detached and get back the shell
+docker-compose up -d
+docker-compose logs
+docker-compose down
+# Some useful commands
+docker-compose --helps
+docker-compose ps
+```
+
+### Assignment
+
+We set up a Drupal content management system (similar to Wordpress).
+Solution in `~/git_repositories/udemy-docker-mastery/compose-assignment-1`.
+We need two services: `drupal` and `postgres`.
+Reading documentation is necessary, for instance to check the ports we need to expose.
+We can also do that by pulling the base images and inspecting them:
+
+```bash
+docker pull drupal
+docker image inspect drupal
+```
+
+```yaml
+version: '2'
+
+services:
+  drupal:
+    image: drupal:8.8.2
+    ports:
+      - "8080:80"
+    volumes:
+      - drupal-modules:/var/www/html/modules
+      - drupal-profiles:/var/www/html/profiles       
+      - drupal-sites:/var/www/html/sites      
+      - drupal-themes:/var/www/html/themes
+  postgres:
+    image: postgres:12.1
+    environment:
+      - POSTGRES_PASSWORD=mypasswd
+
+volumes:
+  drupal-modules:
+  drupal-profiles:
+  drupal-sites:
+  drupal-themes:
 ```
