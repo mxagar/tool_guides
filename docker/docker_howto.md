@@ -895,6 +895,9 @@ With Docker-compose we can configure, start and handle several containers and th
 First we need to generate a `docker-compose.yaml` configuration file using the YAML format.
 Then, we use the `docker-compose` CLI tool.
 
+Docker-Compose makes easy to run applications that need several services running in synch, e.g., web pages, etc.
+Thus, the burden to run them is minimized and people can start trying them without needing to assemble complex environemnts or to develop in each of the required modules themselves!
+
 YAML: Yet another markup language.
 Easy format to describe config files consisting of key-value pairs.
 Some properties:
@@ -949,6 +952,7 @@ The `docker-compose` CLI tools comes automatically for Win/Mac, but it needs to 
 Most common commands:
 ```bash
 # Setup all volumes and networks and start containers
+# Interesting note: docker-compose adds to the containers, networks and volumes the directory name to prevent conflicts
 docker-compose up
 # Stop all containers and remove all volumes and networks
 docker-compose down
@@ -984,24 +988,31 @@ docker-compose down
 docker-compose up -d
 docker-compose logs
 docker-compose down
+# If we want to remove volumes
+docker-compose down -v
 # Some useful commands
 docker-compose --helps
 docker-compose ps
 ```
 
-### Assignment
+### Assignment 1: Set up a Drupal CMS
 
-We set up a Drupal content management system (similar to Wordpress).
-Solution in `~/git_repositories/udemy-docker-mastery/compose-assignment-1`.
+We set up a Drupal Content Management System (CMS similar to Wordpress).
 We need two services: `drupal` and `postgres`.
-Reading documentation is necessary, for instance to check the ports we need to expose.
-We can also do that by pulling the base images and inspecting them:
+Reading documentation is necessary, for instance
+- to check the ports we need to expose in Drupal,
+- clear the need for a pw for Postgres,
+- and use named volumes.
+We can do that by reading the documentation on Docker Hub or by pulling the base images and inspecting them:
 
 ```bash
 docker pull drupal
 docker image inspect drupal
+docker pull postgres
+docker image inspect postgres
 ```
 
+The solution is in `~/git_repositories/udemy-docker-mastery/compose-assignment-1`:
 ```yaml
 version: '2'
 
@@ -1025,4 +1036,125 @@ volumes:
   drupal-profiles:
   drupal-sites:
   drupal-themes:
+```
+
+### Adding Image Build to Docker-Compose
+
+We can build images at runtime, ie., when we do `docker-compose up`.
+That is handy when
+
+- we have complex `build` commands that would be better in a file
+- we want to have very customized images built using specific config files present in our local folder every time
+
+To build an image with `docker-compose`, we basically nest a `build` paragraph under the service we'd like to build. `build` accepts all expected values: `context`, `dockerfile`, etc. If the `image` of the service is not in the cache, docker builds it following `build`.
+
+Exammple: we launch a website locally (localhost) using a template. This example is in `~/git_repositories/udemy-docker-mastery/compose-sample-3`:
+
+```yaml
+version: '2'
+# based off compose-sample-2, only we build nginx.conf into image
+# uses sample HTML static site from https://startbootstrap.com/themes/agency/
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+	# if no nginx-custom found, one is built according to build
+	image: nginx-custom
+    ports:
+      - '80:80'
+  web:
+    image: httpd
+    volumes:
+      - ./html:/usr/local/apache2/htdocs/
+```
+
+How to manage that example with `docker-compose`:
+```bash
+cd ~/git_repositories/udemy-docker-mastery/compose-sample-3
+# if we don't have the nginx-custom image, it is built
+docker-compose up
+browser(localhost) # refresh, web page template appears
+# if the nginx-custom image is built, we can rebuild it in two ways
+docker-compose build
+# or
+docker-compose up --build
+# if we want to remove all created images
+docker-compose down --rmi local
+```
+
+### Assignment 2: Image Building with Docker-Compose
+
+A custom Drupal image is created out of the official image.
+
+Example in `~/git_repositories/udemy-docker-mastery/compose-assignment-2`.
+
+`Dockerfile`:
+```docker
+FROM drupal:8.6
+# install git with apt-get package manager
+# &&: if previous command succeds, include next one
+# -y: yes to all
+# apt-get creates some cache which increases unnecessarily our image
+# thus, remove cache content: always in /var/lib/apt/lists/
+RUN apt-get update && apt-get install -y git \
+    && rm -fr /var/lib/apt/lists/*
+
+WORKDIR /var/www/html/themes
+
+# Git clone only one branch with a only the latest depth/commit: we save space and time
+# Docker runs as admin (sudo), and we sometimes need to change some user ownership
+# Here, we change group and user of all files and dirs recursively (-R) in bootstrap to be
+# www-data:www-data (group:user) 
+RUN git clone --branch 8.x-3.x --single-branch --depth 1 https://git.drupalcode.org/project/bootstrap.git \
+    && chown -R www-data:www-data bootstrap
+
+WORKDIR /var/www/html/
+```
+
+`docker-compose.yaml`:
+```yaml
+version: '2'
+
+services:
+  drupal:
+    image: drupal-custom
+    # build . -> Dickefile is here, build it w/o any special options
+    build: . 
+    ports:
+      - "8080:80"
+    volumes:
+      - drupal-modules:/var/www/html/modules
+      - drupal-profiles:/var/www/html/profiles       
+      - drupal-sites:/var/www/html/sites      
+      - drupal-themes:/var/www/html/themes
+  postgres:
+    image: postgres:12.1
+    environment:
+      - POSTGRES_PASSWORD=mypasswd
+    volumes:
+      - drupal-data:/var/lib/postgresql/data
+
+volumes:
+  drupal-data:
+  drupal-modules:
+  drupal-profiles:
+  drupal-sites:
+  drupal-themes:
+```
+
+`docker-compose` commands:
+```bash
+docker-compose up
+browser(localhost:8080)
+# Drupal installation interface appears
+# We install Drupal and select the theme bootstrap
+# Create a post/welcome page, etc.
+# We can setup a website locally now, similarly as we do it with Wordpress
+Ctrl+C
+docker-compose down
+# If we start it again, vrything is still there
+# beacuse we preserve the volumes
+docker-compose up
+browser(localhost:8080)
 ```
