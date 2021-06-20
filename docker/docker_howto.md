@@ -1166,7 +1166,7 @@ It makes possible to scale up/down our applications and provides with tools to m
 Swarm is built on top of docker but does not affect it, so that we can use any other orchestration system on top of it, like Kubernetes.
 
 How everything works:
-- We have several nodes: physical computers or virtual machines
+- We have several nodes/servers: physical computers or virtual machines
 - The whole setup of nodes is the swarm
 - Nodes can be managers and/or workers
 - Managers have the permissions to change and handle the swarm
