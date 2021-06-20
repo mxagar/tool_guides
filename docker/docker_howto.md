@@ -954,7 +954,7 @@ Most common commands:
 # Setup all volumes and networks and start containers
 # Interesting note: docker-compose adds to the containers, networks and volumes the directory name to prevent conflicts
 docker-compose up
-# Stop all containers and remove all volumes and networks
+# Stop all containers and remove networks
 docker-compose down
 ```
 
@@ -1158,3 +1158,30 @@ docker-compose down
 docker-compose up
 browser(localhost:8080)
 ```
+
+## Section 7: Swarm Mode: Built-In Orchestration
+
+Swarm mode is a server clusting solution, aka orchestration.
+It makes possible to scale up/down our applications and provides with tools to manage all the data and processes generated and run during the whole lifecycle.
+Swarm is built on top of docker but does not affect it, so that we can use any other orchestration system on top of it, like Kubernetes.
+
+How everything works:
+- We have several nodes: physical computers or virtual machines
+- The whole setup of nodes is the swarm
+- Nodes can be managers and/or workers
+- Managers have the permissions to change and handle the swarm
+- Managers send work to the workers and they can be also workers
+- Managers usually share a database of states, which is the communication protocol RAFT; they can make synchronized decissions very fast
+- Managers have cryptographic identity witha certificate
+	- This way, we can dynamically join managers if we have the correct certificate
+- One of the managers is the leader
+- Workers communicate with each other with the gossip protocol
+- We can dynamically change the nodes to be worker/manager
+- Workers are constantly reporting to managers and asking for work if idle
+- Whereas with `docker run` we can execute locally one container, with a swarm manager we can do `docker service`, which is able to execute several tasks = containers in different nodes, ie., several replicas of the prototype container are run in different nodes; this way, we scale up/down. The manager spreads the tasks through the available nodes.
+- The manager node has several components
+	- API: accepts and stores commands
+	- Orchestrator: it reconciles the current and desired states (due to the accepted commands) by creating tasks
+	- Allocator: allocation of IP addresses to tasks
+	- Scheduler: nodes assigned to tasks
+	- Dispatcher: distribute tasks to workers
