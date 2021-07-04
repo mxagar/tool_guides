@@ -1172,7 +1172,7 @@ How everything works:
 - Managers have the permissions to change and handle the swarm
 - Managers send work to the workers and they can be also workers
 - Managers usually share a database of states, which is the communication protocol RAFT; they can make synchronized decissions very fast
-- Managers have cryptographic identity witha certificate
+- Managers have cryptographic identity with a certificate
 	- This way, we can dynamically join managers if we have the correct certificate
 - One of the managers is the leader
 - Workers communicate with each other with the gossip protocol
@@ -1185,3 +1185,84 @@ How everything works:
 	- Allocator: allocation of IP addresses to tasks
 	- Scheduler: nodes assigned to tasks
 	- Dispatcher: distribute tasks to workers
+
+### Creating a Service with a Single Node
+
+A service is an image being executed in several containers, which are doing the equivalent job.
+Often the analogy *cattle-pet* is used to differentiate between *service-container*.
+The number of containers is called replicas.
+
+We have three important `docker` commands to interact with a swarm:
+- `swarm`: it refers to the entire system of nodes, the whole swarm.
+- `node`: it refers to a specific node in the whole system.
+- `service`: it referes to a class of containers that are run on nodes; a service is decomposed in tasks, which are the containers executing the image. Importantly, service properties (replicas, etc.) can be `updated` without stopping them! This way, *blue-green* deployments are possible.
+
+```bash
+# Check if sawrm mode is active
+# Look in output for "Swarm: active/inactive"
+docker info
+# Initialize swarm
+# We see instructions to
+# - add managers
+# - add workers
+docker swarm init
+# List available nodes (one at the moment)
+docker node ls
+# Check all available options/commands with docker node
+# - demote: demote node from manager
+# - inspect
+# - ls
+# - promote: promote node to manager
+# - ps
+# - rm: remove nodes from swarm
+# - update
+docker node help
+# Check all available options/commands with docker swarm
+# - init: initialize swarm
+# - join: join a swarm as a node
+# - join-token
+# - leave: leave the swarm
+# - unlock
+# - unlock-key
+# - update
+docker swarm --help
+# Check all available options/commands with docker service
+# - create
+# - inspect
+# - logs
+# - ls: list services
+# - ps: list the TASKS of the service (=containers running)
+# - rm
+# - rollback
+# - scale
+# - update: change properties of the service running
+docker service --help
+# Create a service: ping to the Google server 8.8.8.8
+# The ID is returned, but we can always get it with docker service ls
+docker service create alpine ping 8.8.8.8 --detach true
+# List services running (and their names & ids)
+docker service ls
+# List the tasks of a service
+# Tasks are containers with the name: service_name.X.id, X = 1, 2, ...
+# We can then list them with docker container ls
+docker service ps
+docker service ps <service id/name>
+# Change/Update properties of service
+# In this case, increase the replicas to 3 (tasks or container of service)
+docker service update <service id> --replicas 3 --detach true
+# IMPORTANT: update has many options
+# which make possible to modify the service without stopping it!
+docker service update --help
+# We can manually stop tasks/containers of a swarm
+# but they are restarted again!
+# Therefore, we need to remove the service to stop the containers
+docker container ls
+docker container rm -f <name>
+docker service ps <name>
+# Remove a service and stop its tasks/containers
+docker service rm <id/name>
+```
+
+### Creating a Service with Three Nodes
+
+
