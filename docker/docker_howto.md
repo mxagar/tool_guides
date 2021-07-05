@@ -1265,4 +1265,93 @@ docker service rm <id/name>
 
 ### Creating a Service with Three Nodes
 
+We need actually three nodes for that: either VMs or real/physical computers.
+In order to interact with different nodes, the CLI tool `docker-machine` is used.
+This tool comes installed for Windows/Mac, but needs t obe installed for Linux: [Install Docker Machine](https://docs.docker.com/machine/install-machine/).
 
+Four options are explained in the course:
+
+1. `labs.play-with-docker.com`: log in with Docker Hub credentials; it is for testing only, since we need to reastrat every 4h. We create node instances by clicking on `new instace`.
+
+2. `docker-machine` + VirtualBox: VM that runs locally; we just need to install VirtualBox and do nothing more but run `docker-machine create myNode`! Then, lightweight Linux VMs are started (BusyBox) in the background. Note tha VMs consume memory and CPU. Note that the first time on a Mac we need to give permissions to Oracle in the System Pref. > Security & Privacy, and we need to restart too.
+
+3. `DigitalOcean.com` servers. Note that docker needs to be installed on our instances; we can check how to do it on [https://get.docker.com/](https://get.docker.com/): `curl -fsSL https://get.docker.com -o get-docker.sh`
+
+4. Roll your own setup. Note that docker needs to be installed on our instances.
+
+Usually, the VirtualBox option is taken and we run several instances of VMs. In addition, docker comes already installed.
+
+Creating and interacting with nodes using VirtualBox:
+```bash
+# After VirtualBox has been installed + permissions given + computer restarted
+# Create a new node called node1 (by default a BusyBox instance)
+# It might take some seconds and we get the shell back
+docker-machine create node1
+# List nodes
+docker-machine ls
+# Two options to access the machines/nodes
+# 1. ssh: we connect to it through ssh
+# 2. env: we get some output; if we execute it (or just the last line),
+# our docker CLI talks to the node that corresponds
+docker-machine ssh node1 # exit for exiting
+docker-machine env node1 # watch out: shell env variables modified
+# Remove a node
+docker-machine rm node1
+# We create 3 nodes and connect to them via ssh from 3 different shells
+docker-machine create node2
+docker-machine create node3
+docker-machine ssh node1
+docker-machine ssh node2
+docker-machine ssh node3
+# In all nodes, we can get version info
+docker version
+# In a node, say node1, we initialize the swarm
+docker swarm init
+# We will probably get an error
+# because the IP to advertise to the rest of the nodes cannot be chose
+# We can do it with --advertise-addr <IP>, using one of the suggested IPs
+# @host, we do
+docker-machine ip node1
+docker-machine ip node2
+docker-machine ip node3
+# We check that all IPs are different
+# We select a node, say node1, and copy its IP
+# @node1, we do
+docker swarm init --advertise-addr <IP>
+# That node1 will become the manager, as the output says 
+# After that we get a docker swarm join output
+# that we copy and paste in the other nodes: node2, node3
+docker swarm join --token <token> <IP>:<port>
+# Worker nodes cannot access/control the swarm from the CLI
+# @node2 (worker): this will return an error
+docker node ls
+# @node1 (manager): this will return the list of all nodes1-2-3
+# node we're talking to denotes with *
+# manager nodes are makerd as Reachable / Leader
+docker node ls
+# We can promote worker nodes to be manager from a manager node, eg
+# @node1
+docker node update --role manager node2
+# Another option is to get a token from a manager node, eg:
+# @node1
+docker swarm join-token manager
+# Copy join token command and paste it on a worker node, eg:
+# @node3
+docker swarm leave
+docker swarm join --token <token> <IP>:<port>
+# Now, we can create a service with 3 replicas!
+docker service create --replicas 3 alpine ping 8.8.8.8
+# We can see we have 3 tasks/containers running
+docker service ls
+docker service ps <service name>
+# Note that most of the management will be done in node1 (manager)
+# To remove, get list of nodes and rm them
+docker-machine ls
+docker-machine rm node1
+docker-machine rm node2
+docker-machine rm node3
+# Now, we should not have anything
+docker-machine ls
+docker service ls
+docker node ls
+```
