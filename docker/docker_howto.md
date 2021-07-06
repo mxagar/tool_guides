@@ -1355,3 +1355,42 @@ docker-machine ls
 docker service ls
 docker node ls
 ```
+
+## Section 8: Swarm Basic Features
+
+
+### Overlay Networking
+
+We can create a swarm-wide bridge network with `--driver overlay`, which is essentially like a VLAN.
+Nodes within the swarm can communicate with each other seamlessly.
+The services get a DNS and a virtual IP (VIP) with which the outsiders communicate.
+
+CMS (drupal) for website with assiciated database (postgres):
+```bash
+# Initialize swarm (in this example on the host, only a node: host)
+docker swarm init
+# Create overlay network with name mydrupal
+docker network create --driver overlay mydrupal
+# List networks
+docker network ls
+# Create a service with the postgress image
+docker service create --name psql --network mydrupal -e POSTGRES_PASSWORD=mypass postgres
+# Check the tasks
+docker service ps TAB # psql
+# Check the logs of the task
+docker container logs TAB # psql.1.X
+# Create another service with drupal
+docker service create --name drupal --network mydrupal -p 80:80 drupal
+# List all services: drupal, psql
+docker service ls
+```
+
+### Routing Mesh
+
+If in the previous example we launch three nodes and open the CMS site, all three nodes display the site, although only one is running it. In oder words, if we execute a service in 3 nodes on port X, we can access it in all 3 nodes on port X.
+
+That is because we have a **routing mesh**: all incoming communications are interfaced by all nodes in the swarm; that makes everything very comfortable:
+the load balancer can change the work distribution in the swarm, but the user outside is able to access it as before.
+
+The **routing mesh** in docker is stateless: no cockies are saved for different sessions, so we start fresh.
+
