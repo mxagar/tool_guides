@@ -1449,5 +1449,17 @@ docker-machine ip node1
 # We can vote
 # Open browser: insert IP:5001
 # Results appear
+# Stopping
+# @node1
+docker service rm db redis result vote worker
+docker service ls
+# @node2, node3
+docker swarm leave
+# @node1
+docker swarm leave --force
+# @host
+docker-machine rm node1
+docker-machine rm node2
+docker-machine rm node3
 ```
 
