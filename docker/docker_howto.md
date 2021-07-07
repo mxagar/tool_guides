@@ -1394,3 +1394,60 @@ the load balancer can change the work distribution in the swarm, but the user ou
 
 The **routing mesh** in docker is stateless: no cockies are saved for different sessions, so we start fresh.
 
+### Assignment: Docker's Distributed Voting App
+
+Very nice and typical example shown quite often.
+Voting app composed by several services, each of them written in a specific language.
+Voting is cats vs. dogs.
+
+Explanation of how to do is given in the following folder of the course
+
+`~/nexo/git_repositories/udemy-docker-mastery/swarm-app-1/`
+
+Notes:
+
+- Write down the commands first in the `README.md` and then execute them.
+- An image of the architecture is in the folder.
+- Images are in Docker Hub; usually, we build images locally, then launch the swarm.
+- A `backend` and `frontend` overlay network are needed.
+- The database server should use a named volume for preserving data. Use the new `--mount` format to do this: `--mount type=volume,source=db-data,target=/var/lib/postgresql/data`
+- Services with their properties listed in the `README.md`
+
+```bash
+# We need 3 nodes: create them
+# @host
+docker-machine create node1
+docker-machine create node2
+docker-machine create node3
+# @host: get IP
+docker-machine ip node1
+# @node1: manager
+docker swarm init --advertise-addr 192.168.99.103
+docker node ls
+# @node1: Create the networks: backendm frontend
+docker network create -d overlay backend
+docker network create -d overlay frontend
+# @node1: Service 1
+docker service create --name vote -p 80:80 --network frontend --replicas 2 bretfisher/examplevotingapp_vote
+# @node1: Service 2
+docker service create --name redis --network frontend redis:3.2
+# @node1: Service 3
+docker service create --name db --network backend -e POSTGRES_HOST_AUTH_METHOD=trust --mount type=volume,source=db-data,target=/var/lib/postgresql/data postgres:9.4
+# @node1: Service 4
+docker service create --name worker --network frontend --network backend bretfisher/examplevotingapp_worker:java
+# @node1: Service 5
+docker service create --name result --network backend -p 5001:80 bretfisher/examplevotingapp_result
+# @node1: Check that we have all the services with their replicas
+docker service ls # db, redis, result, vote, worker
+# @node1: We can check deeper 
+docker service ps redis
+docker service logs worker
+# Application
+# @host
+docker-machine ip node1
+# Open browser: insert IP
+# We can vote
+# Open browser: insert IP:5001
+# Results appear
+```
+
