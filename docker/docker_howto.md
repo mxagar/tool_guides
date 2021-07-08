@@ -1402,7 +1402,7 @@ Voting is cats vs. dogs.
 
 Explanation of how to do is given in the following folder of the course
 
-`~/nexo/git_repositories/udemy-docker-mastery/swarm-app-1/`
+`~/git_repositories/udemy-docker-mastery/swarm-app-1/`
 
 Notes:
 
@@ -1421,8 +1421,15 @@ docker-machine create node2
 docker-machine create node3
 # @host: get IP
 docker-machine ip node1
+# Connect via SSH to the nodes
+docker-machine ssh node1
+docker-machine ssh node2
+docker-machine ssh node3
 # @node1: manager
-docker swarm init --advertise-addr 192.168.99.103
+docker swarm init --advertise-addr <IP>
+# @node2, node3: paste the worker tokens
+docker swarm join --token <token> <IP>:<port>
+# @node1: manager
 docker node ls
 # @node1: Create the networks: backendm frontend
 docker network create -d overlay backend
@@ -1445,7 +1452,7 @@ docker service logs worker
 # Application
 # @host
 docker-machine ip node1
-# Open browser: insert IP
+# Open browser: insert IP:5000
 # We can vote
 # Open browser: insert IP:5001
 # Results appear
@@ -1463,3 +1470,186 @@ docker-machine rm node2
 docker-machine rm node3
 ```
 
+### Stacks of Services: Compose for Swarms
+
+Similarly as `docker-compose` could be used to launch several contauners on a host, `docker stacks` accept compose files as definition and launch files of swarms consisting of services, networks, and volumes.
+
+Instead of using `docker service create` several times, we use `docker stack deploy`, which calls a `*.yaml` file that defines the swarm.
+The syntax is almost identical to the one used by `docker-compose`. Exceptions:
+- we need to use at least version 3
+- we have new keywords
+  - `deploy`: for deploying services
+    - `update_config`: what happens when I do an update: `parallelism`, `delay`
+    - `restart_policy`
+    - `placement`
+- building does not happen in production swarm, but before, so:
+  - `docker-compose` ignores `deploy` keywords form the YAML
+  - `docker stack` ignores `build` keywords from the YAML
+
+We re-do the same example as before, but use a YAML file instead.
+The YAML file is in
+`~/git_repositories/udemy-docker-mastery/swarm-stack-1/`
+```bash
+# We need 3 nodes: create them
+# @host
+docker-machine create node1
+docker-machine create node2
+docker-machine create node3
+# @host: get IP
+docker-machine ip node1
+# Connect via SSH to the nodes
+docker-machine ssh node1
+docker-machine ssh node2
+docker-machine ssh node3
+# @node1: manager
+docker swarm init --advertise-addr <IP>
+# @node2, node3: paste the worker tokens
+docker swarm join --token <token> <IP>:<port>
+# @node1: manager
+docker node ls
+# @node1: manager
+# we need to copy somehow the stack file
+# or just open a vi and copy the YAML content to it
+mkdir srv
+cd srv
+mkdir swarm-stack-1
+cd swarm-stack-1
+touch example-voting-app-stack.yml
+vi example-voting-app-stack.yml
+docker stack deploy -c example-voting-app-stack.yml voteapp
+# list stacks
+docker stack ls
+# list tasks running where
+docker stack ps <stack name>
+docker stack ps voteapp
+# service ls for the stack we want
+docker stack services voteapp
+# list networks
+docker network ls
+# Open browser: insert IP:5000
+# We can vote
+# Open browser: insert IP:5001
+# Results appear
+# We have a new service, called visualizer!
+# Open browser: insert IP:8080
+# Graphical display of the swarm and its nodes done!
+# We can modify the YAML file and deploy it again (with the same name): 
+# The services changed will be updated
+# Example (@node1)
+vi example-voting-app-stack.yml
+# vote: replicas: 5
+docker stack deploy -c example-voting-app-stack.yml voteapp
+# We see how services are updated :)
+# Stopping
+# @node1
+docker stack rm <stack name>
+docker stack rm voteapp
+docker service ls
+# @node2, node3
+docker swarm leave
+# @node1
+docker swarm leave --force
+# @host
+docker-machine rm node1
+docker-machine rm node2
+docker-machine rm node3
+```
+
+`example-voting-app-stack.yaml`:
+```yaml
+version: "3"
+services:
+
+  redis:
+    image: redis:alpine
+    networks:
+      - frontend
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  db:
+    image: postgres:9.4
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+  vote:
+    image: bretfisher/examplevotingapp_vote
+    ports:
+      - 5000:80
+    networks:
+      - frontend
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+  result:
+    image: bretfisher/examplevotingapp_result
+    ports:
+      - 5001:80
+    networks:
+      - backend
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: bretfisher/examplevotingapp_worker:java
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - db
+      - redis
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: [APP=VOTING]
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [node.role == manager]
+
+  visualizer:
+    image: dockersamples/visualizer
+    ports:
+      - 8080:8080
+    stop_grace_period: 1m30s
+    networks:
+      - frontend
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db-data:
+
+```
