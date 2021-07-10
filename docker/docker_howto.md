@@ -1653,3 +1653,86 @@ volumes:
   db-data:
 
 ```
+
+### Secrets for Swarms
+
+A secret is anything that is not supposed to be public, not only usernames, passwords and keys, but anything that is not supposed to be on our webpage!
+
+Docker creates secrets and encrypts them automatically within a swarm.
+
+Secrets are assigned to services, and only containers in assigned services can see them.
+
+Secrets are in-memory only, although they look like files: `/run/secrets/<secret_name>`; we can have also aliases: the same in-memory secret with several memory names.
+
+`docker-compose` does not have in-memory secrets, but it makes a work-around with file-based secrets, which are not really secure.
+
+We can create a secret in a swarm in two ways, both with drawbacks: 
+- passing a file; if the file is on disk, it is a potential risk
+- passing a value at the command line; a malicious user could check for the pw in the bash history
+
+
+```bash
+# We create 2 nodes
+# @host
+docker-machine create node1
+docker-machine create node2
+# @host: get IP
+docker-machine ip node1
+# Connect via SSH to the nodes
+docker-machine ssh node1
+docker-machine ssh node2
+# @node1: manager
+docker swarm init --advertise-addr <IP>
+# @node2, node3: paste the worker tokens
+docker swarm join --token <token> <IP>:<port>
+# @node1: manager
+# We create a file with the content of the secret
+docker node ls
+mkdir srv
+cd srv
+mkdir secrets-sample-1
+cd secrets-sample-1
+touch psql_user.txt
+vi psql_user.txt # mypsqluser
+# Create secret from file
+# secret id is returned
+docker secret create psql_user psql_user.txt
+# Now we create a secret for the pw
+# but this time passing a value thorugh command line
+# we echo a pw, '-' means 'read from input' 
+# secret id is returned
+echo "myDBpassWORD" | docker secret create psql_pass -
+# List secrets
+docker secret ls
+# Inspect a secret: name, is, creation time, ... NEVER the secret value itsefl!
+docker secret inspect <secret name>
+# Secrets are stored in-memory, in the docker database
+# we assign them to services, so that they become visible (decrypted) to them
+# We start a postgres service and assign our secrets to it
+docker service create --name psql --secret psql_user --secret psql_pass -e POSTGRES_PASSWORD_FILE=/run/secrets/psql_pass -e POSTGRES_USER_FILE=/run/secrets/psql_user postgres
+# Check service and its containers
+docker service ps psql # psql.1
+# We open a bash shell in the container of the service
+docker exec -it psq TAB bash
+docker exec -it <container name> bash
+# We can see the decrypted values of the secrets!
+# These seem to be files, but they are really temp fs in-memory files
+cd /run/secrets
+ls # psql_user psql_pass
+cat psql_user # mypsqluser
+cat psql_pass # myDBpassWORD
+exit
+# @node1
+# We check that the service is running correctly
+# That's because the secrets are correctly set
+docker service ps psql
+# Now, we could remove the secrets with update
+# however, for databases that does not make sense
+# Additionally, when we do that, the service/container is re-deployed
+# and here the re-deployment fails, because we have no secret value for the user
+docker service update --secret-rm psql_user psql
+```
+
+### Secrets for Stacks
+
+
