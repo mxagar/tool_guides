@@ -1654,7 +1654,7 @@ volumes:
 
 ```
 
-### Secrets for Swarms
+### Secrets for Swarm Services
 
 A secret is anything that is not supposed to be public, not only usernames, passwords and keys, but anything that is not supposed to be on our webpage!
 
@@ -1733,6 +1733,52 @@ docker service ps psql
 docker service update --secret-rm psql_user psql
 ```
 
-### Secrets for Stacks
+### Secrets for Swarm Stacks (in Compose YAML Files)
+
+We can define secrets for stacks launched with compose YAML files:
+- We need to use the `docker-compose` version `>=3.1` for using secrets with stacks.
+- Version `>=3.0` is necessary for stacks alone.
+- We have a new section in the YAML file: `secrets`.
+- In the `secrets` section we can use `file`-based secrets or `external` secrets, as in the CLI.
+- If `file`-based secrets used, remember to remove the original files!
+
+Example in
+`~/git_repositories/templates/docker/udemy-docker-mastery/secrets-sample-2`:
+```bash
+cd ~/git_repositories/templates/docker/udemy-docker-mastery/secrets-sample-2
+ls # docker-compose.yml psql_password.txt psql_user.txt
+# @host
+# We create a swarm on the host as a node: we don't need the IP
+docker swarm init
+docker node ls # docker-desktop
+# We deploy stack with secrets in YAML file
+docker stack deploy -c docker-compose.yml mydb
+docker secret ls # mydb_psql_password mydb_psql_user
+# Remove stack: we see that secrets are removed too
+docker stack rm mydb
+```
+
+`~/git_repositories/templates/docker/udemy-docker-mastery/secrets-sample-2/docker-compose.yaml`
+```yaml
+version: "3.1"
+
+services:
+  psql:
+    image: postgres
+    secrets:
+      - psql_user
+      - psql_password
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/psql_password
+      POSTGRES_USER_FILE: /run/secrets/psql_user
+
+secrets:
+  psql_user:
+    file: ./psql_user.txt
+  psql_password:
+    file: ./psql_password.txt
+```
+
+## Section 9: Swarm App Lifecycle
 
 
