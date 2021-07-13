@@ -896,7 +896,12 @@ First we need to generate a `docker-compose.yaml` configuration file using the Y
 Then, we use the `docker-compose` CLI tool.
 
 Docker-Compose makes easy to run applications that need several services running in synch, e.g., web pages, etc.
-Thus, the burden to run them is minimized and people can start trying them without needing to assemble complex environemnts or to develop in each of the required modules themselves!
+Thus, the burden to run them is minimized and people can start trying them without needing to assemble complex environments or to develop in each of the required modules themselves!
+
+However, note that docker-compose is not considered a production tool, but a development tool.
+Usually, `docker stack` is used for production deployment.
+Docker stack launches swarms, which are containerized services distrubuted in different nodes (see section below).
+Swarms have many more functionalities under the hood than `docker-compose`, and they use the same docker compose files.
 
 YAML: Yet another markup language.
 Easy format to describe config files consisting of key-value pairs.
@@ -1472,7 +1477,7 @@ docker-machine rm node3
 
 ### Stacks of Services: Compose for Swarms
 
-Similarly as `docker-compose` could be used to launch several contauners on a host, `docker stacks` accept compose files as definition and launch files of swarms consisting of services, networks, and volumes.
+Similarly as `docker-compose` could be used to launch several containers on a host, `docker stack` accept compose files as definition and launch files of swarms consisting of services, networks, and volumes.
 
 Instead of using `docker service create` several times, we use `docker stack deploy`, which calls a `*.yaml` file that defines the swarm.
 The syntax is almost identical to the one used by `docker-compose`. Exceptions:
@@ -1670,7 +1675,6 @@ We can create a secret in a swarm in two ways, both with drawbacks:
 - passing a file; if the file is on disk, it is a potential risk
 - passing a value at the command line; a malicious user could check for the pw in the bash history
 
-
 ```bash
 # We create 2 nodes
 # @host
@@ -1736,7 +1740,7 @@ docker service update --secret-rm psql_user psql
 ### Secrets for Swarm Stacks (in Compose YAML Files)
 
 We can define secrets for stacks launched with compose YAML files:
-- We need to use the `docker-compose` version `>=3.1` for using secrets with stacks.
+- We need to use the `docker-compose` file version `>=3.1` for using secrets with stacks.
 - Version `>=3.0` is necessary for stacks alone.
 - We have a new section in the YAML file: `secrets`.
 - In the `secrets` section we can use `file`-based secrets or `external` secrets, as in the CLI.
@@ -1781,4 +1785,86 @@ secrets:
 
 ## Section 9: Swarm App Lifecycle
 
+`docker-compose` is not considered a production tool, but rather a development tool.
+The equivalent production deployment tool would be `docker stack`, which is for swarms.
+That is so because we have many functionalities in swarms under the hood compared to what we get with `docker-compose`: a database of states, overlay networks, secrets, etc.
+However, `docker-compose` simulates some of the functionalities, although for testing (not securely), such as secrets:
 
+If we launch a compose file with file-based secrets, `docker-compose` is going to bind-mount the secret files:
+
+```bash
+docker-compose up -d
+docker-compose exec psql cat /run/secrets/psql_user
+```
+
+### Launching several `docker-compose` files
+
+We can have several `docker-compose` YAML files that are combined depending on the environment we're in: **development**, **testing/CI**, **production**.
+
+Example in
+`~/git_repositories/templates/docker/udemy-docker-mastery/swarm-stack-3`:
+Files we have
+```bash
+# Base docker-compose file: defaults across all envs
+# Here we have image names used in the other files
+docker-compose.yml
+# If named like this, docker-compose will use it
+# when we do docker-compose up after the previous file
+# Usually this file is for the local development
+docker-compose.override.yml
+# Configuration for testing/CI
+# Here we use docker-compose -f ... up: local testing
+# Compared to the previous, here for instance we might not have named volumes, fake pws, ...
+docker-compose.test.yml
+# Configuration for production
+# Here we use docker-compose -f ... config: it outputs the production YAML
+docker-compose.prod.yml
+# The rest of the files are used by docker
+Dockerfile
+psql-fake-password.txt
+```
+
+What we would then do:
+```bash
+# Default files are loaded and combined/overlaid:
+# docker-compose.yml docker-compose.override.yml
+docker-compose up -d
+# Test env files are loaded and combined/overlaid:
+# docker-compose.yml docker-compose.override.yml
+docker-compose -f docker-compose.yml docker-compose.test.yml up -d
+# Production: we do not use docker-compose up, but swarm/stack
+# Here, we generate the YAML for swarm/stack
+# Production env files are loaded and combined/overlaid:
+# docker-compose.yml docker-compose.prod.yml
+docker-compose -f docker-compose.yml docker-compose.prod.yml config
+docker-compose -f docker-compose.yml docker-compose.prod.yml config > output.yml
+```
+
+### Service Updates
+
+Notes:
+- Service upates limit downtime, but real downtime is avoided through tests!
+- Updates replace containers completely, take that into account.
+- Updates have 70+ options that are combined usually with `-add` or `-rm`
+- `stack deploy` of a running sttack is an update
+- We can update several things on an `update` command
+
+Typical update commands:
+```bash
+# Create the service
+docker service create -p 8080:80 --name web nginx:1.13.7
+docker service ls
+# Change number of replicas
+# We can update several services at once: web=5 api=3
+docker service scale web=5
+# Updating image: each replica is updated one at a time
+docker service update --image nginx:1.13.6 web
+# Change a port: that means remove old and add new
+docker service update --publish-rm 8080 --publish-add 9090:80 web
+# We can similarly update several things in a command line
+docker service update --env-add NODE_ENV=production --prublish-rm 8080 <servicename>
+# We can force re-balancing by commanding updates that do not change anything
+docker service update --force web
+# Stop service
+docker service rm web
+```
