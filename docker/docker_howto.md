@@ -1868,3 +1868,34 @@ docker service update --force web
 # Stop service
 docker service rm web
 ```
+
+### Healthchecks
+
+When going into production, it is very recommended using health checks:
+- Health checks are check commands executed in containers and services with agiven frequency which expect an outcome value of 0
+- These are commands passed as an option in `docker container run`, `docker service create`, in the `Dockerfile`, or in `docker-compose`
+- The container health states are: `starting`, `healthy`, `unhealthy`
+- A service replaces its unhealthy tasks
+- We have several options:
+  - `--health-cmd`: the command itself, eg "curl -f http://localhost || exit 1"
+  - `--health-interval`: every how many seconds the healthcheck is executed
+  - `--health-timeout`
+  - `--health-retries`
+  - ...
+- The command in `Dockerfile` is `HEALTHCHECK`, the option token change a little bit
+- The command/section in the YAML of `docker-compose` is `healthcheck`
+- We can peek thier result with 
+  - `docker container ls`: `STATUS` column
+  - or with `docker container inspect`: result of last 5 checks shown in `Health` section
+
+Examples
+```bash
+# Run container with healthcheck
+docker container run --name p2 -d --health-cmd="pg_isready -U postgres || exit 1" postgres
+# Look at healthcheck status
+docker container ls
+docker container inspect p1
+# Run a service with a healthcheck
+# Startup is slower, because health checks force 30 starting time
+docker service create --name p2 --health-cmd="pg_isready -U postgres || exit 1" postgres
+```
