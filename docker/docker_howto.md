@@ -1846,7 +1846,7 @@ Notes:
 - Service upates limit downtime, but real downtime is avoided through tests!
 - Updates replace containers completely, take that into account.
 - Updates have 70+ options that are combined usually with `-add` or `-rm`
-- `stack deploy` of a running sttack is an update
+- `stack deploy` of a running stack is an update
 - We can update several things on an `update` command
 
 Typical update commands:
@@ -1872,7 +1872,7 @@ docker service rm web
 ### Healthchecks
 
 When going into production, it is very recommended using health checks:
-- Health checks are check commands executed in containers and services with agiven frequency which expect an outcome value of 0
+- Health checks are check commands executed in containers and services with a given frequency which expect an outcome value of 0
 - These are commands passed as an option in `docker container run`, `docker service create`, in the `Dockerfile`, or in `docker-compose`
 - The container health states are: `starting`, `healthy`, `unhealthy`
 - A service replaces its unhealthy tasks
@@ -1899,3 +1899,39 @@ docker container inspect p1
 # Startup is slower, because health checks force 30 starting time
 docker service create --name p2 --health-cmd="pg_isready -U postgres || exit 1" postgres
 ```
+
+## Section 10: Container Registries
+
+
+
+## Section 11: Docker in Production
+
+## Sections 12 and 13: Kubernetes Introduction
+
+Kubernetes is an orchestrator released by Google in 2015 and maintained by its community nowadays. Most important features:
+- It is equivalent to swarm.
+- It runs on top of docker.
+- Orchestration makes sense when we need several server nodes and update them frequently. The most known prchestrators are Swarm and Kubernetes: Many cloud services provide them to you.
+- There are several Kubernetes distributions.
+  - We can roll our own Kubernetes version
+    - We take the upstream Kubernetes Github repo
+  - Vendors have their own versions with support and custom APIs
+    - Ubuntu
+    - VMWare
+    - ...
+  - We should pick a Kubernetes certified version
+    - Try vendor solutions
+    - Github repo is great for learning, but there are ready solutions
+
+Kubernetes vs Swarm:
+- Key difference: swarm is easier to use and manage than Kubernetes, but Kubernetes has more functionalities
+- Advantages of Swarm
+  - it comes built-in in docker, ie., it's also lighter to use
+  - 80/20 rule: 20% of the features that solve 80% of the cases
+  - it runs wherever docker runs, so on many platforms
+  - it's secure by default
+- Advantages of Kubernetes
+  - it's become very popular among cloud service providers, and vendors tend to integrate Kubernetes first than swarm; it's often not a rational decision, rather hype-driven
+  - it covers more use cases than swarm
+
+  
