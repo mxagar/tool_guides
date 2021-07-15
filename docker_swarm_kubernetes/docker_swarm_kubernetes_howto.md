@@ -1934,4 +1934,3 @@ Kubernetes vs Swarm:
   - it's become very popular among cloud service providers, and vendors tend to integrate Kubernetes first than swarm; it's often not a rational decision, rather hype-driven
   - it covers more use cases than swarm
 
-  
