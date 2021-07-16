@@ -1902,9 +1902,108 @@ docker service create --name p2 --health-cmd="pg_isready -U postgres || exit 1" 
 
 ## Section 10: Container Registries
 
+Docker is built in such a way that you're going to need an image registry, either on an online service, or a local private one.
 
+[Docker Hub](https://hub.docker.com/) is the most popular image registry and it has several extra features:
+- It has a lighweight image building functionality
+- It is linked to Github and auto-build images on commits; however, it's important to link the git repository when creating the Docker repo.
+- We can create private repositories, but only the first is free
+
+Important links on registries:
+- [Registry as a pull through cache](https://docs.docker.com/registry/recipes/mirror/)
+- [Garbage collection](https://docs.docker.com/registry/garbage-collection/)
+- [Configuring a registry](https://docs.docker.com/registry/configuration/)
+
+Other online registry services:
+- [Quay.io](https://quay.io/)
+- AWS, Azure, Google Cloud: all have their own registries
+- GitLab
+
+### Local/Private Registries
+
+We can build our own private registry based on a docker image called `registry`.
+However, it is rather bare-bones, lacking a GUI and authetication functionalities (anyone can pull/push). Docker needs `https` to communicate with online registries, but with local registries that is not necessary.
+
+The general recommendation is to use an online service!
+
+In the Codium Docker course, we set up a local registry using a ready  `docker-compose.yaml` which had a GUI and authetication functionalities. See exercise 7 from the Codium course.
+
+Local/private registry:
+```bash
+# hub.docker.com
+# de-facto private container registry, but without GUI, bare-bones
+# registry: https://hub.docker.com/_/registry
+# note that docker needs https to communicate with the registry unless its on localhost
+# the local registry runs on localhost:5000
+# It is recommended to mount a volume as a local folder/file
+# so that the registry is stored in there and we don't loose anything
+# when the registry container is removed
+docker pull registry
+docker container run -d -p 5000:5000 --name registry -v $(pwd)/registry-data:/var/lib/registry registry
+docker container ls
+# Now we download/pull a simple image and push it our local registry
+docker pull hello-world
+docker run hello-world
+# For that, we need to tag that image with localhost:5000/ or 127.0.0.1:5000/ prefix
+docker tag hello-world localhost:5000/hello-world
+# Now, if we push that image, docker will detect the localhost prefix
+# and it will push it to our local registry
+docker push localhost:5000/hello-world
+docker run localhost:5000/hello-world
+# If we stop all containers and remove the local image
+# we can still pull it from our local registry!
+docker container rm localhost:5000/hello-world
+docker image ls
+docker image rm localhost:5000/hello-world
+docker image ls
+docker pull localhost:5000/hello-world
+docker image ls
+```
+
+### Local/Private Registries with Swarm
+
+The local registry with Swarm mode works the same way as with `localhost`. Because of routing mesh, all nodes can see `127.0.0.1:5000`.
+
+After setting the swarm with several nodes, we just call `docker service create` and work as before:
+```bash
+docker service create --name registry --publish 5000:5000 registry
+```
 
 ## Section 11: Docker in Production
+
+Talk given by Bret Fisher on Docker Con 2017 EU: **Docker in Production**.
+
+- Limit your simultaneous innovation: you don't need on the first day many stuff: CI/CD, dynamic performance scaling, containerization of everything, persistent data (databases).
+- Legacy apps work in containers too: we don't need to re-structure to microservice architecture.
+- Dockerfiles: spend time tuning them; mature Docker files
+  - are well documented
+  - do logs to stdout/stderr so that docker handles the logs, they are not inside the app
+  - they don't need to be super-lean Alpine at the beginning: it's not a problem if we work with Ubuntu images which are 500 MB; when it can scale, we can start thinking about how to use leaner images
+  - use volumes to store data always outside, specially persistent data (databases), otherwise we loose data
+  - never use `latest` tags, but specific versions, otherwise we have a mess; also use specific versions in `apt-get` commands
+  - they update default configs via `ENV`, `RUN`, `ENTRYPOINT`
+  - use overwriteable Dockerfiles: base definitions that are
+- Should we use VMs or physical machines?
+  - We can do both, there's no easy answer; start with what we know best
+  - Test performance and learn
+- Which Linux distro should we use?
+  - Docker is very kernel driver dependent, we need to choose the right one
+  - If in doubt, try Ubuntu
+- Swarms
+  - 1-node swarms are good, because they extend the functionalities of `docker run` (eg., secrets, healthchecks); for activating them, just: `docker swarm init`
+  - 3-node swarms are the next step, all managers; used with low budget in applications like Test/CI
+  - Don't do even-node swarms
+  - 5-node swarm, all managers; more power than before and fault-tolerance
+  - In serious applications, we have many nodes (10+, 100+) and not all are managers, so we are more secure
+  - Don't turn cattle into pets: tasks/containers should be replaceable! We should not open a shell into them
+  - Do not use multiple swarms unless
+    - you want to learn
+    - we have geographical boundaries
+- Outsource all we can
+  - Image registry
+  - Logs
+  - Monitoring and alerting
+- Do we always need orchestration? Not really; we can start with a container per VM and then evolve to orchestration (swarms)...
 
 ## Sections 12 and 13: Kubernetes Introduction
 
