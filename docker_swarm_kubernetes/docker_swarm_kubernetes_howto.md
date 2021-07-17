@@ -2033,3 +2033,35 @@ Kubernetes vs Swarm:
   - it's become very popular among cloud service providers, and vendors tend to integrate Kubernetes first than swarm; it's often not a rational decision, rather hype-driven
   - it covers more use cases than swarm
 
+## 12-Factor-App
+
+Summary from [https://12factor.net](https://12factor.net)
+
+Guidelines for web apps or Software-as-a-Service apps so that these:
+- have a clear defnition of automation (declarative), so that new developers learn faster
+- are portable
+- are deployable on modern cloud platforms
+- minimize divergence between development and production
+- are easily scalable
+
+### 1 Codebase
+
+Each app should have a unique codebase maintained in a versioning system = git repository.
+A deploy is a running instance of the app, in production or staging site.
+
+### 2 Dependencies
+
+We can install packages (eg, via apt-get) system-wide (= site packages) or scoped to the app (= vendoring, bundling).
+We must always **declare** all dependencies explicitly and precisely (version, location, etc.) with a clear manifest and **isolate** them avoid leaking implicit ones.
+Never assume common tools are installed, rather consider vendoring them (eg., `curl`).
+
+### 3 Config
+
+An app's config is the only thing that varies between deploys; so if sth is constant between configs, it does not belong to the config, but to the code.
+We must strictly separate config from code!
+Config includes: parameters, credentials, resource handles (volumes).
+Prefer environment variables to config-files to store config parameters, because env vars are easy to change at runtime and offer a granular control.
+Avoid grouping config parameters into environemnts, rather allow granular control and definition.
+
+### 4 Backing Services
+
