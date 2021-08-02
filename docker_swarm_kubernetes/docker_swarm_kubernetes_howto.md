@@ -2033,6 +2033,31 @@ Kubernetes vs Swarm:
   - it's become very popular among cloud service providers, and vendors tend to integrate Kubernetes first than swarm; it's often not a rational decision, rather hype-driven
   - it covers more use cases than swarm
 
+### Kubernetes Terminology
+
+System parts
+- Kubernetes = k8s = k-eights: orchestration system
+- `kubectl`: cube control, CLI to configure Kubernetes
+- Node: single server in the Kubernetes cluster; often 'node' means 'worker node'
+- Kubelet: Kubernetes agent running on nodes
+- Control plane = set master nodes: a master node is equivalent to a manager node in swarm
+
+The control plane is a set of master/manager nodes.
+Each master node runs on docker and consists of several containers that always appear:
+- `etcd`: distributed storage sytem for key-value pairs
+- API server: we communicate with the cluster through it
+- Scheduler: containers placed in pods through it
+- Controller manager: it manages and checks everything is running as wished
+- Core DNS
+- ... depending on our application we have more containers in each master node.
+
+Worker nodes are not part of the control plane.
+They have also some default containers/apps running always:
+- Kubelet: the agent
+- Kube-proxy: networking control
+
+More information: [Kubernetes Components](https://kubernetes.io/docs/concepts/overview/components/#master-components)
+
 
 
 ## Extra: 12-Factor-App
