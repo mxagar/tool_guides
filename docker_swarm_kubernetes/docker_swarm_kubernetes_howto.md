@@ -1,7 +1,7 @@
 # Docker Howto
 
 This file was created while following the Udemy course by Bret Fisher
-Docker Mastery: with Kubernetes +Swarm from a Docker Captain.
+Docker Mastery: with Kubernetes + Swarm from a Docker Captain.
 
 Mikel Sagardia, 2021.
 No warranties.
@@ -2058,6 +2058,53 @@ They have also some default containers/apps running always:
 
 More information: [Kubernetes Components](https://kubernetes.io/docs/concepts/overview/components/#master-components)
 
+### Installation
+
+Kubernetes is a series of docker containers which have a CLI + configurations on top of them.
+There are many ways to install K8s, the easiest ways for learning
+- Mac: Docker Desktop: enable in the settings
+- Windows: MiniKube: install VirtualBox (it runs there) and download minikube the installer. `kubectl` needs to be installed separately.
+- Linux: MicroK8s: install it with `snap`. `kubectl` is `microk8s.kubectl`
+- Learn in the browser: [http://play-with-k8s.com](http://play-with-k8s.com) or [katakoda.com](katakoda.com)
+
+
+**Note that kubernetes consumes many resources; it is advisable to disable it when we do not use it.**
+
+### Kubernetes Container Abstractions
+
+- **Pod**: basic unit of deployment: containers are always in pods; a pod is basically one or more containers running together on one node.
+- **Controller**: they create and update pods and other objects; containers are not deployed, but pods, and these are deplyed using controllers.
+- **Service**: it's not the docker service, but a network endpoint to connect to a pod.
+- **Namespace**: filtered group of objects in a cluster. Advanced stuff.
+- We have more abstractions: secrets, etc.
+
+### Creating a pod
+
+Basic commands: run, create, apply:
+```bash
+# The closest to: docker run
+# Note that k8s is evolving,
+# and many features of run are becoming deprecated
+kubectl run
+# The closest to: docker service create (swarm)
+kubectl create
+# The closest to: docker stack deploy (swarm)
+# We apply YAML differences
+kubectl apply
+```
+
+Two ways to deploy a pod: (1) CLI or (2) YAML; it's equivalent to `docker service` and `docker stack`, but with many differences.
+
+```bash
+# Get K8s version: client and server (two version)
+kubectl version
+# Start a pod via CLI ~ docker service create
+kubectl run my-nginx --image nginx
+# List all pods ~ docker service ls
+kubectl get pods
+# List all objects: not only pod
+kubectl get
+```
 
 
 ## Extra: 12-Factor-App
@@ -2091,4 +2138,17 @@ Prefer environment variables to config-files to store config parameters, because
 Avoid grouping config parameters into environemnts, rather allow granular control and definition.
 
 ### 4 Backing Services
+
+A backing service is any service the app consumes over the network: datastores, messaging, mail, caching, etc.
+In the 12-F paradigm, there no distinction between local and 3rd party services: in a deploy, we can interchange local/remote services without changing the code, only the config should be changed.
+Thus, a backing service is just another resource, aka an attached resource.
+
+### 5 Build, release, run
+
+A codebase is transformed into a deply in three stages that must bet separated:
+- Build: code repo converted in a an executable bundle called build.
+- Release: Build is combined with the deploy's config. Every release should have a unique ID and cannot be mutated, instead, new releases are created.
+- Run: app is run in the execution environment. Run should be able to be executed at any time.
+
+### 6 Processes
 
