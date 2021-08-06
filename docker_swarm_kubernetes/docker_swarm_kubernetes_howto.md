@@ -2072,7 +2072,7 @@ There are many ways to install K8s, the easiest ways for learning
 
 ### Kubernetes Container Abstractions
 
-- **Pod**: basic unit of deployment: containers are always in pods; a pod is basically one or more containers running together on one node.
+- **Pod**: basic unit of deployment: containers are always in pods; a pod is basically one or more containers running together on one node; it could be equivalent to a task in docker swarm.
 - **Controller**: they create and update pods and other objects; containers are not deployed, but pods, and these are deplyed using controllers.
 - **Service**: it's not the docker service, but a network endpoint to connect to a pod.
 - **Namespace**: filtered group of objects in a cluster. Advanced stuff.
@@ -2085,6 +2085,7 @@ Basic commands: run, create, apply:
 # The closest to: docker run
 # Note that k8s is evolving,
 # and many features of run are becoming deprecated
+# From version 1.18 on, it only runs single bare pods
 kubectl run
 # The closest to: docker service create (swarm)
 kubectl create
@@ -2093,7 +2094,7 @@ kubectl create
 kubectl apply
 ```
 
-Two ways to deploy a pod: (1) CLI or (2) YAML; it's equivalent to `docker service` and `docker stack`, but with many differences.
+We have two ways to deploy a pod: (1) CLI or (2) YAML; they're equivalent to `docker service` and `docker stack`, but with many differences.
 
 ```bash
 # Get K8s version: client and server (two version)
@@ -2103,9 +2104,55 @@ kubectl run my-nginx --image nginx
 # List all pods ~ docker service ls
 kubectl get pods
 # List all objects: not only pod
-kubectl get
+kubectl get all
+# Stop and clean environment
+kubectl delete pod my-nginx
 ```
 
+Usually, instead of creating a bare pod, we create a deployment which contains a pod:
+
+```bash
+# Create a deployment with a pod - same container/pod as before
+kubectl create deployment my-apache --image httpd
+# Get all created objects: service, deployment, replicaset, pod
+kubectl get all
+```
+
+Every time we create a pod in a deployment, several abstractions are created:
+- A container `k8s` is created for controlling Kubernetes
+- The pod contains our app container and its volumes
+- Pods are inside **ReplicaSet** objects and **ReplicaSet** objetcs are inside **Deployment** objects: Container in Pod in ReplicaSet in Deployment
+- Within a **ReplicaSet** we can copy a Pod
+- Usually we manage everything interfacing the **Deployment**
+
+### Scaling ReplicaSets
+
+We can scale the replicas with `kubectl scale`.
+
+When we scale the replicas of a pod, eg. to 2, the following steps are taken in the control plane:
+- Deployment is update to 2
+- ReplicaSet controller sets pod count to 2
+- Control plane assigns node to pod
+- Kubelet sees pod is needed, it starts a container
+
+```bash
+# We create a single pod deployment
+kubectl create deployment my-apache --image httpd
+# We scale it to two
+# We can use deplayment instead of deploy/
+# kubectl scale deployment my-apache --replicas 2
+kubectl scale deploy/my-apache --replicas 2
+# Get all objects
+kubectl get all
+# Stop and clean environment
+kubectl delete deployment my-apache
+```
+
+
+
+Very interesting links:
+- [kubectl cheatsheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
+- [kubectl for ddocker users](https://kubernetes.io/docs/reference/kubectl/docker-cli-to-kubectl/)
 
 ## Extra: 12-Factor-App
 
@@ -2152,3 +2199,37 @@ A codebase is transformed into a deply in three stages that must bet separated:
 
 ### 6 Processes
 
+Apps should be stateless and should share nothing.
+Any data that needs to persist must be stored in a stateful backing service, eg., a database.
+Thus, we shouldbe able to restart any app without any problems.
+
+### 7 Port binding
+
+We should export services via port binding, ie., expose ports for communication.
+It is a malpractice to rely on runtime injection.
+
+### 8 Concurrrency
+
+Using the process model (eg., all processes are stateless and standalone), we can scale by launching several processes which share the task.
+Thus, concurrency is achieved automatically.
+Apps should rely on the system's process manager (ie., `systemd`).
+
+### 9 Disposability
+
+Applications should be disposable: they should be able to be started and stopped at any moment.
+Therefore, processes should strive to:
+- minimize startup time
+- shut down gracefully with `SIGTERM`: no memory allocated, no locks left, etc.
+- be **reentrant** = multiple invocations can run concurrently on a single processor
+- be **idempotent** = several simultaneous or sequential invocations do not change the result obtained with a unique invocation
+- be robust agains sudden death; we can achieve that implementing job queueing (eg., Beanstalkd): jobs are returned to the queue when client disconnect or time out
+
+### 10 Dev/prod parity
+
+Keep development, staging and production as similar as possible.
+Staging is a copy of the production environment, but usually on a private server.
+Goals:
+- Deployment should happen hours or even minutes after developing
+- The same people should develop and deploy
+- The same tools should be used in development and production
+- Backing services should be also the same in development and production
