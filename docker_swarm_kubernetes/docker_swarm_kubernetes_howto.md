@@ -2062,11 +2062,12 @@ More information: [Kubernetes Components](https://kubernetes.io/docs/concepts/ov
 
 Kubernetes is a series of docker containers which have a CLI + configurations on top of them.
 There are many ways to install K8s, the easiest ways for learning
-- Mac: Docker Desktop: enable in the settings
+- Mac: Docker Desktop: **enable in the settings**
 - Windows: MiniKube: install VirtualBox (it runs there) and download minikube the installer. `kubectl` needs to be installed separately.
 - Linux: MicroK8s: install it with `snap`. `kubectl` is `microk8s.kubectl`
 - Learn in the browser: [http://play-with-k8s.com](http://play-with-k8s.com) or [katakoda.com](katakoda.com)
 
+[Autocompletion for Kubernetes](https://kubernetes.io/docs/tasks/tools/included/optional-kubectl-configs-bash-mac/).
 
 **Note that kubernetes consumes many resources; it is advisable to disable it when we do not use it.**
 
@@ -2125,7 +2126,7 @@ Every time we create a pod in a deployment, several abstractions are created:
 - Within a **ReplicaSet** we can copy a Pod
 - Usually we manage everything interfacing the **Deployment**
 
-### Scaling ReplicaSets
+### Scaling ReplicaSets and Inspecting Pods
 
 We can scale the replicas with `kubectl scale`.
 
@@ -2144,15 +2145,46 @@ kubectl create deployment my-apache --image httpd
 kubectl scale deploy/my-apache --replicas 2
 # Get all objects
 kubectl get all
+# Get only the pods
+kubectl get pods
+# Get only the pods and refresh (watch) - screen remains locked
+kubectl get pods -w
+# We can get information of containers with
+# logs and describe (= inpect in docker)
+# Get all logs
+kubectl logs deployment/my-apache
+# Get last log (tail) eveytime it happens (follow)
+kubectl logs deployment/my-apache --follow --tail 1
+# We can use a selector
+# for getting logs of containers with a label
+# (note: it doesnt work on my setup?)
+kubectl logs -l run=my-apache
+# To get detailed information of a pod
+# we use describe;
+# we need to pass the exact pod name with pods/ prefix
+# Describe is equivalent to inspect in docker
+# but we get also a list of events related to the pod,
+# such as pulling an image, etc.
+kubectl get pods # select one pod name
+kubectl describe pods/my-apache-7b68fdd849-bg7kn
+# Similarly to swarm, kubernetes tries to re-launch a pod when it's destroyed
+# We open a shell and watch pods
+kubectl get pods -w
+# In another shell we remove a pod
+# We'll see on the other shell how the removed pod is replaced!
+kubectl delete pod/my-apache-7b68fdd849-bg7kn
 # Stop and clean environment
 kubectl delete deployment my-apache
 ```
 
-
-
 Very interesting links:
 - [kubectl cheatsheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 - [kubectl for ddocker users](https://kubernetes.io/docs/reference/kubectl/docker-cli-to-kubectl/)
+
+## Section 14: Exposing Kubernetes Ports
+
+
+
 
 ## Extra: 12-Factor-App
 
