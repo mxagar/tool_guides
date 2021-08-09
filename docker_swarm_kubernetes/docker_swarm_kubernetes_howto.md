@@ -2265,3 +2265,17 @@ Goals:
 - The same people should develop and deploy
 - The same tools should be used in development and production
 - Backing services should be also the same in development and production
+
+### 11 Logs
+
+Logs are event streams, without start & end.
+We should output one line per event to `stdout`, unbuffered.
+Later on, and independently from the app/service generating the logs, we can pipe the stream to a file / dashboard / backing service.
+
+### 12 Admin processes
+
+Administrative tasks involve, among others: migrating databades or other backing services, running inspection scripts, etc.
+These admin tasks:
+- should be one-off preocesses: we run a script only once,
+- should be run in identical environments as the ones of the running applications,
+- should be shipped with the application code.
