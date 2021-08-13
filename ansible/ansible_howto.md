@@ -637,3 +637,228 @@ ls /tmp/centos1/tmp # test_modules.txt
 
 ## Section 4: Ansible Playbooks
 
+Ansible Playbooks are scripts that contain an advanced usage of the `ansible` CLI.
+Those playbooks or scripts are written in YAML or JSON, but YAML is the usual way to go.
+The scripts are executed with the tool `ansible-playbook`.
+
+### 4.1 YAML
+
+YAML is a data serialization language, very human-readable.
+YAML = yet another markup language.
+YAML is a series of key-value pairs, that is, dictionaries.
+Every subsequent key-value lines are considered part of the same dictionary.
+Dictionaries can be nested and can contain the basic types as well as lists of basic types: string, int, bool, real.
+Note that we can convert a YAML file into python structures; this section is basically about that conversion and correspondence.
+There is a one-liner that converts a YAML to python in the examples:
+
+```bash
+python3 -c 'import yaml,pprint;pprint.pprint(yaml.load(open("test.yaml").read(), Loader=yaml.FullLoader))'
+```
+
+The examples to understand YAML are in the folder `/home/ansible/diveintoansible/Ansible Playbooks, Introduction/YAML`, as shown below; however, the different concepts introduced in them have been collected in the next YAML file:
+```bash
+# Host/Mac
+cd ~/git_repositories/diveintoansible-lab
+# We have our docker-compose.yaml in here
+docker-compose up
+# Open browser on http://localhost:1000/
+# Ansible Terminal: ubuntu-c
+cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/YAML
+#
+# Ansible Playbooks, Introduction - YAML - 01 ... 19
+# Each revision showcases a concept
+# All concepts are summarized in the sample YAML sample below
+# Note that all revisions contain a YAML file as well a bash script
+# which converts the YAML into python code/structures
+cd YAML/02
+ls # show_yaml_python.sh  test.yaml
+cat show_yaml_python.sh # one-liner that converts YAML into python and displays it as text!
+# python3 -c 'import yaml,pprint;pprint.pprint(yaml.load(open("test.yaml").read(), Loader=yaml.FullLoader))'
+# The YAML in here contains a dictionary like that
+# example_key_1: this is a string
+# example_key_2: this is another string
+cat test.yaml
+# We can convert it to python text
+./show_yaml_python.sh test.yaml
+# {'example_key_1': 'this is a string', 'example_key_2': 'this is another string'}
+```
+
+YAML sample lines:
+```yaml
+# Every YAML file should start with three dashes
+---
+
+# subsequent key-value pairs are considered to belong to the same dictionary
+# strings can have no quotes, single or double quotes
+# but if we want escape characters, double quotes are needed
+no_quotes: this is a string example
+double_quotes: "this is a string example"
+single_quotes: 'this is a string example'
+escape: "this is a string with a line break\n"
+
+# if we don't assign a value to a key, it is defined as None
+# {'my_key': None}
+my_key:
+
+# pipe | inserts \n in the python conversion for every new line
+example_key_1: |
+	this is the first line
+	this is the second line
+	this is the third line
+
+# > connects multiple lines into a single and addes \n at the end
+# >- does the same, but does not add \n
+example_key_2: >-
+	this is a first string
+	this is a second string
+	this is a third string
+
+# integers are automatically interpreted
+# but if we want them to be strings, we need to double-quote them
+example_integer: 1
+example_integer_string: "1"
+
+# booleans are possible in many ways
+is_false_01: false
+is_false_02: False
+is_false_03: FALSE
+is_false_04: no
+is_false_05: No
+is_false_06: NO
+is_false_07: off
+is_false_08: Off
+is_false_09: OFF
+is_true_01: true
+is_true_02: True
+is_true_03: TRUE
+is_true_04: yes
+is_true_05: Yes
+is_true_06: YES
+is_true_07: on
+is_true_08: On
+is_true_09: ON
+
+# item lists are converted into lists
+# ['item 1', 'item 2', 'item 3', 'item 4', 'item 5'] 
+- item 1
+- item 2
+- item 3
+- item 4
+- item 5
+
+# we can also describe the dictionaries in a compact way
+# example_key_a: example_value_a
+# example_key_b: example_value_b
+{example_key_a: example_value_a, example_key_b: example_value_b}
+
+# we can also describe the lists in a compact way
+[element_1, element_2]
+
+# (typically) 2 whitespace inentation nests elements
+# here we would have a dictionary of dictionaries
+example_key_3:
+  sub_example_key_3: sub_example_value_3
+
+example_key_4:
+  sub_example_key_4: sub_example_value_4
+
+# a dictionary of lists
+example_1:
+  - item 1
+  - item 2
+  - item 3
+
+example_2:
+  - item 1
+  - item 2
+  - item 3
+
+# Every YAML file should end with three dots
+...
+```
+
+### 4.2 Ansible Playbooks: Sections
+
+We have some common sections in a playbook YAML file.
+
+```bash
+# Host/Mac
+cd ~/git_repositories/diveintoansible-lab
+# We have our docker-compose.yaml in here
+docker-compose up
+# Open browser on http://localhost:1000/
+# Ansible Terminal: ubuntu-c
+cd /home/ansible/diveintoansible/Ansible Playbooks, Breakdown of Sections/01
+cat motd_playbook.yaml # see content below
+```
+
+Typical YAML structure:
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list 
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+
+  # Vars: variables that will apply to the play, on all target systems
+
+  # Tasks: the list of tasks that will be executed within the play, this section
+  #       can also be used for pre and post tasks
+
+  # Handlers: the list of handlers that are executed as a notify key from a task
+
+  # Roles: list of roles to be imported into the play
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+The instructor explains how to create a playbook for modifying the 'message of the day' or 'MOTD' that appears as greeting when connecting to Linux systems.
+
+```bash
+# Ansible Terminal: ubuntu-c
+cd /home/ansible/diveintoansible/Ansible Playbooks, Breakdown of Sections/02
+cat motd_playbook.yaml # see content below
+# The YAML file defines a task in which
+# a MOTD file (centos_motd) is copied to the location where the system MOTD should be: /etc/motd
+#
+# We execute the playbook as follows
+# Color doing is the same as before: yellow, green, red
+# Note that in addition to the task we define,
+# an extra task of collecting facts is carried out
+ansible-playbook motd_playbook.yaml
+# If we open a centos terminal from localhos:1000 in the browser, we'll see our MOTD:
+# Welcome to CentOS Linux - Ansible Rocks
+```
+
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list 
+# of plays, with each play being a dictionary
+-
+ 
+  # Hosts: where our play will run and options it will run with
+  hosts: centos
+  user: root
+
+  # Vars: variables that will apply to the play, on all target systems
+
+  # Tasks: the list of tasks that will be executed within the playbook
+  tasks:
+    - name: Configure a MOTD (message of the day)
+      copy:
+        src: centos_motd
+        dest: /etc/motd
+
+  # Handlers: the list of handlers that are executed as a notify key from a task
+
+  # Roles: list of roles to be imported into the play
+
+# Three dots indicate the end of a YAML document
+...
+```
