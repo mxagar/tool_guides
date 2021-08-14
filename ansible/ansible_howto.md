@@ -655,7 +655,7 @@ There is a one-liner that converts a YAML to python in the examples:
 python3 -c 'import yaml,pprint;pprint.pprint(yaml.load(open("test.yaml").read(), Loader=yaml.FullLoader))'
 ```
 
-The examples to understand YAML are in the folder `/home/ansible/diveintoansible/Ansible Playbooks, Introduction/YAML`, as shown below; however, the different concepts introduced in them have been collected in the next YAML file:
+The examples to understand YAML are in the folder `/home/ansible/diveintoansible/Ansible Playbooks, Introduction/YAML`, as shown below; however, the different concepts introduced in them have been collected in the YAML file after this `bash` block:
 ```bash
 # Host/Mac
 cd ~/git_repositories/diveintoansible-lab
@@ -779,7 +779,13 @@ example_2:
 
 ### 4.2 Ansible Playbooks: Sections
 
-We have some common sections in a playbook YAML file.
+We have some common sections in a playbook YAML file:
+- Hosts/Targets: where our play will run and options it will run with
+- Vars: variables that will apply to the play, on all target systems
+- Tasks: the list of tasks that will be executed within the play, this section can also be used for pre and post tasks
+- Handlers: the list of handlers that are executed as a notify key from a task; they are often used for debugging.
+- Roles: list of roles to be imported into the play
+
 
 ```bash
 # Host/Mac
@@ -832,8 +838,11 @@ cat motd_playbook.yaml # see content below
 ansible-playbook motd_playbook.yaml
 # If we open a centos terminal from localhos:1000 in the browser, we'll see our MOTD:
 # Welcome to CentOS Linux - Ansible Rocks
+# Note that by default 'facts are gathered' when executing the playbook:
+# setup module is run and checks are performed
 ```
 
+YAML file `motd_playbook.yaml` for changing the message of the day when logging in to a CentOS node:
 ```yaml
 ---
 # YAML documents begin with the document separator ---
@@ -842,23 +851,119 @@ ansible-playbook motd_playbook.yaml
 # of plays, with each play being a dictionary
 -
  
-  # Hosts: where our play will run and options it will run with
+  # Hosts/Targets: where our play will run and options it will run with
   hosts: centos
   user: root
+  gather_facts: False # default is True; set True if we want to run the setup module every time for every node
 
   # Vars: variables that will apply to the play, on all target systems
+  motd: "Welcome to CentOS Linux - Ansible Rocks"
 
   # Tasks: the list of tasks that will be executed within the playbook
   tasks:
     - name: Configure a MOTD (message of the day)
       copy:
         src: centos_motd
+        # Instead of suing the file centos_motd
+        # we can also define the content key with its string:
+        # content: Welcome to CentOS Linux - Ansible Rocks
+        # or we can create a var above and use it with this (ginger2) notation:
+        # content: "{{ motd }}"
         dest: /etc/motd
+      # notify is a handler, not necessary, but outputs a message
+      notify: MOTD changed
 
   # Handlers: the list of handlers that are executed as a notify key from a task
+  # handlers are often used for debugging
+  handlers:
+    - name: MOTD changed
+      debug:
+        msg:: The MTD was changed
 
   # Roles: list of roles to be imported into the play
 
 # Three dots indicate the end of a YAML document
 ...
 ```
+
+In the file above, tree ways of changing the massage of the day are shown: 
+- from a file: `src: centos_motd
+- as a string defined in `content`: `content: Welcome to CentOS Linux - Ansible Rocks`
+- as a variable used in `content`: `content: "{{ motd }}"`
+
+If we use variables, these can be changed from the command line:
+
+```bash
+ansible-playbook motd_playbook.yaml -e 'motd="Testing the motd playbook\n"'
+```
+
+We can add conditionals to the task execution based on the information or facts available, for instance, when performing the default initial setup.
+That is achieved adding the `when` directive to the tasks.
+When need to remove `gather_facts: False` and first check all available facts gathered with the `setup` module.
+In the following example, we define a different MOTD depending on the host type: `ubuntu` or `centos`:
+
+```bash
+# We check all facts/properties available with the setup module
+# We scroll down with ENTER until finding sth we could use for 
+# "ansible_distribution": "CentOS"
+ansible all -i centos2, -m setup | more
+# We check that fact is different for ubuntu
+ansible all -i centos2,ubuntu2, -m setup | grep ansible_distribution
+# Now, in the playbook YAML, we add the when directive
+# See example here
+cd /home/ansible/diveintoansible/Ansible Playbooks, Breakdown of Sections/07
+cat motd_playbook.yaml
+ansible-playbook motd_playbook.yaml
+# If we log in to the ubuntu/centos hosts, we check it works
+```
+
+`07/motd_playbook.yaml`:
+```yaml
+---
+# YAML documents begin with the document separator ---
+ 
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+ 
+  # Hosts: where our play will run and options it will run with
+  hosts: linux
+ 
+  # Vars: variables that will apply to the play, on all target systems
+  vars:
+    motd_centos: "Welcome to CentOS Linux - Ansible Rocks\n"
+    motd_ubuntu: "Welcome to Ubuntu Linux - Ansible Rocks\n"
+ 
+  # Tasks: the list of tasks that will be executed within the playbook
+  tasks:
+    - name: Configure a MOTD (message of the day)
+      copy:
+        content: "{{ motd_centos }}"
+        dest: /etc/motd
+      notify: MOTD changed
+      when: ansible_distribution == "CentOS"
+
+    - name: Configure a MOTD (message of the day)
+      copy:
+        content: "{{ motd_ubuntu }}"
+        dest: /etc/motd
+      notify: MOTD changed
+      when: ansible_distribution == "Ubuntu"
+ 
+  # Handlers: the list of handlers that are executed as a notify key from a task
+  handlers:
+    - name: MOTD changed
+      debug:
+        msg: The MOTD was changed
+ 
+  # Roles: list of roles to be imported into the play
+ 
+# Three dots indicate the end of a YAML document
+...
+```
+
+More information:
+[Ansible Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html).
+
+### 4.3 Ansible Playbooks: Variables
+
