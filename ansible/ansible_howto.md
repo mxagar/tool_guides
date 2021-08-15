@@ -6,9 +6,24 @@ This file contains the notes made during the Udemy Course
 
 by James Spurin.
 
+Notes made by Mikel Sagardia, 2021.
+No warranties.
+
 Overview of contents:
 1. Introduction
 2. Setup
+3. Ansible CLI & Architecture
+  - Configuration
+  - Inventories
+  - Modules
+4. Ansible Playbooks
+  - YAML
+  - Sections
+  - Variables
+  - Facts
+  - Templating with Jinja2
+  - Creating and executing playbooks
+  
 
 ## 1. Introduction
 
@@ -1075,6 +1090,7 @@ Very basic Jinja2 example:
 cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/Templating with Jinja2
 cd 03
 cat jinja2_playbook.yaml # see below
+ansible-playbook jinja2_playbook.yaml
 ```
 
 The YAML file above, with a Jinja2 script consisting of an if-statement:
@@ -1110,5 +1126,222 @@ The YAML file above, with a Jinja2 script consisting of an if-statement:
 ```
 
 Some additional notes:
-- As we see, the script happens in between `{% -%}`
+- As we see, the script happens in between `{% -%}`, and comments appear within `--== ==--`
 - Revision `04`: we can use `is defined`: `{% if example_variable is defined -%}`
+- Revision `06`: for loops can be used as follows
+  ```jinja2
+  {% for entry in ansible_interfaces -%}
+    Interface entry {{ loop.index }} = {{ entry }}
+  {% endfor %}
+  ```
+- Revision `07`: ranges can be used as follows:
+  ```jinja2
+  {% for entry in range(1, 11) -%}
+    {{ entry }}
+  {% endfor %}
+  ```
+
+#### Filters
+
+We have access to many filtering capabilities: min, max, unique, difference, random, split
+
+[Playbook filters](https://docs.ansible.com/ansible/latest/user_guide/playbooks_filters.html)
+
+```bash
+cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/Templating with Jinja2/
+cd 10/
+cat cat jinja2_playbook.yaml
+#
+#
+```
+
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: all
+
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Ansible Jinja2 filters
+      debug:
+        msg: >
+             ---=== Ansible Jinja2 filters ===---
+
+             --== min [1, 2, 3, 4, 5] ==--
+
+             {{ [1, 2, 3, 4, 5] | min }}
+
+             --== max [1, 2, 3, 4, 5] ==--
+
+             {{ [1, 2, 3, 4, 5] | max }}
+
+             --== unique [1, 1, 2, 2, 3, 3, 4, 4, 5, 5] ==--
+
+             {{ [1, 1, 2, 2, 3, 3, 4, 4, 5, 5] | unique }}
+
+             --== difference [1, 2, 3, 4, 5] vs [2, 3, 4] ==--
+
+             {{ [1, 2, 3, 4, 5] | difference([2, 3, 4]) }}
+
+             --== random ['rod', 'jane', 'freddy'] ==--
+
+             {{ ['rod', 'jane', 'freddy'] | random }}
+
+             --== urlsplit hostname ==--
+
+             {{ "http://docs.ansible.com/ansible/latest/playbooks_filters.html" | urlsplit('hostname') }}
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+#### Templates as external files
+
+Usually, templating is done by including external Jinja2 files in the `template` dictionary variable.
+In the next exammple, all the revisions in the templaing folder are executed together using an external Jinja2 script.
+
+```bash
+cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/Templating with Jinja2/11
+cat jinja2_playbook.yaml # see below
+cat template.j2 # see below
+ansible-playbook jinja2_playbook.yaml -l ubuntu-c
+```
+
+`jinja2_playbook.yaml`:
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: all
+
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Jinja2 template
+      template:
+        src: template.j2
+        dest: "/tmp/{{ ansible_hostname }}_template.out"
+        trim_blocks: true
+        mode: 0644
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+`template.j2`:
+```jinja2
+--== Ansible Jinja2 if statement ==--
+
+{# If the hostname is ubuntu-c, include a message -#}
+{% if ansible_hostname == "ubuntu-c" -%}
+      This is ubuntu-c
+{% endif %}
+
+--== Ansible Jinja2 if elif statement ==--
+
+{% if ansible_hostname == "ubuntu-c" -%}
+   This is ubuntu-c
+{% elif ansible_hostname == "centos1" -%}
+   This is centos1 with it's modified SSH Port
+{% endif %}
+
+--== Ansible Jinja2 if elif else statement ==--
+
+{% if ansible_hostname == "ubuntu-c" -%}
+   This is ubuntu-c
+{% elif ansible_hostname == "centos1" -%}
+   This is centos1 with it's modified SSH Port
+{% else -%}
+   This is good old {{ ansible_hostname }}
+{% endif %}
+
+--== Ansible Jinja2 if variable is defined ( where variable is not defined ) ==--
+
+{% if example_variable is defined -%}
+   example_variable is defined
+{% else -%}
+   example_variable is not defined
+{% endif %}
+
+--== Ansible Jinja2 if varible is defined ( where variable is defined ) ==--
+
+{% set example_variable = 'defined' -%}
+{% if example_variable is defined -%}
+   example_variable is defined
+{% else -%}
+   example_variable is not defined
+{% endif %}
+
+--== Ansible Jinja2 for statement ==--
+
+{% for entry in ansible_all_ipv4_addresses -%}
+   IP Address entry {{ loop.index }} = {{ entry }}
+{% endfor %}
+
+--== Ansible Jinja2 for range
+
+{% for entry in range(1, 11) -%}
+   {{ entry }}
+{% endfor %}
+
+--== Ansible Jinja2 for range, reversed (simulate while greater 5) ==--
+
+{% for entry in range(10, 0, -1) -%}
+   {% if entry == 5 -%}
+      {% break %}
+   {% endif -%}
+   {{ entry }}
+{% endfor %}
+
+--== Ansible Jinja2 for range, reversed (continue if odd) ==--
+
+{% for entry in range(10, 0, -1) -%}
+   {% if entry is odd -%}
+      {% continue %}
+   {% endif -%}
+   {{ entry }}
+{% endfor %}
+
+---=== Ansible Jinja2 filters ===---
+
+--== min [1, 2, 3, 4, 5] ==--
+
+{{ [1, 2, 3, 4, 5] | min }}
+
+--== max [1, 2, 3, 4, 5] ==--
+
+{{ [1, 2, 3, 4, 5] | max }}
+
+--== unique [1, 1, 2, 2, 3, 3, 4, 4, 5, 5] ==--
+
+{{ [1, 1, 2, 2, 3, 3, 4, 4, 5, 5] | unique }}
+
+--== difference [1, 2, 3, 4, 5] vs [2, 3, 4, 5, 6] ==--
+
+{{ [1, 2, 3, 4, 5] | difference([2, 3, 4]) }}
+
+--== random ['rod', 'jane', 'freddy'] ==--
+
+{{ ['rod', 'jane', 'freddy'] | random }}
+
+--== urlsplit hostname ==--
+
+{{ "http://docs.ansible.com/ansible/latest/playbooks_filters.html" | urlsplit('hostname') }}
+
+```
+
+### 4.6 Ansible Playbooks: Creating and Executing an Example
+
+
