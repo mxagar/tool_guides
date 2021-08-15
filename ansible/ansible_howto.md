@@ -641,6 +641,9 @@ Ansible Playbooks are scripts that contain an advanced usage of the `ansible` CL
 Those playbooks or scripts are written in YAML or JSON, but YAML is the usual way to go.
 The scripts are executed with the tool `ansible-playbook`.
 
+A reference link to all keywords in playbooks:
+[Ansible Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html).
+
 ### 4.1 YAML
 
 YAML is a data serialization language, very human-readable.
@@ -962,8 +965,150 @@ ansible-playbook motd_playbook.yaml
 ...
 ```
 
-More information:
-[Ansible Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html).
-
 ### 4.3 Ansible Playbooks: Variables
 
+Within the playbook, we can define and use variables of different types: lists, dictionaries, strings.
+
+The folder that showcases the variable capabilities in the playbooks is:
+
+`/home/ansible/diveintoansible/Ansible Playbooks, Introduction/Ansible Playbooks, Variables`
+
+There is a script which runs all revisions in that folder, showing all posibilities:
+
+```bash
+cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/Ansible Playbooks, Variables
+# Show examples one after the other
+./show_examples.sh
+```
+Summary of capabilities, odered by revisions:
+- `01`: We can define a variable `example_key: example value` in the `vars` section and use it later with `"{{ example_key }}"` 
+- `02`: We can define a dictionary `dict` as variable and use them as `"{{ dict }}"` or `"{{ dict.dict_key }}"` or `"{{ dict['dict_key'] }}"`
+- `03`: We can also define inline dictionaries: `{inline_dict_key: This is an inline dictionary value}`
+- `04`: We can define a list (`named_list`) with items (`-`) and access them with `"{{ named_list }}"`, `"{{ named_list.0 }}"` and `"{{ named_list[0] }}"
+- `05`: Same as above but with th einline notation for lists: `[ item1, item2, item3, item4 ]`
+- `06`: We can create `external_vars.yaml` and define variables in there; then, we include the file in the `vars` section under the variable `var_files`, and we have access to the external variables!
+- `07`: We can ask the user the value of a variable with `var_promt`
+- `08`: Same as before, but we add the flag `private: True` under `var_promt` so that the typed text is not visualized (eg., for passwords)
+- `09`: There is always a `hostrvars` dictionary created which we can use to access host setup information with `gather_facts: True`. Example: `"{{ hostvars[ansible_hostname].ansible_port }}"` or `"{{ hostvars[ansible_hostname]['ansible_port'] }}"`
+- `10`: Same as before.
+- `11`: Same as before, but we set a default value if the variable we're trying to access in `hostvars` does not exist: `"{{ hostvars[ansible_hostname].ansible_port | default('22') }}"`
+- `12`, `13`, `14`, `15`: We can also directly access values within `hostvars`, foe example: `"{{ ansible_user }}"`
+- `16`, `17`: We can pass variables to the CLI `ansible-playbook` with `-e` using different formats: INI, YAML and JSON (as variable or file)
+  ```bash
+  ansible-playbook variables_playbook.yaml -e extra_vars_key="extra vars value"
+  ansible-playbook variables_playbook.yaml -e {"extra_vars_key": "extra vars value"}
+  ansible-playbook variables_playbook.yaml -e {extra_vars_key: extra vars value}
+  ansible-playbook variables_playbook.yaml -e @extra_vars_file.json
+  ```
+
+### 4.4 Ansible Playbooks: Facts
+
+The `setup` module is automatically run by every playbook execution and `facts` or system/node properties are gathered, unless set set `gather_facts: False`.
+Facts are returned in JSON format.
+
+We can filter facts, create custom ones, etc.
+
+Documentation of the facts available in the `setup` module: [Ansible Setup Module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/setup_module.html).
+
+Note that we get a `ansible_facts` dictionary when running the setup module.
+All the keys of that dictionary are added to the variable space directly, we don't need to access them through `ansible_facts`.
+
+```bash
+cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/Ansible Playbooks, Facts
+cd 01
+# We can gather subsets
+ansible centos1 -m setup -a 'gather_subset=network' | more
+# We can filter facts, also with wildcards
+ansible centos1 -m setup -a 'filter=ansible_mem*'
+```
+
+#### Custom Facts
+
+We can define **custom facts** to be returned in JSON or INI format; examples:
+
+Example in JSON `getdate1.fact`:
+```bash
+#!/bin/bash
+echo {\""date\"" : \""`date`""}
+```
+
+Example in INI `getdate2.fact`:
+```bash
+#!/bin/bash
+echo [date]
+echoh date=`date`
+```
+
+```bash
+cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/Ansible Playbooks, Facts
+cd 02/templates/
+ls # getdate1.fact getdate2.fact
+# First, we need to create the standard file for the facts
+sudo mkdir -p /etc/ansible/facts.d
+sudo cp * /etc/ansible/facts.d/
+# We run the setup module and gather facts to check that our custom ones work
+# These will be in the dictionary ansible_local
+ansible ubuntu-c -m setup | more
+# We can filter the dictionary of custom facts, which is ansible_local
+ansible ubuntu-c -m setup -a 'filter=ansible_local'
+# We can run ansible-playbook limiting the execution to the desired hosts too
+cd ../../03
+ansible-playbook facts_playbook.yaml -l ubuntu-c
+```
+
+Notes:
+- We can use any default facts in the YAML: `"{{ ansible_default_ipv4.address }}"`
+- We can use the custom facts in the YAML: `"{{ ansible_local.getdate1.date }}"`, `"{{ hostvars[ansible_hostname].ansible_local.getdate1.date }}"`
+- Revision `06` shows how to define facts in a directory without root priviledges.
+
+### 4.5 Ansible Playbooks: Templating with Jinja2
+
+Jinja2 is a web template engine for python.
+It is used, among others, by Flask and Ansible.
+We can basically write code scripts that perform operations such as if/else, loops, etc.
+Jinja2 is a topic on its own, and a very extensive one.
+The more we know Jinja2, the better we can work with Ansible.
+In Ansible, Jinja2 can be used in YAML playbook files and in the configuration files.
+
+Very basic Jinja2 example:
+```bash
+cd /home/ansible/diveintoansible/Ansible Playbooks, Introduction/Templating with Jinja2
+cd 03
+cat jinja2_playbook.yaml # see below
+```
+
+The YAML file above, with a Jinja2 script consisting of an if-statement:
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: all
+
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Ansible Jinja2 if elif else
+      debug:
+        msg: >
+             --== Ansible Jinja2 if elif else statement ==--
+
+             {% if ansible_hostname == "ubuntu-c" -%}
+                This is ubuntu-c
+             {% elif ansible_hostname == "centos1" -%}
+                This is centos1 with it's modified SSH Port
+             {% else -%}
+                This is good old {{ ansible_hostname }}
+             {% endif %}
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+Some additional notes:
+- As we see, the script happens in between `{% -%}`
+- Revision `04`: we can use `is defined`: `{% if example_variable is defined -%}`
