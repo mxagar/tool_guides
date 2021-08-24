@@ -38,6 +38,9 @@ Overview of sections I just watched, not tested; for those sections, I just writ
   - Blocks
   - Vault
 6. Structuring Ansible Playbooks
+  - Include & Import
+  - Tags
+  - Roles
 7. Using Ansible with Cloud Services and Containers
 8. Creating Modules and Plugins
 
@@ -1526,7 +1529,27 @@ We can create the structure manually or with the CLI tool `ansible-galaxy`.
 
 ## Section 7: Using Ansible with Cloud Services and Containers
 
-### 7.1 Docker with Ansible
+### 7.1 AWS with Ansible
+
+AWS and Docker interaction are introduced; examples can be found in
+
+`/home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/`
+
+For the usage of Ansible with AWS, a (free) account needs to be set up:
+- We log in with a free tier
+- We create a key-secret pair
+- We `export` the key & the secret to the environment where ansible is run.
+- We install boto: `sudo pip3 install boto boto3`
+
+Following the examples, we interact with AWS: we create instances (linux nodes), launch tasks, etc.
+
+After the setup, the configuration files for connecting to AWS need to be downloaded and set up locally: configuration (cfg), inventories, etc.
+
+After setting up everything, we can control/configure our AWS instances using Ansible! All changes are reflected on the AWS web interfaces
+
+### 7.2 Docker with Ansible
+
+
 
 ## Section 8: Creating Modules and Plugins
 
