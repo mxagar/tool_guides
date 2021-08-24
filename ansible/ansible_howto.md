@@ -9,21 +9,38 @@ by James Spurin.
 Notes made by Mikel Sagardia, 2021.
 No warranties.
 
-Overview of contents:
+Overview of analyzed and tested contents:
+
 1. Introduction
 2. Setup
 3. Ansible CLI & Architecture
   - Configuration
   - Inventories
   - Modules
-4. Ansible Playbooks
+4. Ansible Playbooks, Introduction
   - YAML
   - Sections
   - Variables
   - Facts
   - Templating with Jinja2
-  - Creating and executing playbooks
-  
+7. Ansible with Docker
+
+Overview of sections I just watched, not tested; for those sections, I just write a summary of what the instructor explains:
+
+5. Ansible Playbooks, Deep Dive
+  - Modules
+  - Dynamic Inventories
+  - Register and When
+  - Looping
+  - Asynchronous, Serial, Parallel
+  - Task Delegation
+  - Magic Variables
+  - Blocks
+  - Vault
+6. Structuring Ansible Playbooks
+7. Using Ansible with Cloud Services and Containers
+8. Creating Modules and Plugins
+
 
 ## 1. Introduction
 
@@ -1342,6 +1359,178 @@ ansible-playbook jinja2_playbook.yaml -l ubuntu-c
 
 ```
 
-### 4.6 Ansible Playbooks: Creating and Executing an Example
+## Section 5: Ansible Playbooks, Deep Dive
 
+I fast-forwarded this section and took notes on the capabilities of Ansible.
+Look at the course for concrete coding examples, available at:
+
+
+`/home/ansible/diveintoansible/Ansible Playbooks, Deep Dive/`
+
+
+### Ansible Playbook Modules
+
+We have 100s of modules available:
+
+- `set_fact`: we can set pur facts or re-write available ones; often it is used with conditionals, like `when: ansible_distribution == 'Ubuntu'`
+- `pause`: playbook execution is paused for a period or until something is introduced after prompting
+- `wait_for`: for instance, wait for a port being used (that implicitly means a service is running)
+- `assemble`: configurations can bet broken into segments or files, which are later assembled
+- `add_host`: dynamically add hosts in a play
+- `group_by`: we can create groups of hosts depending on key facts we specify
+- `fetch`: capture files from a remote host; it is anologous to `copy`
+
+### Dynamic Inventories
+
+Inventories are basically the hosts.
+We can create a script that returns a JSON with the hosts we would like, depending on the arguments we pass to it.
+That is the idea of dynamic inventories: we pass to ansible a script that returns the hosts we would like depending on the arguments it receives.
+
+The instructor has a `inventory.py` python script that is used, called through `ansible`:
+
+```bash
+ansible all -i inventory.py --list-hosts
+```
+
+###  Register and When
+
+We can catch/register the output generated while executing a playbook.
+
+### Looping
+
+We can loop within a playbook with several commands:
+`with_items`, `with_dict`, `with_subelements`, `with_together`, `with_sequence`, `with_random_choice`, `until`.
+
+We usually pass a list:
+```YAML
+with_items:
+  - CentOS
+  - Ubuntu
+```
+
+### Asynchronous, Serial, Parallel
+
+Running tasks asynchronously means running them in parallel, in different shells.
+That is achieved with the commands `async` and `poll`, subordinated in a `task`.
+That way, it is possible that the launched tasks are still running when the playbook has finished executing.
+
+### Task Delegation
+
+We can assign specific targets/hosts to selected tasks.
+That is achieved with `delegate_to` in the `task`.
+
+### Magic Variables
+
+Variables that are automatically made available when the playbook is executed.
+These can be used when we want.
+
+There is an ansible script which dumps all magic variables to a file:
+`/home/ansible/diveintoansible/Ansible Playbooks, Deep Dive/Magic Variables/01`
+
+```bash
+cat dump_vars_playbook.yaml
+ansible-playbook dump_vars_playbook.yaml
+# a file with available (magic) variables is dumped for each host
+cd captures_variables/
+ls # centos1  centos2  centos3  ubuntu-c  ubuntu1  ubuntu2  ubuntu3
+vim centos1
+```
+
+Some magic variables we should have a look at:
+- `hostvars`
+- `groups`
+- `group_names`
+- `inventory_hostname`
+- `inventory_dir`
+
+### Blocks
+
+We can group tasks into blocks.
+For that, we subordinate `block` to the `tasks` section and nest our tasks inside `block`.
+Blocks can be used for debugging.
+
+### Vault
+
+We can encrypt/decrypt variables and files that contain sensible information, for example passwords.
+The CLI tool `ansible-vault` is used to encrypt a string, with several options such as `encrypt` and `decrypt`, `view`, etc.
+That encrypted string can be used as a variable saved in a YAML file;
+it will have a concrete format which tells ansible it is encrypted.
+
+## Section 6: Structuring Ansible Playbooks
+
+The examples of this section can be found in
+
+`/home/ansible/diveintoansible/Structuring Ansible Playbooks`
+
+### Includes and Imports
+
+We can use the following instructions in a playbook:
+- `include_tasks` and `import_tasks`, followed by a YAML file: both integrate the tasks defined in the YAML file. Note that `include_` is dynamic, ie., the external tasks are loaded during playbook execution, whereas `import_` is static: the external tasks are loaded and integrated before the playbook execution.
+- `import_playbook`: an external YAML with the playbook definition is imported (static).
+
+### Tags
+
+Tags can be added to tasks with the key `tags:`.
+Then, when we execute a playbook with `ansible-playbook`, we can filter to run the tasks with the tags we'd like; for example, we might want to define tasks for deployment:
+
+`my_playbook.yaml`:
+
+```yaml
+...
+- name: My task
+  ...
+  tags:
+    - deploy-app
+...
+```
+
+Then, with `ansible-playbook`:
+
+```bash
+ansible-playbook my_playbook.yaml --tags "deploy-app"
+```
+
+It is also possible to skip tasks with a tag using `--skip-tags`.
+
+Note that all tasks are assigned by default to the `all` tag.
+
+Tags can be inherited by importer/included tasks/playbooks.
+
+### Roles
+
+Larger projects become easier with roles.
+A role extend the concept of tags further to create maximum customization.
+A role is basically encoded in a folder structure and it contains a whole definition for a given use case with files; for example:
+
+```bash
+example-role/
+  README.md
+  defaults/
+    main.yaml
+  files
+  handlers/
+    main.yaml
+  meta/
+    main.yaml
+  tasks/
+    main.yaml
+  templates
+  tests/
+    inventory
+    test.yaml
+  vasr/
+    main.yaml
+```
+
+We can create the structure manually or with the CLI tool `ansible-galaxy`.
+
+## Section 7: Using Ansible with Cloud Services and Containers
+
+### 7.1 Docker with Ansible
+
+## Section 8: Creating Modules and Plugins
+
+### Creating Modules
+
+### Creating Plugins
 
