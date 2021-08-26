@@ -24,6 +24,7 @@ Overview of analyzed and tested contents:
   - Facts
   - Templating with Jinja2
 7. Ansible with Docker
+9. My personal summary / notes
 
 Overview of sections I just watched, not tested; for those sections, I just write a summary of what the instructor explains:
 
@@ -1545,15 +1546,371 @@ Following the examples, we interact with AWS: we create instances (linux nodes),
 
 After the setup, the configuration files for connecting to AWS need to be downloaded and set up locally: configuration (cfg), inventories, etc.
 
-After setting up everything, we can control/configure our AWS instances using Ansible! All changes are reflected on the AWS web interfaces
+After setting up everything, we can control/configure our AWS instances using Ansible! All changes are reflected on the AWS web interfaces.
 
 ### 7.2 Docker with Ansible
 
+The examples of this section can be found in
 
+`/home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/Docker with Ansible`
+
+With Ansible, we can do the following things in docker, each contained in the specified example folders:
+- Configuration
+- Pull images: `01`
+- Build containers: `02`
+- Build customized images & containers: `03`
+- Connect to running containers: `05`
+- Terminate and remove docker resources: `06`
+
+Setting up docker:
+```bash
+# Host/Mac
+cd ~/git_repositories/diveintoansible-lab
+# We have our docker-compose.yaml in here
+docker-compose up
+# Open browser on http://localhost:1000/
+# Ansible Terminal: ubuntu-c
+cd /home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/Docker with Ansible
+# In the lab, we have a dedicated docker container running on ubuntu-c
+# Check that it is running; Ctrl+C for stopping
+ping docker
+cd 01/
+# To communicate with docker we need more tools
+# that are installed with the following script
+cat install_docker.sh
+# sudo apt update
+# sudo apt install -y docker.io
+# pip3 install docker
+# We install docker with it; pw: password
+bash -x install_docker.sh
+# We need to set where docker host is
+# That is not necessary if docker runs locally
+# but in our case we need to do it
+# because we're running docker in a container
+cat envdocker
+# export DOCKER_HOST=tcp://docker:2375
+source envdocker
+# Now, we can run docker commands
+docker ps
+```
+
+First example: **Pulling images**
+```bash
+cd /home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/Docker with Ansible/01
+# The first playbook shows how to pull images using our remote docker
+# If we used a local docker, no remote host would be required in the YAML
+# Note that one of the images is very large (>1GB)
+cat docker_playbook.yaml # see below
+ansible-playbook docker_playbook.yaml
+# After pulling the images, we can test them with the commands in this file
+cat examples.txt
+# docker run --rm -it wernight/funbox cmatrix # Matrix screen shown
+# docker run --rm -it wernight/funbox nyancat
+# docker run --rm -it wernight/funbox asciiquarium
+```
+
+`docker_playbook.yaml`:
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: ubuntu-c
+  
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Pull images
+      docker_image:
+        docker_host: tcp://docker:2375
+        name: "{{ item }}"
+        source: pull
+      with_items:
+        - centos
+        - ubuntu
+        - redis
+        - nginx
+        # n.b. large image, >1GB
+        - wernight/funbox
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+Second example: We **pull** the nginx image and **build a container** with it.
+```bash
+cd /home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/Docker with Ansible/02
+cat docker_playbook.yaml # see below
+ansible-playbook docker_playbook.yaml
+# We check we have now a running container
+docker ps -a
+```
+
+`docker_playbook.yaml`:
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: ubuntu-c
+  
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Pull images
+      docker_image:
+        docker_host: tcp://docker:2375
+        name: "{{ item }}"
+        source: pull
+      with_items:
+        - nginx
+
+    - name: Create an nginx container
+      docker_container:
+        docker_host: tcp://docker:2375
+        name: containerwebserver
+        image: nginx
+        ports:
+          - 80:80
+        container_default_behavior: no_defaults
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+Third example: A **Dockerfile is created** based on a **pulled image** and its **container is built**:
+```bash
+cd /home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/Docker with Ansible/03
+cat docker_playbook.yaml # see below
+ansible-playbook docker_playbook.yaml
+# We check the images: our new image should be there
+docker image ls
+```
+
+`docker_playbook.yaml`:
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: ubuntu-c
+  
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Pull images
+      docker_image:
+        docker_host: tcp://docker:2375
+        name: "{{ item }}"
+        source: pull
+      with_items:
+        - nginx
+
+    - name: Create a customised Dockerfile
+      copy:
+        dest: /shared/Dockerfile
+        mode: 0644
+        content: |
+          FROM nginx
+
+    - name: Build a customised image
+      docker_image:
+        docker_host: tcp://docker:2375
+        name: nginxcustomised:latest
+        source: build
+        build:
+          path: /shared
+          pull: yes
+        state: present
+        force_source: yes
+
+    - name: Create an nginxcustomised container
+      docker_container:
+        docker_host: tcp://docker:2375
+        name: containerwebserver
+        image: nginxcustomised:latest
+        ports:
+          - 80:80
+        container_default_behavior: no_defaults
+        recreate: yes
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+Fourth example: we **connect to docker containers with Ansible as if they were targets (hosts/nodes)**:
+```bash
+cd /home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/Docker with Ansible/05
+# Check YAML
+# We need a python image/container which is running continuously,
+# thus we run the command: sleep infinity
+cat docker_playbook.yaml # see below
+# Ansible connection is enabled using python containers as hosts 
+# Note that 3 python containers are stated in a sequence,
+# these are also reflected in the YAML file
+cat hosts # see below
+# We run the YAML file
+# Two playbooks are in it: (1) python image/container setup (2) ping to python containers as a task
+ansible-playbook docker_playbook.yaml
+# We check the images: our new images should be there
+docker image ls
+# Check new running containers
+docker ps -a
+```
+
+`hosts`:
+```bash
+[control]
+ubuntu-c
+
+[centos]
+centos[1:3]
+
+[ubuntu]
+ubuntu[1:3]
+
+[linux:children]
+centos
+ubuntu
+
+[containers]
+python[1:3] ansible_connection=docker ansible_python_interpreter=/usr/bin/python3
+```
+
+`docker_playbook.yaml`:
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: ubuntu-c
+  
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Pull python image
+      docker_image:
+        docker_host: tcp://docker:2375
+        name: python:3.8.5
+        source: pull
+
+    - name: Create 3 python containers
+      docker_container:
+        docker_host: tcp://docker:2375
+        name: "python{{ item }}"
+        image: python:3.8.5
+        container_default_behavior: no_defaults
+        command: sleep infinity
+      with_sequence: 1-3
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: containers
+  gather_facts: False
+  
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+    - name: Ping containers
+      ping:
+
+# Three dots indicate the end of a YAML document
+...
+```
+
+Fifth example: **remove/clean up docker stuff**: images, containers and files
+```bash
+cd /home/ansible/diveintoansible/Using Ansible with Cloud Services and Containers/Docker with Ansible/06
+cat docker_playbook.yaml # see below
+ansible-playbook docker_playbook.yaml
+# We check that the images were removed
+docker image ls
+# We check that the containers were deleted
+docker container ls -a
+```
+
+```yaml
+---
+# YAML documents begin with the document separator ---
+
+# The minus in YAML this indicates a list item.  The playbook contains a list
+# of plays, with each play being a dictionary
+-
+
+  # Hosts: where our play will run and options it will run with
+  hosts: ubuntu-c
+  
+  # Tasks: the list of tasks that will be executed within the play, this section
+  # can also be used for pre and post tasks
+  tasks:
+
+    - name: Remove old containers
+      docker_container:
+        docker_host: tcp://docker:2375
+        name: "{{ item }}"
+        state: absent
+        container_default_behavior: no_defaults
+      with_items:
+        - containerwebserver
+        - python1
+        - python2
+        - python3
+
+    - name: Remove images
+      docker_image:
+        docker_host: tcp://docker:2375
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - nginx
+        - nginxcustomised
+        - python:3.8.5
+
+    - name: Remove files
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /shared/Dockerfile
+        - /shared/index.html
+
+# Three dots indicate the end of a YAML document
+...
+
+```
 
 ## Section 8: Creating Modules and Plugins
 
 ### Creating Modules
 
+We can download teh Ansible source code (clone from github) and create our own modules based on the official modules.
+There is a `hacking/test-module` that can be used as a blueprint.
+A module can be written in any language (python, bash), but it must return a JSON output.
+There is also a template and documentation online.
+If we follow the guidelines we also get the documentation of our custom modules when running `ansible-doc`.
+
 ### Creating Plugins
+
+As far as I understand, while modules are operations run in tasks, plugins are functionalities that affect any module or operation.
+Ansible has many plugins, for example: `with_items`.
+We can also create our own ones, for example: `with_sorted_items` (this one is created in the course).
+
+
+## Section 9: My personal summary / notes
 
