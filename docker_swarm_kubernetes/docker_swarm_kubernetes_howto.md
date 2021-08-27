@@ -2010,7 +2010,7 @@ Talk given by Bret Fisher on Docker Con 2017 EU: **Docker in Production**.
 Kubernetes is an orchestrator released by Google in 2015 and maintained by its community nowadays. Most important features:
 - It is equivalent to swarm.
 - It runs on top of docker.
-- Orchestration makes sense when we need several server nodes and update them frequently. The most known prchestrators are Swarm and Kubernetes: Many cloud services provide them to you.
+- Orchestration makes sense when we need several server nodes and update them frequently. The most known orchestrators are Swarm and Kubernetes: Many cloud services provide them to you.
 - There are several Kubernetes distributions.
   - We can roll our own Kubernetes version
     - We take the upstream Kubernetes Github repo
@@ -2174,6 +2174,7 @@ kubectl get pods -w
 # We'll see on the other shell how the removed pod is replaced!
 kubectl delete pod/my-apache-7b68fdd849-bg7kn
 # Stop and clean environment
+# Also  possible kubectl delete deployment/my-apache
 kubectl delete deployment my-apache
 ```
 
@@ -2183,6 +2184,99 @@ Very interesting links:
 
 ## Section 14: Exposing Kubernetes Ports
 
+Exposing ports means allowing connections.
+We can expose ports with `kubectl expose`, which creates a service for xisting pods; a service is an endpoint that is consistent.
+`CoreDNS` resolves services by names.
+In addition, we have 4 different service types we can use to connect:
+1. `ClusterIP`: (default) a set of pods in a cluster talking to another set in the cluster
+2. `NodePort`: (not default, but always available) designed for something outside the cluster to talk to the nodes/pods within the cluster; that means anything can connect to it; high ports are used
+3. `LoadBalancer`: mostly used in the cloud, AWS or similar cloud providers have it, Docker Desktop (Mac/Windows) has it, too; cluster IP and port created automatically for outside connections using a load balancer
+4. `ExternalName`: used less often, probably mostly in migrations; stuff in your cluster needing to talk to outside services
+5. `Ingress`: for http traffic; more on it later
+
+Note that the `LoadBalancer` is created automatically on top of a `NodePort`, which is created on top of a `ClusterIP`.
+Therefore, when we create a `LoadBalancer` connection, we'll have also `NodePort` and `ClusterIP` connections.
+Technically, we create layers on top of each other and each layer passes the communication/messages to the other.
+
+In the example below, a deployment is created in which we have a web server that returns host information when we `curl` it on port 8888.
+We expose its port 8888 for that, but note that we can access it from within the cluster if we have a `ClusterIP` connection exposed.
+Recall that on Linux docker/kubernetes are running on ourlocal machine, whereas for Mac/Windows they are running on a virtual machine; therefore, we can access to a `ClusterIP` connection from our local host only if it's Linux; for Mac/Windows, we need `NodePort`. 
+
+```bash
+#
+# Creating a `ClusterIP` Service
+#
+# Shell 1
+# We run get pods with a watch flag so that it keeps running
+kubectl get pods -w
+# Shell 2
+# We create a service/deployment
+# Simple web server that outputs info
+# We'll see output in Shell 1
+kubectl create deployment httpenv --image=bretfisher/httpenv
+# Shell 2
+# We scale now
+kubectl scale deployment/httpenv --replicas=5
+# We expose port 8888
+# By default, a ClusterIP is created
+# Now we can communicate within the cluster on port 8888,
+# as it's expected with ClusterIP
+kubectl expose deployment/httpenv --port 8888
+# We check that the ClusterIP service is there
+kubectl get service
+# On a Linux, we could do the following to test our deplyment
+curl localhost:8888
+#
+# Creating a `NodePort` Connection Service
+#
+# Get info of the stuff running; we have:
+# - one deployment httpenv with 5 replicas
+# - there is a ClusterIP with a DNS service called 'httpenv' open in port 8888
+# - however, that connection is for connecting within the cluster
+# - we want to connect from outside -> for that, we need a NodePort
+kubectl get all
+# We can expose ports for connections from outside as follows
+# Note: we need to give the connection service another name than httpenv
+kubectl expose deployment/httpenv --port 8888 --name httpenv-np --type NodePort
+# Now we check what we get
+# - Recall the connections are a service
+# - We have a new connection with DNS httpenv-np with port 8888:30807; 8888 is inside the cluster, 30807 is for communicating from outside (that high port is always in a range from 3000-32XX)
+kubectl get services
+# On a Mac/Windows, we can now do
+curl localhost:30807
+#
+# Creating a `LoadBalancer` Connection Service
+#
+# If we are using a cloud provider we need to install their plugins for using the LoadBalancer
+# However, Docker Desktop (Windows/Mac) provides the service too
+kubectl expose deployment/httpenv --port 8888 --name httpenv-lb --type LoadBalancer
+# We get the liist of connection services
+kubectl get services
+# Although we have a 3XXXX port assigned
+# we can also communicate on port 8888 on Mac/Windows!
+# That is one of the advantages of the LoadBalancer: we can choose the port to communicate with 
+curl localhost:8888
+# Delete services and deployment
+kubectl delete service/httpenv service/httpenv-np service/httpenv-lb deployment/httpenv
+```
+### DNS-based Service Discovery and Namespaces
+
+`CoreDNS` is the functionality that provides a DNS name for each service we have so that we can comfortably communicate with it.
+
+When we uuse Kubernetes with the ports of a services exposed with `NodePort` we can connect to it using the host name: `hostname:port`, for example `ping localhost:XXXX`.
+
+However, in Kubernetes we can additionally use **namespaces**: services can be grouped in meaningful groups and we could access them without clashes with `hotname.namespace:port`.
+
+By default, services are set to the `default`namespace.
+
+```bash
+# Get list of available namespaces
+# - the default one is default
+# - kube-* namespaces are created by kubernetes for internal things
+# - we could create our own namespaces too
+kubectl get namespaces
+```
+## Section 15: Kubernetes management Techniques
 
 
 ## Extra: 12-Factor-App
