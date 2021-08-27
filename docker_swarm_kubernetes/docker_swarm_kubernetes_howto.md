@@ -103,6 +103,23 @@ See also the **FAQ** section.
 	source ~/.bash_profile
 ```
 
+Update: Autocompletion for `zsh`: [Docker Autocompletion](https://docs.docker.com/compose/completion/)
+```zsh
+# Migrate from bash to zsh no Mac, as Terminal promts when logging in: chsh -s /bin/zsh
+# Install oh-my-csh: https://ohmyz.sh/
+# Copy .bash_profile and source it
+cp ~/.bash_profile ~/.zshenv
+# Source it and fix broken stuff; in my case:
+# - docker autocompletion needed to be changed
+# - git branch display needed to be changed
+# - ls / ll aliases needed to be changed
+# You need to source it once
+source ~/.zshenv
+# Add docker plugins to ~/.zshenv
+plugins=(docker docker-compose)
+# Re-open Terminal
+```
+
 #### Linux
 
 - Docker was made for Linux, no emulation is done under the hood, as with Windows or Mac
@@ -2276,8 +2293,40 @@ By default, services are set to the `default`namespace.
 # - we could create our own namespaces too
 kubectl get namespaces
 ```
-## Section 15: Kubernetes management Techniques
+## Section 15: Kubernetes Management Techniques
 
+Kubernetes offers more possibilities to deploy applications than docker-swarm.
+We have many ways of doing things, we say it's very unopinionated.
+
+### Generators
+
+The commands `run`, `create` and `expose` are called **generators** because they can also output/create specifications of a given k8s deployment/job.
+That means we can `--dry-run` them and output a YAML that defines the k8s cluster we launch with the CLI command.
+
+Examples of dry runs with YAML output:
+```zsh
+# Dry run with YAML output of a create deployment
+kubectl create deployment sample --image nginx --dry-run -o yaml
+# Dry run with YAML output of a create job
+kubectl create job test --image nginx --dry-run -o yaml
+# Dry run with YAML output of a expose
+# first, a deplyment needs to be created (no dry run)
+kubectl create deployment test --image nginx
+kubectl expose deployment/test --port 80 --dry-run -o yaml
+# Delete deployment
+kubectl delete deployment test
+```
+
+### The `run` command
+
+With time, the `kubectl run` command is losing functionalities; it is becomming a CLI for running test pods, not for deployments or production.
+Previously, we could `run` deployments.
+Now, instead of the `run` command, usually we work with the `create` command.
+
+### Imperative vs. Declarative
+
+Imperative: focus on **how** a program operates.
+Declarative: focus on **what** a program should accomplish.
 
 ## Extra: 12-Factor-App
 
