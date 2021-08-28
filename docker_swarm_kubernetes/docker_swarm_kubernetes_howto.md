@@ -2323,10 +2323,156 @@ With time, the `kubectl run` command is losing functionalities; it is becomming 
 Previously, we could `run` deployments.
 Now, instead of the `run` command, usually we work with the `create` command.
 
-### Imperative vs. Declarative
+### Imperative vs. Declarative vs. Middle-Point
 
-Imperative: focus on **how** a program operates.
-Declarative: focus on **what** a program should accomplish.
+We define:
+- Imperative: focus on **how** a program operates.
+- Declarative: focus on **what** a program should accomplish.
+- Middle-Point: something in between.
+
+Basically, an **imperative** approach forces us to define how the program should be built; it's easier to start with.
+However, a **declarative** approach is much easier to automate and it makes more sense in production.
+
+Until now, we've worked with an **imperative** approach; for **declarative** deployments we need a YAML with which we use `apply`, analogously to `docker stack deploy`:
+
+```bash
+# We declare/define the application in the YAML
+# We don't really now the current state
+# thus, we might update/start/delete resources with this command,
+# it justs brings the current state to the one specified in the YAML
+kubectl apply -f my-resources.yaml
+```
+
+**We should move to a declarative approach** because it has many advantages:
+- It is easier to automate
+- The definition of the clusters is completely reflected in the YAML
+- We can version control the definition of the deployments, which is difficult using CLI commands as `run`; that is also known as GitOps happiness.
+
+Typical commands of each approach:
+- Imperative commands: `run`, `expose`, `scale`, `edit`, `create deployment`
+- Imperative objects (middle-point): `create -f file.yaml`, `replace -f file.yaml`, `delete`
+  - These take the specs in a YAML file and can setup a cluster
+  - They work well in small environments
+  - The benefit is that we're storing the changes in a file
+- Declarative objects: `apply -f file.yaml` or `dir\`, `diff`
+  - Best for production
+  - Easier to automate
+
+Best practices:
+- Do not mix the three approaches: use one
+- Start learning the imperative approach, but advance to use the declarative approach
+- Save changes in the YAML and use Git
+
+## Section 16: Declarative Kubernetes YAML
+
+We basically write a YAML file and then do:
+```bash
+# Usual scenario
+kubectl apply -f filename.yaml
+# In case we have a folder with YAML resources
+kubectl apply -f my_yaml/
+# From an URL; but watch out: we should know what we're running!
+# Maybe it's better to download the YAML with curl first
+# curl -L https://my-web/run/pod.yaml
+kubectl apply -f https://my-web/run/pod.yaml
+```
+
+### Kubernetes YAML
+
+We can write Kubernetes configuration files in YAML/JSON, but YAML is preferred, because it's more human-readable.
+
+Properties:
+- Each YAML file contains one or more manifests.
+- Each manifest describes an API object (deployment, job, secret).
+- Each manifest needs four parts (root key:value pairs):
+  - `apiVersion`: the k8s API version
+  - `kind`: kind of object being created
+  - `metadata`: data for unique identification of an object (name, UID, namespace)
+  - `spec`: desired state of the object; here is where the declarative description happens
+
+See also: [Understanding Kubernetes Objects](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/)
+
+Three simple exaples of Kubernetes YAML: a pod, an application, and a deployment:
+```bash
+cd ~/git_repositories/templates/docker_swarm_kubernetes/udemy-docker-mastery/k8s-yaml
+ls # app.yml deployment.yml pod.yml
+cat pod.yaml # see below: YAML of a single pod
+cat deployment.yaml # see below: YAML of a deployment
+cat app.yaml # see below: a Service and a Deployment file combined in one
+````
+
+YAML of a single pod: `pod.yaml`:
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.3
+    ports:
+    - containerPort: 80
+```
+
+YAML of a deployment: `deployment.yaml`:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.17.3
+        ports:
+        - containerPort: 80
+```
+
+A Service and a Deployment file combined in one: `app.yaml`:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-nginx-service
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+  selector:
+    app: app-nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-nginx-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app-nginx
+  template:
+    metadata:
+      labels:
+        app: app-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.17.3
+        ports:
+        - containerPort: 80
+```
+
+
 
 ## Extra: 12-Factor-App
 
