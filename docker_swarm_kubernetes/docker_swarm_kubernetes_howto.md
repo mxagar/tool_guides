@@ -2472,6 +2472,45 @@ spec:
         - containerPort: 80
 ```
 
+### Building Our YAML Files
+
+We need to fill in four parts:
+`apiVersion`, `kind`, `metadata` and `spec`.
+
+We can get the list of resources the cluster supports:
+`kubectl api-resources`.
+Here we'll see all objects and their `kind` and `apiVersion`: `pods`, `deployments`, `replicasets`, ...
+
+`metadata` is basically the name, so only the `spec` is remaining.
+
+#### `spec`
+
+In this section we basically write the details of what we really want to do.
+
+We can get the documentation of a k8s object to be declared in `spec` as follows:
+
+```bash
+#
+# Get all the keys a kind supports
+#
+# Kind: services
+kubectl explain services --recursive
+# Kind: pods
+kubectl explain pods --recursive
+# ...
+#
+# Get detailed info of a key: value type, doc, etc.
+#
+# Key and value documentation of services
+kubectl explain services.spec
+# We can further narrow down to the keys
+kubectl explain services.spec.type
+# It can go deep down...
+kubectl explain deployment.spec.template.spec.volumes.nfs.server
+```
+
+### Dry-Run and Diff
+
 
 
 ## Extra: 12-Factor-App
