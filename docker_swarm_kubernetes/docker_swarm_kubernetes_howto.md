@@ -2124,6 +2124,7 @@ kubectl get pods
 # List all objects: not only pod
 kubectl get all
 # Stop and clean environment
+# kubeclt delete <resource type>/<resource name>
 kubectl delete pod my-nginx
 ```
 
@@ -2511,6 +2512,167 @@ kubectl explain deployment.spec.template.spec.volumes.nfs.server
 
 ### Dry-Run and Diff
 
+We can do dry runs to see what effects our YAML would create.
+
+```bash
+cd ~/git_repositories/templates/docker_swarm_kubernetes/udemy-docker-mastery/k8s-yaml
+ls # app.yml deployment.yml pod.yml
+cat app.yml # see above: a Service and a Deployment file combined in one
+# Dry run without real server checks
+# Basically, we simulate what would be started
+kubectl apply -f app.yml --dry-run
+# We can also do a diff between what is running
+# and the specs of a given YAML
+kubectl apply -f app.yml
+vim app.yaml # change replicas number to 2
+kubectl diff -f app.yml # we get changes/diff
+# Clean up
+# kubectl get all
+# kubeclt delete <resource type>/<resource name>
+```
+
+### Labels and Annotations
+
+We can use labels in the `metadata` section to filter/select/group things later.
+We define them as key-value pairs; most common ones are:
+
+```yaml
+metadata:
+  labels:
+    app: api
+    tier: frontend
+    env: prod
+    customer: acme.co
+```
+
+Then, we use them as follows:
+
+```bash
+# Only show pods with label app: nginx
+# We can use several labels; there are many option -> look documentation!
+kubectl get pods -l app=nginx
+# We can also use labels for apply commands
+kubectl apply -f app.yml -l app=nginx
+# Clean up
+# kubectl get all
+# kubeclt delete <resource type>/<resource name>
+```
+
+There are many more options and functionalities, like selectors.
+## Section 17: Further Features & Future
+
+Kubernetes is huge; you need 100's of hours to give an overview and years of training to master it.
+
+Here, some important features are commented.
+
+### Storage
+
+There is a new resource type in k8s: `StatefulSets`.
+We can store data in the pods; that can be practical, but in general we should avoid doing that inside pods/containers, since they should be replaceable.
+Therefore, it is recommended to use external resources for database storage.
+
+We can add volumes in k8s for external storage very easily in 2 ways:
+- **Volumes**
+  - Similar to docker
+  - They are tied to the lifecycle of the pod
+  - All containers in a single pod can share them
+- **PersistentVolumes**
+  - These are created at the cluster levek and iutlive the pods
+  - Multiple pods can share them
+  - The motivation is for large projects in which different teams do development and deployment
+
+Another option are the **Container Storage Interfaces (CSI)**.
+This is an abstraction with which each vendor (e.g., AWS) can provide access to storage using a common industry standard interface.
+
+### Ingress
+
+Ingress is a mechanism k8s has to interface several pods with a unique port for the outside world.
+Rather than doing the job ingress provides the interface for 3rd party solutions to do it; one possibility is using nginx, but there are many other options.
+
+### CRDs and the Operator Pattern
+
+We can add plug ins tu k8s in such a way that the k8s API and CLI are extended; thus, k8s ends up being able to do things it was never designed for.
+
+This is evolving very fast.
+### Higher Deployment Abstractions
+
+We usually use the `kubectl` CLI to talk to the k8s API.
+
+When we deploy something in k8s, we usually use the YAML file for that.
+
+However, there are really 60+ ways of deploying things in k8s:
+- One of the famous ones is **Helm**. Helm is to k8s what k8s is to docker.
+We basically create YAML files for k8s using Helm.
+- Another option is **Compose on Kubernetes**: we basically use the `docker stack deploy` YAML and deploy it for Kubernetes using the options for that. That way, although the k8s YAML is different than the `docker stack` YAML for Swarm, docker has an interface to talk to k8s API to create our k8s clusters from the swarm/stack YAML. We translate the docker YAMLto k8s YAML. In the Docker Enterprise that option comes out of the box. Drawback: docker does not support all the features of k8s, it follows the 80/20 rule.
+- ... all these are optional; we have so many options because k8s is unopinionated.
+
+More resources:
+- [Kubernetes Application Management Tools (Spreadsheet)](https://docs.google.com/spreadsheets/d/1FCgqz1Ci7_VCz_wdh8vBitZ3giBtac_H8SBw4uxnrsE/edit#gid=0)
+- [Compose on Kubernetes](https://github.com/docker/compose-on-kubernetes/tree/master/docs)
+- [Kustomize](https://kubernetes.io/blog/2018/05/29/introducing-kustomize-template-free-configuration-customization-for-kubernetes/)
+- [Docker App](https://github.com/docker/app)
+
+### Kubernetes Dashboard
+
+It is possible to use an official k8s dashboard for visualizing the cluster, but it needs to be installed:
+[Kubernetes Dashboard](https://github.com/kubernetes/dashboard).
+
+Note that if used wrong, it is unsecure, and several companies have been hacked; it is unsecure if you use standard ports for accessing it and/or if you don't use authetification.
+
+### Namespaces and Context
+
+Namespaces are virtual clusters or virtual views to the clusters.
+It is not related to docker namespaces.
+The default namespace is `default`.
+
+We can get the namespaces with:
+
+```bash
+kubectl get namespaces
+kubectl get all --all-namespaces
+```
+
+Context changes `kubectl` cluster and namespace.
+The configuration is in `~/.kube/config`
+
+To get the contexts:
+
+```bash
+kubectl config get-contexts
+```
+
+### Future of Kubernetes
+
+Kubernetes is changing and growing rapidly.
+It has become reliable and robust.
+Some of the tendencies Bret Fisher forecasts:
+- Clear deprecated features/styles, e.g., `kubectl run`
+- More operators
+- Helm 3.0
+- More declarative style
+- Better Windows server support
+- More edge case: ML, etc.
+
+Related projects:
+- Knative: serverless workloads
+- k3s: mini k8s, for mini devices
+- k3OS: mini Linux for k3s
+- Service mesh: proxy layer throughout the entire cluster for managing comms
+
+## Section 18: Docker Security
+
+[Security recommendations for Docker by Bret Fisher](https://github.com/BretFisher/ama/issues/17)
+
+### 1. Read the documentation
+
+[Docker Security](https://docs.docker.com/engine/security/)
+
+Docker makes use of linux namespaces, which are scopes in which programs run isolated and have no contact other programs on the host that are outside of that namespace.
+
+### 2. Just run on docker with default settings
+
+People are creating images that hack our computer somehow, eg., for mining cryptocurrencies, etc.
+Only run official images.
 
 
 ## Extra: 12-Factor-App
