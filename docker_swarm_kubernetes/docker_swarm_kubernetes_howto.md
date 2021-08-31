@@ -2663,6 +2663,8 @@ Related projects:
 
 [Security recommendations for Docker by Bret Fisher](https://github.com/BretFisher/ama/issues/17)
 
+The following section is related to Linux Containers, not the new Windows containers.
+
 ### 1. Read the documentation
 
 [Docker Security](https://docs.docker.com/engine/security/)
@@ -2706,7 +2708,72 @@ That's a per-host setting, not a per-container setting.
 
 ### 6. Code Repo and Image Scanning for CVEs
 
-[Snyk](https://snyk.io/)
+[Snyk](https://snyk.io/) scans our open-source code dependencies and provides us with a report, for free (if the code is open-source).
+
+We should have automated github repo scanners active all the time!
+
+The **Common Vulnerabilities and Exposures (CVE)** system provides a reference-based list of discivered vulnerabilities: everytime one is detected, it is registered and it gets an ID.
+
+We should/can scan our images with CVE scanners.
+
+Some CVE scanners are:
+- [Microscanner]()https://github.com/aquasecurity/microscanner
+- [Trivy]()https://github.com/aquasecurity/trivy
+
+However, take into account that some images cannot be scanned so easily, for instance `Alpine`.
+We need to choose when to scan too: on production, before/after building, etc.
+
+### 7. Runtime Bad Behavior Monitoring
+
+[Sysdig Falco](https://sysdig.com/opensource/falco/) detects behaviors that are bad practice during runtime.
+These are audited and logged.
+It's free and open source.
+We can also extend the default rules.
+
+### 8. Content Trust
+
+This consists in signing our code in all the steps of the pipeline: images, code, etc.
+Docker provides a lot of tools for that.
+
+### 9. Check the Linux Kernel Capabilities
+
+That is quite difficult.
+Some images activate/deactivate some Linux kernel capabilities, or they modify them.
+With time, we should read about them and understand what they do.
+That way, we make use them later on on other images.
+Usually, the image has the lines that are doing that kernel capability activation/deactivation.
+
+### 10. Docker Rootless
+
+We can run the docker engine daemon rootless, with a normal user.
+That doesn't work always.
+It probably makes sense for CI, for instance for Jenkins.
+
+More information: [Run docker daemon rootless](https://docs.docker.com/engine/security/rootless/).
+
+## Section 20: Questions & Answers
+
+- Often we hear `Alpine` is the securest base image because it is smaller (thus, less surface to attack); however, that is not so clear, because image scanner don't work well on it.
+
+- If we use rootless mode, we need to do `chown` and `chmod` on volumes or files; often that is solved with an entrypoint bash script that fixes that. We can also change permissions within the image.
+
+- If possible, use more containers with less work each than one container with more work. That way, we can scale more easily.
+
+- RaspberryPi deployment: since RPi has an ARM64 processor, we need to develop such images on our local host; afterwards, we download it from the registry to the RPi. They way of developing on a Mac for RPi is using the QEMU functionality of docker, which comes by default on Docker Desktop. Nice examples by `@alexellisuk`: [https://www.alexellis.io/](https://www.alexellis.io/).
+
+- Databases run great on containers, but we should also consider running them on the cloud and using them later as a service; that is so because we save time and effort on maintenance. We can also consider running databases on bare-metal = on the host, not containerized.
+
+- In a production setting, always use swarm over compose. Even a single-node swarm is better than compose, because we can do rolling updates with swarm; if we use compose, we need to bring all the containers down for updates. Compose does not have a database for orchestration in the background, as swarm; compose was not designed for production!
+
+- Follow the 12-Factor-App manifest!
+
+- Consider templating: [3 Docker Compose features for improving team development workflow](https://www.oreilly.com/content/3-docker-compose-features-for-improving-team-development-workflow/)
+
+- Prefer secrets to environment variables, because environment variables can be leaked.
+
+- TSL / SSL certificates: in production, Bret Fisher uses `traefik` and [https://letsencrypt.org/](https://letsencrypt.org/). he has a repository on GitHub where he showcases how to do that: [https://github.com/BretFisher/dogvscat](https://github.com/BretFisher/dogvscat).
+
+
 
 ## Extra: 12-Factor-App
 
