@@ -2673,7 +2673,40 @@ Docker makes use of linux namespaces, which are scopes in which programs run iso
 
 People are creating images that hack our computer somehow, eg., for mining cryptocurrencies, etc.
 Only run official images.
+Use the default docker settings because docker spent time making them secure!
 
+### 3. Docker Bench
+
+Really great tool, free, made by Docker:
+[Docker Bench for Security](https://github.com/docker/docker-bench-security)
+
+> The Docker Bench for Security is a script that checks for dozens of common best-practices around deploying Docker containers in production.
+> The tests are all automated, and are based on the [CIS Docker Benchmark v1.3.1](https://www.cisecurity.org/benchmark/docker/).
+
+### 4. Do not run things as root, if possible
+
+Some packages (eg., `nginx`) start containers as root but add more containers which are not root for comms & co. That is safe.
+
+However, some other packages (for instance, languages, like `python`, `node`, etc.) use root proviledges by default.
+This is dangerous.
+If someone achieves to enter our container, they'll have all the control of it and they can start copying files or writing files to disk.
+
+Therefore, we should either create new users that are not root (and use them) and use the ones that are already created at the top of the vendor Dockerfile.
+That means we need to change the `USER` in the dockerfile actively and also apply `chown` to anything created.
+
+### 5. Enable user namespaces
+
+That feature allows an extra security for the cases in which we have root users in the containers.
+If a bad actor manages to use root and get out from the container, we want to make sure that docker itself is not root on our host.
+
+By default docker is root; if we enable namespaces, docker will not be root anymore, but it will have a high level user, still not root.
+Thus, the hacker won't be able to do anything on our host.
+
+That's a per-host setting, not a per-container setting.
+
+### 6. Code Repo and Image Scanning for CVEs
+
+[Snyk](https://snyk.io/)
 
 ## Extra: 12-Factor-App
 
