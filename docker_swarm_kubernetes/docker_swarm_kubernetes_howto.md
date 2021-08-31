@@ -2773,7 +2773,9 @@ More information: [Run docker daemon rootless](https://docs.docker.com/engine/se
 
 - TSL / SSL certificates: in production, Bret Fisher uses `traefik` and [https://letsencrypt.org/](https://letsencrypt.org/). he has a repository on GitHub where he showcases how to do that: [https://github.com/BretFisher/dogvscat](https://github.com/BretFisher/dogvscat).
 
+- `CMD` vs `ENTRYPOINT`. They work together; first `ENTRYPOINT` is executed and then `CMD`. If we pass a command to `docker run`, then `CMD` is replaced. That means `CMD` is the default command after `ENTRYPOINT`. Similarly, `ENTRYPOINT` is the command that is first executed when running then container. `ENTRYPOINT` is often a shell script (which sets environment, etc.).
 
+- It is not possible to containerize a VM, but it is possible to containerize a legacy app (which is on a VM, for instance).
 
 ## Extra: 12-Factor-App
 
