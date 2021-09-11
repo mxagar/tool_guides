@@ -70,6 +70,8 @@ Note that we can use also VMs we have created as template, and it is possible to
 
 ## 4. Start and Stop Virtual Machines (VMs)
 
+### Configure and Start
+
 For starting a VM, we need to have installed VirtualBox/Docker and define a configuration file which is passed to Vagrant.
 
 ```bash
@@ -93,9 +95,54 @@ vagrant up
 # user, ports, SSH keys, etc.
 ```
 
-Part modifief in `Vagrantfile`:
+Part modified in `Vagrantfile`:
 ```ruby
+# ...
 # set our box
-config.vm.box = "ubutu/focal64"
+config.vm.box = "ubuntu/focal64"
+# ...
 ```
 
+[Vagrant documentation](https://www.vagrantup.com/docs) collects all things we can configure. The most common ones are commented in the `Vagrantfile`:
+- Forwarded port mapping between host and VM
+- Create a private network
+- Create a public network
+- Share a folder between host and VM
+- Modify VM properties for VirtualBox: GUI yes/no, RAM size
+- Perform provisioning with Shell scripts of Ansible
+
+### SSH
+
+During the start up of the VM, we can see its IP address; we could `ssh` to it, but usually `vagrant ssh` is used instead, which eases some things (for instance, no user & pw are needed).
+
+```bash
+# ssh to our VM: vagrant@ubuntu-focal
+vagrant ssh
+# we can even do sudo without pw
+sudo su # root@ubuntu-focal
+# exit ssh shell
+exit
+exit
+```
+
+### Stop
+
+We can stop the VM with `vagrant halt` and start it again with `vagrant up`.
+
+```bash
+# stop VM
+vagrant halt
+# start VM again
+vagrant up
+# a folder named ./.vagrant/ will be created
+# which contains information used during runtime: 
+#
+# we can destroy a VM
+# and it won't appear in VirtualBox
+vagrant destroy
+```
+
+## 5. Provisioning with Shell Scripts
+
+
+**REMOVE VMs!!!**
