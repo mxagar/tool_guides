@@ -144,5 +144,102 @@ vagrant destroy
 
 ## 5. Provisioning with Shell Scripts
 
+Usually, we create the VM as a server for a purpose; for that purpose, we need to install, configure and use the required tools.
+That is what is achieved by the **provisioning** step.
+Provisioninig can be done with specific tools, like Ansible, or with shell scripts.
 
-**REMOVE VMs!!!**
+The sample `Vagrant` file already has the recipy for inserting our provisioning shell scripts:
+
+```ruby
+# ...
+config.vm.provision "shell", inline: <<-SHELL
+  # Now, we write all the shell commands we require line by line
+  apt-get update
+  # Scripts cannot be interactive,
+  # thus, it is important to add -y for install commands:
+  # as if we press Y for all questions;
+  # we must avoid/circumvent any command that requires user interaction
+  apt-get install -y apache2
+  apt-get install -y nginx
+SHELL
+# ...
+```
+
+If we run our `Vagrant` file now, we're going to get a VM with `apache2` and `nginx`.
+Notes:
+- The shell language used must match the one of the host computer: Mac: `bash`/`zsh`, Windows: `Powershell`, Linux: `bash`.
+- The provisioning script is run once, on creation; if we remove a packaged installed during provisioning and restart the VM, it won't have the package anymore, unless we explicitly add the option `--provision`
+
+```bash
+# Remove anything running
+vagrant destroy
+# Start VM
+# Note that we're going to see green lines: that's apt-get working
+vagrant up
+# We connect to the VM
+vagrant ssh
+# Check that nginx is running
+curl http://localhost
+# Provisioning scripts are run on ly once
+# If we uninstall a package installed during provisioning
+# it won't be available if we restart the VM
+# unless we do `vagrant up --provision` or `vagrant provision`
+sudo apt purge nginx
+exit
+vagrant halt
+vagrant up
+```
+
+Instea of writing the complete provisioning commands in the `Vagrant` file,
+we can also import provisioning shell scripts.
+
+```ruby
+config.vm.provision "shell", path: 'php_setup.sh'
+```
+
+`php_setup.h`:
+```bash
+#!/bin/sh
+
+apt-get update
+apt-get install -y php5-fmp
+```
+
+## 6. Provisioning with Ansible Playbooks
+
+Ansible is a modern provisioning tool, more powerful than shell scripts, because it is declarative.
+With shell scripts we need to specifically define all steps for installation and configuration (it is imperative); with Ansible, we just define the end-state and the tool managaes to bring up a VM with those characteristics (declarative).
+
+See for more information on Ansible:
+`git_repositories/templates/ansible/ansible_howto.md`
+
+In order to use Ansible playbooks, we need to change the provisioning configuration in the `Vagrant` file from `"shell"` to `"ansible"`:
+
+```ruby
+#...
+config.vm.provision "ansible" do |ansible|
+  ansible.playbook = "my_playbook.yml"
+end
+#...
+```
+
+`my_playbook.yml`:
+```YAML
+---
+- hosts: all
+  # run as sudo
+  become: true
+  tasks:
+    - name: Install git
+      apt: name=git state=installed update_cache=true
+    - name: Install tools for the web app
+      apt: name={{ item }} state=installed
+      with_items:
+        - postgresql
+        - php5-fmp
+    - name: Create an user for my app
+      user: name=app comment="user of the app"
+...
+```
+
+Note that we can configure more stuff in the `|ansible|` block, look at the documentation.
