@@ -12,3 +12,13 @@ The course hase some more sections not covered here:
 - Numpy
 - Pandas
 - Visualization with Pandas
+
+**IMPORTANT NOTE**:
+
+A related repository focusing on financial time series analysis can be found in 
+
+[finance_accounting_courses](https://github.com/mxagar/finance_accounting_courses.git)
+
+or
+
+`~/git_repositories/finance_accounting_courses/python_finance`.
