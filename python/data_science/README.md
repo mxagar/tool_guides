@@ -2,7 +2,7 @@
 
 This project contains notebooks written while following the Udemy course
 Python for Data Sciene and Machine Learning Bootcamp (José Portilla), 
-and additional courses, tutorials and books.
+and many additional courses, tutorials and books.
 
 Important related `howto` files of mine are:
 
@@ -21,3 +21,7 @@ source activate python-cvcourse
 source activate pyfinance
 ```
 
+Alternatively, you need to create your own environment and install the necessary packages:
+```bash
+# TBD
+```
