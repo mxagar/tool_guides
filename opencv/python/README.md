@@ -8,8 +8,17 @@ These are informal tests while following the course (informal, because I had alr
 - `03_Images_with_OpenCV.ipynb`
 - `04_Image_Processing.ipynb`
 
-The following notebooks contain more formally formated material:
+The following notebooks/folders contain more formally formated material:
 - `05_Video_Basics.ipynb`
-- ...
+- `06_Object_Detection.ipynb`
+- `07_Object_Tracking`
+- `08_Keras_Deep_Learning`
+- `09_Capstone_Project`
 
 The `.py` scripts contain snippets for most common OpenCV functions.
+
+Important related `howto` files (not public) of mine are (for my personal tracking):
+
+- `~/Dropbox/Learning/PythonLab/python_manual.txt`
+- `~/Dropbox/Documentation/howtos/sklearn_scipy_sympy_stat_guide.txt`
+- `~/Dropbox/Documentation/howtos/keras_tensorflow_guide.txt`
