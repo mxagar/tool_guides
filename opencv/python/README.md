@@ -22,3 +22,6 @@ Important related `howto` files (not public) of mine are (for my personal tracki
 - `~/Dropbox/Learning/PythonLab/python_manual.txt`
 - `~/Dropbox/Documentation/howtos/sklearn_scipy_sympy_stat_guide.txt`
 - `~/Dropbox/Documentation/howtos/keras_tensorflow_guide.txt`
+- `~/Dropbox/Learning/PythonLab/udemy_cv_course/open_cv_python_manual.txt`
+- `~/Dropbox/Learning/Vision/CV_Udacity/catalog_opencv_methods.txt`
+- `~/Dropbox/Learning/Vision/CV_Udacity/computer_vision_udacity.txt`
