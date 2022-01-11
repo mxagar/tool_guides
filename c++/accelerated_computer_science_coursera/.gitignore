@@ -1,3 +1,5 @@
+.vscode
+coursera-cs400
 *.o
 *.a
 *.so

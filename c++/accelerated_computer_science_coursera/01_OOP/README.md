@@ -302,7 +302,7 @@ cout << i << j << k << *p << *q << *r << endl; // 2 4 2, 4 4 2
 cout << i << j << k << *p << *q << *r << endl; // 2 2 2, 2 2 2
 ```
 
-Puzzle 2: `cpp-heapPuzzles/puzzle2.cpp`: **stack vs heap**, **referencing or aliasing with &**
+Puzzle 2 (VERY IMPORTANT): `cpp-heapPuzzles/puzzle2.cpp`: **stack vs heap**, **referencing or aliasing with &**
 ```c++
 // Since we have the new keyword
 // the value pointed by new is in the heap!
