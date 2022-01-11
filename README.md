@@ -1,6 +1,6 @@
 # Templates
 
-This project contains several templates for different technologies:
+This project contains several templates / examples / tutorials for different technologies:
 
 - CMake
 - OpenCV
