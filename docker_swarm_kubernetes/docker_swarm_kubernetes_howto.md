@@ -1013,7 +1013,7 @@ docker-compose down
 # If we want to remove volumes
 docker-compose down -v
 # Some useful commands
-docker-compose --helps
+docker-compose --help
 docker-compose ps
 ```
 
@@ -1141,7 +1141,7 @@ version: '2'
 services:
   drupal:
     image: drupal-custom
-    # build . -> Dickefile is here, build it w/o any special options
+    # build . -> Dockefile is here, build it w/o any special options
     build: . 
     ports:
       - "8080:80"
