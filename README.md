@@ -1,4 +1,4 @@
-# Templates
+# Tool Guides
 
 This project contains several guides / examples / tutorials for different technologies.
 
