@@ -2870,3 +2870,7 @@ These admin tasks:
 - should be one-off preocesses: we run a script only once,
 - should be run in identical environments as the ones of the running applications,
 - should be shipped with the application code.
+
+## Extra: Links
+
+- [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/windows/wsl/)
