@@ -9,3 +9,7 @@ token-drive.pickle
 token-sheets.pickle
 *.pth
 *.h5
+git_howto.txt
+python_manual.txt
+.venv
+.pytest_cache
