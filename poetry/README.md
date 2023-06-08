@@ -35,7 +35,8 @@ Table of contents:
   - [5. Add Poetry to an Existing Project](#5-add-poetry-to-an-existing-project)
     - [Add pyproject.toml to a Scripts Folder](#add-pyprojecttoml-to-a-scripts-folder)
     - [Create requirements.txt From poetry.lock](#create-requirementstxt-from-poetrylock)
-  - [6. Most Common Commands](#6-most-common-commands)
+  - [6. Distribution: Publishing the Package](#6-distribution-publishing-the-package)
+  - [7. Most Common Commands](#7-most-common-commands)
 
 ## 1. Introduction and Setup
 
@@ -234,12 +235,22 @@ poetry env use py # Windows
 poetry env list
 # rp-poetry-Gwlh5_RN-py3.9
 
+# Get info of our env
+poetry env info
+poetry env info --path # where is the env
+
 # After we set our environment, we can run an interactive shell with
 poetry run python
 # >>> ...
 
 # Or we can run our project scripts on the environment
 poetry run python my_script.py
+
+# Run pytest
+poetry run pytest
+
+# Enter the shell in the environment!
+poetry shell
 ```
 
 ### Declare Your Dependencies
@@ -327,6 +338,9 @@ While the version requirement in the `pyproject.toml` file can be loose, Poetry 
 # Show all dependencies as a tree
 poetry show --tree
 
+# Show current and latest version of packages
+poetry show --latest
+
 # Look for new dependency versions
 # and if there are some compliant with the restrictions
 # install them
@@ -340,6 +354,9 @@ poetry update requests beautifulsoup4
 
 # Latest version added/installed
 poetry add pytest@latest --dev
+
+# Remove a package
+poetry remove requests
 ```
 
 ## 5. Add Poetry to an Existing Project
@@ -376,7 +393,13 @@ poetry export --output requirements.txt
 poetry export --output requirements.txt --dev
 ```
 
-## 6. Most Common Commands
+## 6. Distribution: Publishing the Package
+
+For building a package that can be distributed, we use `poetry build`.
+
+More information: [Poetry: Finally an all-in-one tool to manage Python packages](https://medium.com/analytics-vidhya/poetry-finally-an-all-in-one-tool-to-manage-python-packages-3c4d2538e828).
+
+## 7. Most Common Commands
 
 [Commands Reference](https://python-poetry.org/docs/cli/).
 
