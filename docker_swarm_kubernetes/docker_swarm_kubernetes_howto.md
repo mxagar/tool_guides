@@ -1,10 +1,119 @@
-# Docker Howto
+# Docker and Kubernetes Guide
 
 This file was created while following the Udemy course by Bret Fisher
-Docker Mastery: with Kubernetes + Swarm from a Docker Captain.
+[Docker Mastery: with Kubernetes + Swarm from a Docker Captain](https://www.udemy.com/course/docker-mastery/).
 
 Mikel Sagardia, 2021.
 No warranties.
+
+Table of contents:
+
+- [Docker and Kubernetes Guide](#docker-and-kubernetes-guide)
+  - [Section 1: Introduction](#section-1-introduction)
+    - [What is Docker? Why Docker?](#what-is-docker-why-docker)
+    - [Resources](#resources)
+  - [Section 2: Setting Up: Installation \& Co.](#section-2-setting-up-installation--co)
+    - [2.1 Versions / Editions](#21-versions--editions)
+    - [2.2 Installation](#22-installation)
+      - [Windows / Mac: General notes](#windows--mac-general-notes)
+      - [Mac installation and setup steps](#mac-installation-and-setup-steps)
+      - [Linux](#linux)
+      - [Resources](#resources-1)
+  - [Section 3: Creating and Using Containers](#section-3-creating-and-using-containers)
+    - [Running Containers](#running-containers)
+    - [CLI Process Monitoring](#cli-process-monitoring)
+    - [Getting a shell inside a container](#getting-a-shell-inside-a-container)
+    - [Docker Networks: Private and Public Communications](#docker-networks-private-and-public-communications)
+    - [Docker Networks: CLI Management of Virtual Networks](#docker-networks-cli-management-of-virtual-networks)
+    - [Docker Networks: DNS and How Containers Find Each Other](#docker-networks-dns-and-how-containers-find-each-other)
+  - [Section 4: Container Images](#section-4-container-images)
+    - [Docker Hub](#docker-hub)
+    - [Image Layers](#image-layers)
+    - [Image Tags + Pushing](#image-tags--pushing)
+    - [Building Images: Dockerfile Basics](#building-images-dockerfile-basics)
+    - [Building Images: Docker Builds](#building-images-docker-builds)
+    - [Building Images: Docker Builds](#building-images-docker-builds-1)
+    - [Assignment](#assignment)
+    - [Prune](#prune)
+  - [Section 5: Section 5: Container Lifetime \& Persistent Data (Volumes)](#section-5-section-5-container-lifetime--persistent-data-volumes)
+    - [Persistent Data: Volumes](#persistent-data-volumes)
+    - [Persistent Data: Bind Mounting](#persistent-data-bind-mounting)
+  - [Section 6: Docker-Compose for Starting Several Containers](#section-6-docker-compose-for-starting-several-containers)
+    - [Docker-Compose CLI Tool](#docker-compose-cli-tool)
+    - [Assignment 1: Set up a Drupal CMS](#assignment-1-set-up-a-drupal-cms)
+    - [Adding Image Build to Docker-Compose](#adding-image-build-to-docker-compose)
+    - [Assignment 2: Image Building with Docker-Compose](#assignment-2-image-building-with-docker-compose)
+  - [Section 7: Swarm Mode: Built-In Orchestration](#section-7-swarm-mode-built-in-orchestration)
+    - [Creating a Service with a Single Node](#creating-a-service-with-a-single-node)
+    - [Creating a Service with Three Nodes](#creating-a-service-with-three-nodes)
+  - [Section 8: Swarm Basic Features](#section-8-swarm-basic-features)
+    - [Overlay Networking](#overlay-networking)
+    - [Routing Mesh](#routing-mesh)
+    - [Assignment: Docker's Distributed Voting App](#assignment-dockers-distributed-voting-app)
+    - [Stacks of Services: Compose for Swarms](#stacks-of-services-compose-for-swarms)
+    - [Secrets for Swarm Services](#secrets-for-swarm-services)
+    - [Secrets for Swarm Stacks (in Compose YAML Files)](#secrets-for-swarm-stacks-in-compose-yaml-files)
+  - [Section 9: Swarm App Lifecycle](#section-9-swarm-app-lifecycle)
+    - [Launching several `docker-compose` files](#launching-several-docker-compose-files)
+    - [Service Updates](#service-updates)
+    - [Healthchecks](#healthchecks)
+  - [Section 10: Container Registries](#section-10-container-registries)
+    - [Local/Private Registries](#localprivate-registries)
+    - [Local/Private Registries with Swarm](#localprivate-registries-with-swarm)
+  - [Section 11: Docker in Production](#section-11-docker-in-production)
+  - [Sections 12 and 13: Kubernetes Introduction](#sections-12-and-13-kubernetes-introduction)
+    - [Kubernetes Terminology](#kubernetes-terminology)
+    - [Installation](#installation)
+    - [Kubernetes Container Abstractions](#kubernetes-container-abstractions)
+    - [Creating a pod](#creating-a-pod)
+    - [Scaling ReplicaSets and Inspecting Pods](#scaling-replicasets-and-inspecting-pods)
+  - [Section 14: Exposing Kubernetes Ports](#section-14-exposing-kubernetes-ports)
+    - [DNS-based Service Discovery and Namespaces](#dns-based-service-discovery-and-namespaces)
+  - [Section 15: Kubernetes Management Techniques](#section-15-kubernetes-management-techniques)
+    - [Generators](#generators)
+    - [The `run` command](#the-run-command)
+    - [Imperative vs. Declarative vs. Middle-Point](#imperative-vs-declarative-vs-middle-point)
+  - [Section 16: Declarative Kubernetes YAML](#section-16-declarative-kubernetes-yaml)
+    - [Kubernetes YAML](#kubernetes-yaml)
+    - [Building Our YAML Files](#building-our-yaml-files)
+      - [`spec`](#spec)
+    - [Dry-Run and Diff](#dry-run-and-diff)
+    - [Labels and Annotations](#labels-and-annotations)
+  - [Section 17: Further Features \& Future](#section-17-further-features--future)
+    - [Storage](#storage)
+    - [Ingress](#ingress)
+    - [CRDs and the Operator Pattern](#crds-and-the-operator-pattern)
+    - [Higher Deployment Abstractions](#higher-deployment-abstractions)
+    - [Kubernetes Dashboard](#kubernetes-dashboard)
+    - [Namespaces and Context](#namespaces-and-context)
+    - [Future of Kubernetes](#future-of-kubernetes)
+  - [Section 18: Docker Security](#section-18-docker-security)
+    - [1. Read the documentation](#1-read-the-documentation)
+    - [2. Just run on docker with default settings](#2-just-run-on-docker-with-default-settings)
+    - [3. Docker Bench](#3-docker-bench)
+    - [4. Do not run things as root, if possible](#4-do-not-run-things-as-root-if-possible)
+    - [5. Enable user namespaces](#5-enable-user-namespaces)
+    - [6. Code Repo and Image Scanning for CVEs](#6-code-repo-and-image-scanning-for-cves)
+    - [7. Runtime Bad Behavior Monitoring](#7-runtime-bad-behavior-monitoring)
+    - [8. Content Trust](#8-content-trust)
+    - [9. Check the Linux Kernel Capabilities](#9-check-the-linux-kernel-capabilities)
+    - [10. Docker Rootless](#10-docker-rootless)
+  - [Section 20: Questions \& Answers](#section-20-questions--answers)
+  - [Extra: 12-Factor-App](#extra-12-factor-app)
+    - [1 Codebase](#1-codebase)
+    - [2 Dependencies](#2-dependencies)
+    - [3 Config](#3-config)
+    - [4 Backing Services](#4-backing-services)
+    - [5 Build, release, run](#5-build-release-run)
+    - [6 Processes](#6-processes)
+    - [7 Port binding](#7-port-binding)
+    - [8 Concurrrency](#8-concurrrency)
+    - [9 Disposability](#9-disposability)
+    - [10 Dev/prod parity](#10-devprod-parity)
+    - [11 Logs](#11-logs)
+    - [12 Admin processes](#12-admin-processes)
+  - [Extra: Links](#extra-links)
+
 
 ## Section 1: Introduction
 
@@ -27,17 +136,17 @@ Why docker?
 
 Original repo in
 
-https://github.com/bretfisher/udemy-docker-mastery
+[https://github.com/bretfisher/udemy-docker-mastery](https://github.com/bretfisher/udemy-docker-mastery)
 
 Forked to
 
-https://github.com/mxagar/udemy-docker-mastery
+[https://github.com/mxagar/udemy-docker-mastery](https://github.com/mxagar/udemy-docker-mastery)
 
 Additional material in my Dropbox:
 
 - Cheat Sheet
 - Slides
-- Commads TXT files
+- Commands TXT files
 
 See also the **FAQ** section.
 
