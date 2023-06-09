@@ -297,6 +297,9 @@ Then, we install the package and run the tests:
 # This way, we can import rp_project
 poetry install
 
+# If we want to generate bytecode
+poetry install --compile
+
 # Run pytest
 poetry run pytest
 ```
@@ -307,12 +310,23 @@ We can also manually install packages; if done so, the `pyproject.toml` file is 
 
 ```bash
 # Equivalent to pip install requests
+# Also, pyproject.toml and poetry.lock are updated
 poetry add requests
 
 # Install packages only in the dev environment: 
 # Typical candidates: Pytest, Black, Sphinx, Pylint, Flake8, mypy
-poetry add black --dev
-poetry add black -D # same as --dev
+poetry add --dev black
+poetry add -D black # same as --dev
+
+# To install all non-dev packages
+poetry install --no-dev
+
+# We can have a group of *optional* packages
+# When we add/install them, we assign them the optional label
+poetry add --group optional <package>
+
+# To install all packages, also the optional
+poetry install --with optional
 ```
 
 ## 4. Handle Dependencies Correctly
@@ -395,9 +409,31 @@ poetry export --output requirements.txt --dev
 
 ## 6. Distribution: Publishing the Package
 
-For building a package that can be distributed, we use `poetry build`.
+For building a package that can be distributed, we use `poetry build` and the `poetry publish`.
 
-More information: [Poetry: Finally an all-in-one tool to manage Python packages](https://medium.com/analytics-vidhya/poetry-finally-an-all-in-one-tool-to-manage-python-packages-3c4d2538e828).
+```bash
+# Build the source and wheels archives
+# At the momento, only pure python wheels are supported
+poetry build
+
+# Publish a build package to a remote repository
+# BUT username, credetials & repo must be defined
+poetry publish
+# Options:
+# --repository (-r): The repository to register the package to (default: pypi). Should match a repository name set by the config command.
+# --username (-u): The username to access the repository.
+# --password (-p): The password to access the repository.
+# --cert: Certificate authority to access the repository.
+# --client-cert: Client certificate to access the repository.
+# --build: Build the package before publishing.
+# --dry-run: Perform all actions except upload the package.
+# --skip-existing: Ignore errors from files already existing in the repository.
+```
+
+More information:
+
+- [Poetry: Finally an all-in-one tool to manage Python packages](https://medium.com/analytics-vidhya/poetry-finally-an-all-in-one-tool-to-manage-python-packages-3c4d2538e828).
+- [Poetry Documentation: Publishable Repositories](https://python-poetry.org/docs/repositories/#publishable-repositories)
 
 ## 7. Most Common Commands
 
