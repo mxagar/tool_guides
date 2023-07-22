@@ -2,3 +2,6 @@
 output
 test_trainer
 mlruns
+aclImdb_v1.tar.gz
+aclImdb
+logs
