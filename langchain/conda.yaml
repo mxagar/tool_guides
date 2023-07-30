@@ -46,3 +46,4 @@ dependencies:
       - wheel
       - spacy
       - imutils
+      - python-dotenv
