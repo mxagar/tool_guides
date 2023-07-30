@@ -51,6 +51,11 @@ pip install transformers datasets accelerate evaluate
 
 # For CPU support only:
 pip install 'transformers[torch]' datasets accelerate evaluate
+
+# If you want to install the HuggingFace Hub conection
+# This is only necessary if we need programmatic access,
+# for which there is also a CLI tool
+pip install huggingface_hub
 ```
 
 ### Pipeline
