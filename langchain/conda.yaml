@@ -25,7 +25,6 @@ dependencies:
   - pillow
   - scikit-image
   - tqdm
-  - posix
   - pip:
       - protobuf
       - opencv-python
