@@ -32,6 +32,7 @@ dependencies:
       - opencv-contrib-python
       - onnx
       - onnxruntime
+      - skl2onnx
       - torch
       - torchvision
       - torchaudio
@@ -46,3 +47,10 @@ dependencies:
       - wheel
       - spacy
       - imutils
+      - python-dotenv
+      - langchain
+      - huggingface_hub
+      - openai
+      - faiss-cpu
+      - tiktoken
+      - netron

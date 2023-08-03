@@ -1,0 +1,233 @@
+# ONNX: Open Neural Network Exchange
+
+Some sources:
+
+- [ONNX Tutorials](https://github.com/onnx/tutorials)
+- [Youtube: ONNX Tutorial](https://www.youtube.com/watch?v=BEXQS6_YB8A&list=PLkz_y24mlSJZJx9sQJCyFZt50S4ji1PeR)
+
+Table of contents:
+
+- [ONNX: Open Neural Network Exchange](#onnx-open-neural-network-exchange)
+  - [Setup](#setup)
+  - [Vanilla Example: Scikit-Learn](#vanilla-example-scikit-learn)
+  - [ONNX Runtime](#onnx-runtime)
+  - [ONNX Model Zoo](#onnx-model-zoo)
+  - [Example: Convert a Pytorch Model into Tensorflow](#example-convert-a-pytorch-model-into-tensorflow)
+
+Key ideas:
+
+- With ONNX we can convert models from and to different networks, e.g., `Pytorch <-> Tensorflow`.
+  - We convert a model from framework A to ONNX and from ONNX to framework B.
+  - Even though it was initially implemented for ANNs, it also supports *classical* ML models, e.g., from Scikit-Learn.
+- We have also the **ONNX Runtime** module to run ONNX models.
+  - ONNX models are also optimized, i.e., quantized (`float -> int`), so that it can run in devices with less capabilities than the ones used for training.
+  - See the dedicated section: [ONNX Runtime](#onnx-runtime).
+- ONNX closely tracks the framework updates
+  - It is an organization maintained by the big ML players.
+- We can visualize ONNX models as graphs.
+- ONNX models have:
+  - Operators: the usual suspects: `tanh()`, `relu()`
+  - Types: also the usual suspects
+    - Tensors: with elements of desired precision (`int8`, `float16`, etc.)
+    - Non-sensor types: `Sequence`, `Map`
+
+List of notebooks:
+
+- [`01_Vanilla_Sklearn_ONNX.ipynb`](01_Vanilla_Sklearn_ONNX.ipynb)
+- [`02_ONNX_Model_Zoo.ipynb`](02_ONNX_Model_Zoo.ipynb)
+- [`03_Pytorch2Tensorflow.ipynb`](03_Pytorch2Tensorflow.ipynb)
+
+
+## Setup
+
+Each framework has its own ONNX module installation process.
+
+In any case, we first need to install:
+
+- ONNX: for model conversion.
+- ONNX RUntime: if we want to run ONNX models.
+
+```bash
+# ONNX
+pip install onnx
+pip install onnxruntime
+pip install onnxruntime-gpu # if GPU support is available
+
+# Scikit-Learn Support
+# https://github.com/onnx/sklearn-onnx
+pip install skl2onnx
+
+# Tensorflow Support
+# https://github.com/onnx/tensorflow-onnx
+pip install -U tf2onnx
+
+# Pytorch Support
+# It is built-in in torch
+# https://pytorch.org/docs/master/onnx.html
+```
+
+## Vanilla Example: Scikit-Learn
+
+Source: [entbappy/ONNX-Open-Neural-Network-Exchange/ML_example](https://github.com/entbappy/ONNX-Open-Neural-Network-Exchange/tree/master/ML_example).
+
+This section is implemented in [`01_Vanilla_Sklearn_ONNX.ipynb`](./01_Vanilla_Sklearn_ONNX.ipynb).
+
+Set environment:
+
+```bash
+conda activate ds
+
+# If requirements are missing
+pip install scikit-learn
+pip install onnx
+pip install skl2onnx
+pip install joblib
+pip install onnxruntime
+pip install netron
+pip install numpy
+pip install opencv-python
+```
+
+Train and save pickle:
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+import joblib
+
+iris = load_iris()
+X,y = iris.data, iris.target
+X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=0)
+
+clf = RandomForestClassifier()
+clf.fit(X_train, y_train)
+joblib.dump(clf, 'output/model_sklearn.pkl', compress=9)
+```
+
+Convert to ONNX:
+
+```python
+from skl2onnx import convert_sklearn
+from skl2onnx.common.data_types import FloatTensorType
+import joblib
+
+cls = joblib.load('output/model_sklearn.pkl')
+initial_type = [('float_input', FloatTensorType([None, 4]))]
+onx = convert_sklearn(cls, initial_types=initial_type)
+
+with open('output/model_sklearn.onnx', 'wb') as f:
+    f.write(onx.SerializeToString())
+```
+
+Visualize model with [netron](https://github.com/lutzroeder/Netron):
+
+```python
+import netron
+
+# Start visualization server
+# Browser opens to visualize the ONNX model
+# http://localhost:8080/
+# We can click as see what's inside!
+netron.start('output/model_sklearn.onnx')
+
+# Stop visualization server
+netron.stop()
+```
+
+Inference: If we want to use the pickle to run the inference, we need the `sklearn` library. However, if we have exported to ONNX and we want to use the ONNX model for inference, we don't need the `sklearn` library, just ONNX (runtime).
+
+```python
+import onnxruntime as rt
+import numpy as np
+
+data = np.array([[4.5,4.9,5.1,5.4],[1.5,2.9,3.1,1.4],[7.5,6.9,8.1,6.4]])
+
+sess = rt.InferenceSession("output/model_sklearn.onnx")
+input_name = sess.get_inputs()[0].name
+label_name = sess.get_outputs()[0].name
+
+pred_onnx = sess.run([label_name], {input_name: data.astype(np.float32)})[0]
+print(pred_onnx)
+```
+
+## ONNX Runtime
+
+Key ideas:
+
+- ONNX Runtime was founded by Microsoft and is offered under the MIT license.
+- ONNX Runtime builds up on ONNX.
+- Specific inference hardware types are handled seamlessly: CPU, GPU, etc.; thus, we don't have to worry about the HW.
+- The ONNX models run very fast using ONNX runtime.
+
+Official site documentation: [Get started with ONNX Runtime in Python](https://onnxruntime.ai/docs/get-started/with-python.html).
+
+## ONNX Model Zoo
+
+Similarly as in DL frameworks, we have models with pre-trained weights which can be downloaded and used.
+
+List of all models: [Model Zoo](https://github.com/onnx/models); we have models for many tasks:
+
+- Image classification
+- Object detection
+- Face and gesture detection
+- Style transfer
+- Speech and audio processing
+- Machine translation
+- Language modelling
+- etc.
+
+Example with MNIST:
+
+- Source: [entbappy/ONNX-Open-Neural-Network-Exchange/ML_example](https://github.com/entbappy/ONNX-Open-Neural-Network-Exchange/tree/master/ML_example).
+- Implemented in [`02_ONNX_Model_Zoo.ipynb`](02_ONNX_Model_Zoo.ipynb).
+
+```python
+# %%
+# Download the model
+%%sh
+curl -k -o mnist.tar.gz https://www.cntk.ai/OnnxModels/mnist/opset_7/mnist.tar.gz
+
+# %%
+# Uncompress the model
+%%sh
+tar -xzf mnist.tar.gz
+# in the folder mnist, we'll find the model.onnx
+
+# %%
+# For the inference
+# we need hand-written digits;
+# these can be downloaded from the source example repository, for instance.
+import sys
+import json
+import cv2
+import numpy as np
+import onnx
+import onnxruntime
+from onnx import numpy_helper
+
+model_dir = './mnist' # model directory
+model = model_dir + '/model.onnx' # model file
+image_path = "./data/mnist_3.png" # image path
+#image_path = "./data/mnist_7.png" # image path
+
+# Preprocessing the image
+img = cv2.imread(image_path)
+# Extract RGB (not alpha) and convert to grayscale with weighted channel values
+img = np.dot(img[...,:3], [0.299, 0.587, 0.114])
+img = cv2.resize(img, (28, 28), interpolation=cv2.INTER_AREA)
+img.resize((1,1,28,28)) # batch of image
+
+data = json.dumps({"data": img.tolist()})
+data = np.array(json.loads(data)["data"]).astype(np.float32)
+session = onnxruntime.InferenceSession(model, None)
+input_name = session.get_inputs()[0].name
+ouput_name = session.get_outputs()[0].name
+
+result = session.run([ouput_name], {input_name: data})
+prediction = int(np.argmax(np.array(result).squeeze(), axis=0))
+print("Predicted: ",prediction)
+```
+
+## Example: Convert a Pytorch Model into Tensorflow
+
