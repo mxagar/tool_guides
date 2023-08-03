@@ -564,6 +564,9 @@ import os
 from langchain.vectorstores import FAISS
 from langchain.embeddings.openai import OpenAIEmbeddings
 
+# The LangChain component we'll use to get the documents
+from langchain.chains import RetrievalQA
+
 # Model and chain
 from langchain.chat_models import ChatOpenAI
 
