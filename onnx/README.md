@@ -60,10 +60,22 @@ pip install skl2onnx
 # Tensorflow Support
 # https://github.com/onnx/tensorflow-onnx
 pip install -U tf2onnx
+git clone https://github.com/onnx/onnx-tensorflow.git && cd onnx-tensorflow && pip install -e .
 
 # Pytorch Support
 # It is built-in in torch
 # https://pytorch.org/docs/master/onnx.html
+
+# Other tools used in this guide
+pip install scikit-learn
+pip install skl2onnx
+pip install joblib
+pip install netron
+pip install numpy
+pip install opencv-python
+pip install tensorflow-addons
+pip install torch
+pip install torchvision
 ```
 
 ## Vanilla Example: Scikit-Learn
@@ -86,6 +98,8 @@ pip install onnxruntime
 pip install netron
 pip install numpy
 pip install opencv-python
+pip install tensorflow-addons
+pip install onnx_tf
 ```
 
 Train and save pickle:
@@ -231,3 +245,195 @@ print("Predicted: ",prediction)
 
 ## Example: Convert a Pytorch Model into Tensorflow
 
+Sources:
+
+- [Convert a PyTorch model to Tensorflow using ONNX](https://github.com/onnx/tutorials/blob/main/tutorials/PytorchTensorflowMnist.ipynb)
+- [Pytorch to Tensorflow](https://github.com/entbappy/ONNX-Open-Neural-Network-Exchange/blob/master/Pytorch_to_Tensoflow/PyTorch%20to%20Tensorflow.ipynb)
+
+Unfortunately, the inference with Tensorflow doesn't work, because the seems to be a miss-match between the expected and actual input node names. I don't have t ime to fix this at the moment...
+
+```python
+# Install the specific package for ONNX-Tensorflow support
+# Restart kernel
+# !git clone https://github.com/onnx/onnx-tensorflow.git && cd onnx-tensorflow && pip install -e .
+# Or, altenatively
+# !pip install onnx_tf
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.autograd import Variable
+
+import onnx
+from onnx_tf.backend import prepare
+
+# %%
+# Pytorch Model Definition
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.conv2_drop = nn.Dropout2d()
+        self.fc1 = nn.Linear(320, 50)
+        self.fc2 = nn.Linear(50, 10)
+
+    def forward(self, x):
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+        x = x.view(-1, 320)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
+
+def train(model, device, train_loader, optimizer, epoch):
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % 1000 == 0:
+            print('Train Epoch: {} \tLoss: {:.6f}'.format(
+                    epoch,  loss.item()))
+
+def test(model, device, test_loader):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
+            pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_loss /= len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
+
+# %%
+# MNIST Dataset
+
+train_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('./data', train=True, download=True,
+                   transform=transforms.Compose([
+                       transforms.ToTensor(),
+                       transforms.Normalize((0.1307,), (0.3081,))
+                   ])),
+    batch_size=64, shuffle=True)
+
+test_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('./data', train=False, transform=transforms.Compose([
+                       transforms.ToTensor(),
+                       transforms.Normalize((0.1307,), (0.3081,))
+                   ])),
+    batch_size=1000, shuffle=True)
+
+# %%
+# Training
+
+torch.manual_seed(1)
+#device = torch.device("cuda")
+device = torch.device("cpu")
+
+model = Net().to(device)
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
+ 
+for epoch in range(2):
+    train(model, device, train_loader, optimizer, epoch)
+    test(model, device, test_loader)
+
+# %%
+# Save and Load Pytorch Model
+
+# Save
+torch.save(model.state_dict(), './output/model_mnist_pytorch.pth')
+
+# Load
+trained_model = Net()
+trained_model.load_state_dict(torch.load('./output/model_mnist_pytorch.pth'))
+
+# %%
+# Export to ONNX
+
+dummy_input = Variable(torch.randn(1, 1, 28, 28)) 
+torch.onnx.export(trained_model, dummy_input, "./output/model_mnist_pytorch.onnx")
+
+# Load the ONNX file
+model = onnx.load('./output/model_mnist_pytorch.onnx')
+
+# Visualize
+import netron
+
+# Start visualization server
+# Browser opens to visualize the ONNX model
+# http://localhost:8080/
+# We can click as see what's inside!
+netron.start('output/model_mnist_pytorch.onnx')
+# ...
+netron.stop()
+
+# %%
+# Inference with ONNX
+import onnxruntime as rt
+import numpy as np
+from PIL import Image
+
+#img = Image.open('./data/mnist_3.png').resize((28, 28)).convert('L')
+img = Image.open('./data/mnist_7.png').resize((28, 28)).convert('L')
+data = np.asarray(img, dtype=np.float32)[np.newaxis, np.newaxis, :, :]
+print(data.shape)
+
+sess = rt.InferenceSession('output/model_mnist_pytorch.onnx')
+input_name = sess.get_inputs()[0].name # it is called input.1
+label_name = sess.get_outputs()[0].name # it is called 20
+
+pred_onnx = sess.run([label_name], {input_name: data})[0][0]
+print(np.argmax(pred_onnx))
+
+# %%
+# Convert ONNX to Tensorflow
+
+# Import the ONNX model to Tensorflow
+tf_rep = prepare(model)
+
+# Input nodes to the model
+print('inputs:', tf_rep.inputs)
+
+# Output nodes from the model
+print('outputs:', tf_rep.outputs)
+
+# All nodes in the model
+print('tensor_dict:')
+print(tf_rep.tensor_dict)
+
+# %%
+# Inference with Tensorflow
+# This part doesn't work in my setting: "KeyError: 'input.1'"
+
+import numpy as np
+from IPython.display import display
+from PIL import Image
+
+print('Image 1:')
+img = Image.open('./data/mnist_3.png').resize((28, 28)).convert('L')
+display(img)
+output = tf_rep.run(np.asarray(img, dtype=np.float32)[np.newaxis, np.newaxis, :, :])
+print('The digit is classified as ', np.argmax(output))
+
+print('Image 2:')
+img = Image.open('./data/mnist_7.png').resize((28, 28)).convert('L')
+display(img)
+output = tf_rep.run(np.asarray(img, dtype=np.float32)[np.newaxis, np.newaxis, :, :])
+print('The digit is classified as ', np.argmax(output))
+
+```
