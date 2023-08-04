@@ -54,3 +54,4 @@ dependencies:
       - faiss-cpu
       - tiktoken
       - netron
+      - onnx_tf
