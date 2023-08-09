@@ -23,6 +23,9 @@ Table of contents:
     - [Save and Load](#save-and-load)
     - [Model Hub](#model-hub)
     - [Finetuning Pre-Trained Models with Our Datasets](#finetuning-pre-trained-models-with-our-datasets)
+      - [Training with the Pytorch Trainer](#training-with-the-pytorch-trainer)
+      - [Training in Native Pytorch](#training-in-native-pytorch)
+    - [Finetuning Pre-Trained Models with Custom Datasets - Example with IMDB](#finetuning-pre-trained-models-with-custom-datasets---example-with-imdb)
 
 
 ## 1. Introduction and Quick Start
