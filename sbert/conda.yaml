@@ -1,4 +1,4 @@
-name: ds
+name: sbert
 channels:
   - conda-forge
   - defaults
@@ -46,3 +46,5 @@ dependencies:
       - wheel
       - spacy
       - imutils
+      - sentence_transformers
+      - transformers
