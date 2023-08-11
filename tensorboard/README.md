@@ -11,7 +11,7 @@ This guide compiles different use-cases of [Tensorboard](https://www.tensorflow.
 # Install/activate a basic environment
 conda env create -f conda.yaml
 conda activate ds
-# Alternatively, 
+# Alternatively, if you have an env and wnat to install tensorboard
 pip install tensorflow
 pip install tensorboard
 
