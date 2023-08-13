@@ -82,7 +82,8 @@ Alltogether, this is a summary of the contents implemented in the notebook [`01_
   - `forward()`, if the model is called
   - `predict_step()` for using it in `Trainer().predict()`
 - A `Trainer` is instantiated and `fit()` with:
-  - `EarlyStopping` passed as a callbac
+  - `EarlyStopping` passed as a callback
+  - `ModelCheckpoint` passed as a callback
   - Train and validation data loaders
 - The model is tested with `Trainer().test()`
 - The checkpoint is loaded and used:
@@ -289,6 +290,8 @@ The Lightning [Trainer](https://lightning.ai/docs/pytorch/stable/common/trainer.
 
 One of the most important functionalities to improve our training is [early stopping](https://lightning.ai/docs/pytorch/stable/common/early_stopping.html), which is implemented with callbacks.
 
+Additionally, we can also use the `ModelCheckpoint` callback to save both the last and the best model in our specified folder.
+
 ```python
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
@@ -298,6 +301,18 @@ early_stop_callback = EarlyStopping(
     patience=3,
     verbose=False,
     mode="min" # or max if val_accuracy
+)
+
+from lightning.pytorch.callbacks import ModelCheckpoint
+
+# NOTE: if no ModelCheckpoint is specified, after each epoch the model checkpoint
+# is saved in ./lightning_logs/version_X/checkpoints
+checkpoint_callback = ModelCheckpoint(
+    monitor='val_loss', # which metric to monitor
+    dirpath='./output_mnist',  # specify the path to save the checkpoints
+    filename='best',  # best.ckpt - we can also use naming formats: {epoch}-{val_loss:.2f}
+    save_last=True,  # ensures that the last epoch's model is saved: last.ckpt
+    mode='min',  # save the model with the minimum 'val_loss'
 )
 
 # train the model (hint: here are some helpful Trainer arguments for rapid idea iteration)
