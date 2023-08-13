@@ -1,0 +1,65 @@
+In this file, I write down all the changes done while porting the SimCLR implementation in Pytorch to Pytorch Lightning.
+
+## Imports
+
+    add
+
+        import lightning.pytorch as pl
+        from lightning.pytorch.callbacks.early_stopping import EarlyStopping
+        from lightning.pytorch.callbacks import ModelCheckpoint
+        from lightning.pytorch.tuner import Tuner
+
+        # ensure reproducibility
+        pl.seed_everything(42, workers=True)
+
+## Config
+
+    remove
+        self.base_path = "./output_flowers"
+        os.makedirs(self.base_path, exist_ok=True)  # Create the base_path directory if it doesn't exist
+        self.best_model_path = os.path.join(self.base_path, "best_model.pth")
+        self.last_model_path = os.path.join(self.base_path, "last_model.pth")
+        self.learning_plot_path = os.path.join(self.base_path, "learning_curves.png")
+
+    add
+        self.backbone_model = "resnet50" # "resnet18", "resnet50"
+        self.output_path = "./output_mnist"
+
+## Dataset and Stochastic Augmentation
+
+    No changes.
+
+## SimCLR Model
+
+    The model definition is new, but backwards compatible.
+    Now, ResNet18 (default) ResNet50 can be used as backbones encoders.
+
+## Utils
+
+    All removed
+
+## Contrastive Loss
+
+    Moved to pl.LightningModule
+    Removed config as parameter, since it's part of the pl.LightningModule
+
+## Lightning Modules
+
+    add
+        class LitSimCLR(pl.LightningModule)
+            ...
+        
+        EarlyStopping(...)
+
+        ModelCheckpoint(...)
+
+## Training
+
+    remove
+
+        all - training and validation functions are dropped
+
+    add
+
+        trainer = pl.Trainer(...)
+        trainer.fit(...)
