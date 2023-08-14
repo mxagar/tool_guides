@@ -84,8 +84,10 @@ Brief explanation of the notebooks contained here:
 # Install/activate a basic environment
 conda env create -f conda.yaml
 conda activate ds
-# Alternatively, if you have an env and wnat to install tensorboard
+# Alternatively, if you have an env and want to install lightning and tensorboard
 python -m pip install lightning
+python -m pip install tensorflow
+python -m pip install tensorboard
 
 # OPTIONAL: Pytorch on Windows + CUDA 11.7
 # Update your NVIDIA drivers: https://www.nvidia.com/Download/index.aspx
