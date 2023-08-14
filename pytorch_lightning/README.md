@@ -292,6 +292,24 @@ One of the most important functionalities to improve our training is [early stop
 
 Additionally, we can also use the `ModelCheckpoint` callback to save both the last and the best model in our specified folder.
 
+Finally, note that logs will be automatically written to `./lightning_logs` using Tensorboard (default); if we want to control logging, we can do it as follows:
+
+```python
+from lightning.pytorch.loggers import TensorBoardLogger # other loggers are also available!
+
+# Create the logger
+logger = TensorBoardLogger(
+    save_dir="logs/", # folder
+    name="my_experiment",
+    version="1" # if no version passed, it will be automatically incremented
+)
+
+# Pass the logger to the Trainer
+trainer = Trainer(logger=logger)
+```
+
+Implementation of training with default logger (i.e., nothing done wrt. the logger):
+
 ```python
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
