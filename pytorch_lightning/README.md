@@ -51,6 +51,33 @@ Some additional resources:
     - [Basic](https://lightning.ai/docs/pytorch/stable/common/precision_basic.html)
     - [Intermediate](https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html)
 
+## Table of Contents
+
+- [Pytorch Lightning](#pytorch-lightning)
+  - [Table of Contents](#table-of-contents)
+  - [Notebooks Overview](#notebooks-overview)
+  - [Setup and Installation](#setup-and-installation)
+  - [Notebook: 01\_Lightning\_MNIST.ipynb](#notebook-01_lightning_mnistipynb)
+    - [0. GPU Setup](#0-gpu-setup)
+    - [1. Define the Lightning Model](#1-define-the-lightning-model)
+    - [2. Define a Dataset](#2-define-a-dataset)
+    - [3. Train the Model](#3-train-the-model)
+    - [4. Test the Model](#4-test-the-model)
+    - [5. Load Checkpoint and Use the Model](#5-load-checkpoint-and-use-the-model)
+    - [6. Visualize Logs](#6-visualize-logs)
+      - [Optional: Extract Tensorboard Logs](#optional-extract-tensorboard-logs)
+    - [7. Re-Train or Resume Training](#7-re-train-or-resume-training)
+    - [8. Trainer Tricks](#8-trainer-tricks)
+  - [Notebook: 02\_Lightning\_SimCLR.ipynb](#notebook-02_lightning_simclripynb)
+  - [Further Snippets](#further-snippets)
+
+## Notebooks Overview
+
+Brief explanation of the notebooks contained here:
+
+- [`01_Lightning_MNIST.ipynb`](./01_Lightning_MNIST.ipynb): main example in which most of the functionalities of Pytorch Lightning are shown using an Autoncoder applied on MNIST.
+- [`02_Lightning_SimCLR.ipynb`](./02_Lightning_SimCLR.ipynb): more advanced example (but without many new functionalities) in which SimCLR is implemented and applied to the [Kaggle Flowers dataset](https://www.kaggle.com/datasets/imsparsh/flowers-dataset).
+
 ## Setup and Installation
 
 ```bash
@@ -482,3 +509,13 @@ See notebook:
 - Gradient clipping
 - Precision mixing
 - Others
+
+## Notebook: 02_Lightning_SimCLR.ipynb
+
+The notebook [`02_Lightning_SimCLR.ipynb`](./02_Lightning_SimCLR.ipynb) ports the SimCLR implementation from [simclr_pytorch_flowers](https://github.com/mxagar/simclr_pytorch_flowers) (Pytorch) to **Pytorch Lightning**.
+
+See the notebook.
+
+## Further Snippets
+
+This section will grow in time if I remember to save further interesting snippets.
