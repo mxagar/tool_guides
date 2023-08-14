@@ -8,6 +8,7 @@ In this file, I write down all the changes done while porting the SimCLR impleme
         from lightning.pytorch.callbacks.early_stopping import EarlyStopping
         from lightning.pytorch.callbacks import ModelCheckpoint
         from lightning.pytorch.tuner import Tuner
+        from lightning.pytorch.loggers import TensorBoardLogger
 
         # ensure reproducibility
         pl.seed_everything(42, workers=True)
@@ -22,6 +23,8 @@ In this file, I write down all the changes done while porting the SimCLR impleme
         self.learning_plot_path = os.path.join(self.base_path, "learning_curves.png")
 
     add
+        self.scheduler_warmup_epochs = 10
+        self.scheduler = "step" # "cosine"
         self.backbone_model = "resnet50" # "resnet18", "resnet50"
         self.output_path = "./output_mnist"
 
@@ -33,6 +36,10 @@ In this file, I write down all the changes done while porting the SimCLR impleme
 
     The model definition is new, but backwards compatible.
     Now, ResNet18 (default) ResNet50 can be used as backbones encoders.
+
+    add
+
+        class WarmupCosineSchedule
 
 ## Utils
 
