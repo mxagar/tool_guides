@@ -69,7 +69,11 @@ Some additional resources:
     - [7. Re-Train or Resume Training](#7-re-train-or-resume-training)
     - [8. Trainer Tricks](#8-trainer-tricks)
   - [Notebook: 02\_Lightning\_SimCLR.ipynb](#notebook-02_lightning_simclripynb)
-  - [Further Snippets](#further-snippets)
+  - [Issues](#issues)
+    - [Memory Leaks](#memory-leaks)
+  - [Further Snippets and Recommendations](#further-snippets-and-recommendations)
+    - [Profiling](#profiling)
+    - [Hooks](#hooks)
 
 ## Notebooks Overview
 
@@ -232,7 +236,7 @@ class LitAutoEncoder(pl.LightningModule):
         x_hat = self.decoder(z) # x_hat is (B, 28*28)
         loss = F.mse_loss(x_hat, x)
         # Logging to TensorBoard (if installed) by default
-        self.log("train_loss", loss)
+        self.log("train_loss", loss.item()) # important to take .item() to remove computational graph
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -242,7 +246,9 @@ class LitAutoEncoder(pl.LightningModule):
         z = self.encoder(x)
         x_hat = self.decoder(z)
         val_loss = F.mse_loss(x_hat, x)
-        self.log("val_loss", val_loss)
+        self.log("val_loss", val_loss.item())
+        # we would return the loss if sth needs to be done on
+        # hooks like on_validation_end()
 
     def test_step(self, batch, batch_idx):
         # this is the test loop (optional)
@@ -251,7 +257,9 @@ class LitAutoEncoder(pl.LightningModule):
         z = self.encoder(x)
         x_hat = self.decoder(z)
         test_loss = F.mse_loss(x_hat, x)
-        self.log("test_loss", test_loss)
+        self.log("test_loss", test_loss.item())
+        # we would return the loss if sth needs to be done on
+        # hooks like on_test_end()
 
     def configure_optimizers(self):
         # intantiate return optimizer and learning rate schedulers
@@ -518,6 +526,130 @@ The notebook [`02_Lightning_SimCLR.ipynb`](./02_Lightning_SimCLR.ipynb) ports th
 
 See the notebook.
 
-## Further Snippets
+## Issues
+
+Check:
+
+- [Debugging](https://lightning.ai/docs/pytorch/stable/debug/debugging_basic.html)
+- [Profiling](https://lightning.ai/docs/pytorch/stable/tuning/profiler_basic.html)
+
+### Memory Leaks
+
+I have encountered some apparent memory leak issues in the 2nd notebook, but I am not sure of the origin: the GPU usage increased with the time but it was later reduced again; in summary, the usage was oscillating a large amount of 2.5 GB.
+
+Some approaches to tackle this issue:
+
+- [Profiling](https://lightning.ai/docs/pytorch/stable/tuning/profiler_basic.html); see also below.
+- Free any memory/lists we allocate in `training_step()` or `validation_step()`: `self.training_step_outputs.clear()`
+- If tensor outputs are temporarily saved, save them without the computational graph, i.e.: `loss.item()`.
+- Use `torch.cuda.empty_cache()` if we see that the memory is still being increased.
+
+Example:
+
+```python
+class MyLightningModule(L.LightningModule):
+    def __init__(self):
+        super().__init__()
+        ...
+        self.training_step_outputs = []
+
+    def training_step(self):
+        loss = ...
+        self.training_step_outputs.append(loss.item())
+        return loss
+
+    def on_train_epoch_end(self):
+        epoch_mean = torch.stack(self.training_step_outputs).mean()
+        self.log("training_epoch_mean", epoch_mean)
+        self.training_step_outputs.clear()
+
+        # empty the CUDA cache at the end of each epoch
+        torch.cuda.empty_cache()
+
+    def on_validation_epoch_end(self):
+        # empty the CUDA cache at the end of each validation epoch
+        torch.cuda.empty_cache()
+```
+
+## Further Snippets and Recommendations
 
 This section will grow in time if I remember to save further interesting snippets.
+
+### Profiling
+
+```python
+from lightning.pytorch.profilers import PyTorchProfiler
+
+# -- Option 1: Profiler Object
+profiler = PyTorchProfiler(
+    schedule=None,  # Optional: None (default) uses the 'wait' schedule
+    record_shapes=False,
+    profile_memory=True,  # Enable memory profiling
+    with_stack=False,
+    use_cuda=True,
+    group_by_input_shapes=False,
+    use_kineto=True,
+    path_to_export_trace=None
+)
+
+# train...
+trainer = pl.Trainer(
+    ...
+    profiler=profiler
+)
+
+print(profiler.describe())
+
+# -- Option 2: Automatic Pytorch Profiler
+
+# train...
+trainer = pl.Trainer(
+    ...
+    profiler="pytorch"
+)
+print(trainer.profiler.describe())
+```
+
+### Hooks
+
+The [LightningModule](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html) documentation shows several hook functions that are called at specific points in time; we can overload them and perform several tasks, such as:
+
+- Accumulate metrics and compute aggregate metrics
+- Free memory
+- Checks
+- etc.
+
+See the documentation for more information; example function names:
+
+```python
+class MyLightningModule(L.LightningModule):
+    def __init__(self):
+        super().__init__()
+        ...
+
+    def on_train_start(self):
+        ...
+
+    def on_train_end(self):
+        ...
+
+    def on_train_batch_start(self):
+        ...
+
+    def on_train_batch_end(self):
+        ...
+
+    def on_train_epoch_start(self):
+        ...
+
+    def on_train_epoch_end(self):
+        ...
+
+    def on_train_epoch_end(self):
+        ...
+
+    def on_validation_epoch_end(self):
+        ...
+
+    ...
+```
