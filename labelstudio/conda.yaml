@@ -47,3 +47,5 @@ dependencies:
       - label-studio
       - Flask
       - Flask-CORS
+      - python-dotenv
+
