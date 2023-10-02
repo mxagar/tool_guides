@@ -19,6 +19,11 @@ The tool has many useful functionalities:
 
 This guide focuses mainly on image labeling.
 
+Note that this repository comes with auxiliary files/scripts used across the guide:
+
+- [`utils.ipynb`](./utils.ipynb)
+- [`serve_local_files.py`](./serve_local_files.py)
+
 Table of contents:
 
 - [Label Studio](#label-studio)
@@ -27,7 +32,9 @@ Table of contents:
     - [Serve the Images as URLs](#serve-the-images-as-urls)
     - [Basic Usage: Label and Export Annotations](#basic-usage-label-and-export-annotations)
   - [More Advanced Usage](#more-advanced-usage)
+    - [Notes on the Basic Label Studio JSON Format](#notes-on-the-basic-label-studio-json-format)
     - [Import Pre-Annotated Datasets](#import-pre-annotated-datasets)
+    - [Basic API Usage](#basic-api-usage)
     - [Machine Learning Backend](#machine-learning-backend)
     - [Basic SDK Usage](#basic-sdk-usage)
   - [Notes on Examples and Use-Cases](#notes-on-examples-and-use-cases)
@@ -228,9 +235,10 @@ if __name__ == '__main__':
 
 When the images are served and the project is created, we can click on it in the project dashboard and perform several actions in the project list overview:
 
-- `Import` the CSV with the image URLs; then, the images are listed automatically. Images or samples are tasks.
+- `Import` the CSV with the image URLs; then, the images are listed automatically. Images or samples are **tasks**.
 - `Label All Tasks`: label the images with the custom UI we have defined in the project creation (accessible in the `Settings`).
-- `Export` the labelled images as a CSV or JSON.
+- `Filter` the samples/tasks, according to their properties; if we upload a CSV/JSON with custom fields in `data`, these can be used here, too.
+- `Export` the labelled images as a CSV or JSON. If filters are active, only the filtered results are exported!
 
 ![Projects UI](./assets/ls_ui_projects.png)
 
@@ -244,13 +252,304 @@ The exported CSV looks like this (for some reason, empty lines are added):
 "annotation_id","annotator","class","created_at","id","image_path","lead_time","updated_at"
 2,"1","dandelion","2023-10-02T09:12:27.480432Z",2,"http://localhost:8000/flowers/test/Image_10.jpg",16.135,"2023-10-02T09:12:27.480432Z"
 3,"1","daisy","2023-10-02T09:12:32.337558Z",3,"http://localhost:8000/flowers/test/Image_100.jpg",4.559,"2023-10-02T09:12:32.337662Z"
-4,"1","sunflower","2023-10-02T09:12:35.580605Z",4,"http://localhost:8000/flowers/test/Image_101.jpg",2.977,"2023-10-02T09:12:35.580605Z"
 ...
+```
+
+Analogously, the JSON export of two entries looks like this (note, an import follows the same format, but we don't need to use all those fields):
+
+```json
+[
+    {
+        "annotations": [
+            {
+                "completed_by": 1,
+                "created_at": "2023-10-02T09:12:27.480432Z",
+                "draft_created_at": null,
+                "ground_truth": false,
+                "id": 2,
+                "import_id": null,
+                "last_action": null,
+                "last_created_by": null,
+                "lead_time": 16.135,
+                "parent_annotation": null,
+                "parent_prediction": null,
+                "prediction": {},
+                "project": 6,
+                "result": [
+                    {
+                        "from_name": "class",
+                        "id": "CJIqR5nmdF",
+                        "origin": "manual",
+                        "to_name": "image",
+                        "type": "choices",
+                        "value": {
+                            "choices": [
+                                "dandelion"
+                            ]
+                        }
+                    }
+                ],
+                "result_count": 0,
+                "task": 2,
+                "unique_id": "4be41e98-2176-4ba2-b23c-512eeb09e8b9",
+                "updated_at": "2023-10-02T09:12:27.480432Z",
+                "updated_by": 1,
+                "was_cancelled": false
+            }
+        ],
+        "cancelled_annotations": 0,
+        "comment_authors": [],
+        "comment_count": 0,
+        "created_at": "2023-09-29T17:04:38.137386Z",
+        "data": {
+            "image_path": "http:\/\/localhost:8000\/flowers\/test\/Image_10.jpg"
+        },
+        "drafts": [],
+        "file_upload": "fde6c3c6-image_paths.csv",
+        "id": 2,
+        "inner_id": 2,
+        "last_comment_updated_at": null,
+        "meta": {},
+        "predictions": [],
+        "project": 6,
+        "total_annotations": 1,
+        "total_predictions": 0,
+        "unresolved_comment_count": 0,
+        "updated_at": "2023-10-02T09:12:27.545691Z",
+        "updated_by": 1
+    },
+    {
+        "annotations": [
+            {
+                "completed_by": 1,
+                "created_at": "2023-10-02T09:12:32.337558Z",
+                "draft_created_at": null,
+                "ground_truth": false,
+                "id": 3,
+                "import_id": null,
+                "last_action": null,
+                "last_created_by": null,
+                "lead_time": 4.559,
+                "parent_annotation": null,
+                "parent_prediction": null,
+                "prediction": {},
+                "project": 6,
+                "result": [
+                    {
+                        "from_name": "class",
+                        "id": "VbbozMXuC9",
+                        "origin": "manual",
+                        "to_name": "image",
+                        "type": "choices",
+                        "value": {
+                            "choices": [
+                                "daisy"
+                            ]
+                        }
+                    }
+                ],
+                "result_count": 0,
+                "task": 3,
+                "unique_id": "1dcf3c6b-59d9-424f-8392-da0574d1101f",
+                "updated_at": "2023-10-02T09:12:32.337662Z",
+                "updated_by": 1,
+                "was_cancelled": false
+            }
+        ],
+        "cancelled_annotations": 0,
+        "comment_authors": [],
+        "comment_count": 0,
+        "created_at": "2023-09-29T17:04:38.137386Z",
+        "data": {
+            "image_path": "http:\/\/localhost:8000\/flowers\/test\/Image_100.jpg"
+        },
+        "drafts": [],
+        "file_upload": "fde6c3c6-image_paths.csv",
+        "id": 3,
+        "inner_id": 3,
+        "last_comment_updated_at": null,
+        "meta": {},
+        "predictions": [],
+        "project": 6,
+        "total_annotations": 1,
+        "total_predictions": 0,
+        "unresolved_comment_count": 0,
+        "updated_at": "2023-10-02T09:12:32.398908Z",
+        "updated_by": 1
+    }
+]
 ```
 
 ## More Advanced Usage
 
+### Notes on the Basic Label Studio JSON Format
+
+The JSON import format is the same as the one we output; the most important fields are (note that each of them can have children fields)
+
+- `id`: Identifier for the labeling task from the dataset.
+- `data`: Data copied from the input data task format. See the documentation for Task Format.
+- `project`: Identifier for a specific project in Label Studio.
+- `annotations`: Array containing the labeling results for the task. It has several children fields.
+- `predictions`: Array of machine learning predictions. Follows the same format as the annotations array, with one additional parameter: `predictions.score`. It can be used to import pre-annotations.
+
+Check these links for detaled information:
+
+- [Basic Label Studio JSON format](https://labelstud.io/guide/tasks#Basic-Label-Studio-JSON-format)
+- [Relevant JSON property descriptions](https://labelstud.io/guide/export#Relevant-JSON-property-descriptions)
+
+Also, see examples below.
+
 ### Import Pre-Annotated Datasets
+
+> If you have predictions generated for your dataset from a model, either as pre-annotated tasks or pre-labeled tasks, you can import the predictions with your dataset into Label Studio for review and correction. Label Studio automatically displays the pre-annotations that you import on the Labeling page for each task. 
+
+The field `predictions` needs to be filled in the basic Label Studio JSON format:
+
+- [Basic Label Studio JSON format](https://labelstud.io/guide/tasks#Basic-Label-Studio-JSON-format)
+- [Relevant JSON property descriptions](https://labelstud.io/guide/export#Relevant-JSON-property-descriptions)
+
+Following the flower example, if we define the UI with
+
+```xml
+<View>
+  <Image name="image" value="$image_path" zoom="true" zoomControl="true" rotateControl="true"/>
+  <Choices name="class" toName="image">
+    <Choice value="daisy"/>
+    <Choice value="dandelion"/>
+    <Choice value="rose"/>
+    <Choice value="sunflower"/>
+    <Choice value="tulip"/>
+  </Choices>
+</View>
+```
+
+Then, an exemplary JSON file with two samples/entries could be:
+
+```json
+[
+    {
+        "data": {
+            "image_path": "http://localhost:8000/flowers/test/Image_1.jpg"
+        },
+        "predictions": [
+            {
+                "result": [
+                    {
+                        "from_name": "class",
+                        "to_name": "image",
+                        "type": "choices",
+                        "value": {
+                            "choices": ["daisy"]
+                        }
+                    }
+                ]
+            }
+        ]
+        /*
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "from_name": "class",
+                        "to_name": "image",
+                        "type": "choices",
+                        "value": {
+                            "choices": ["daisy"]
+                        }
+                    }
+                ]
+            }
+        ]
+        */
+    },
+    {
+        "data": {
+            "image_path": "http://localhost:8000/flowers/test/Image_2.jpg"
+        },
+        "predictions": [
+            {
+                "result": [
+                    {
+                        "from_name": "class",
+                        "to_name": "image",
+                        "type": "choices",
+                        "value": {
+                            "choices": ["rose"]
+                        }
+                    }
+                ]
+            }
+        ]
+        /*
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "from_name": "class",
+                        "to_name": "image",
+                        "type": "choices",
+                        "value": {
+                            "choices": ["rose"]
+                        }
+                    }
+                ]
+            }
+        ]
+        */
+    }
+    // ...
+]
+```
+
+The function in [`utils.ipynb`](./utils.ipynb) which converts a list of image URLs into a pre-annotated JSON is the following:
+
+```python
+def save_to_json_preannotated(df, output_filepath):
+    """
+    Save DataFrame to a JSON file suitable for importing into Label Studio.
+
+    :param df: DataFrame with columns: image_paths, prediction, cluster.
+    :param output_filepath: Path to the output JSON file.
+    """
+    
+    output_data = []
+
+    for _, row in df.iterrows():
+        item = {
+            "data": {
+                "image_path": row['image_paths'],
+                "cluster": row['cluster']  # can be accessed in the Filters!
+            },
+            "predictions": [
+                {
+                    "result": [
+                        {
+                            "from_name": "class",
+                            "to_name": "image",
+                            "type": "choices",
+                            "value": {
+                                "choices": [row['prediction']]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        output_data.append(item)
+    
+    with open(output_filepath, 'w') as outfile:
+        json.dump(output_data, outfile, indent=4)
+
+
+output_filepath = "images_paths_preannotated.json"
+save_to_json_preannotated(df, output_filepath)
+```
+
+Note that the `cluster` field is a custom field which is not necessary; however, we can include such fields in `data` so that we use them in the `Filters`.
+
+Even though the tasks/examples are pre-annotated, we need to go manually/individually through all of them and `submit` them one by one; in other words, **we cannot submit in bulk using the UI**. In order to submit tasks in bulk, we can use the API &mdash; see next section below.
+
+### Basic API Usage
 
 :construction:
 
