@@ -13,7 +13,9 @@ The tool has many useful functionalities:
   - Audio: Speech Recognition, etc.
   - Videos
   - ...
-- ...
+- We can add a Machine Learning Backend which assists the labeling.
+- There is an SDK with which we can label programmatically.
+- etc.
 
 This guide focuses mainly on image labeling.
 
@@ -26,6 +28,11 @@ Table of contents:
     - [Basic Usage: Label and Export Annotations](#basic-usage-label-and-export-annotations)
   - [More Advanced Usage](#more-advanced-usage)
     - [Import Pre-Annotated Datasets](#import-pre-annotated-datasets)
+    - [Machine Learning Backend](#machine-learning-backend)
+    - [Basic SDK Usage](#basic-sdk-usage)
+  - [Notes on Examples and Use-Cases](#notes-on-examples-and-use-cases)
+    - [Object Detection](#object-detection)
+    - [Semantic Segmentation](#semantic-segmentation)
 
 
 ## Installation and Basic Setup
@@ -245,3 +252,32 @@ The exported CSV looks like this (for some reason, empty lines are added):
 
 ### Import Pre-Annotated Datasets
 
+:construction:
+
+TBD.
+
+### Machine Learning Backend
+
+:construction:
+
+TBD.
+
+### Basic SDK Usage
+
+:construction:
+
+TBD.
+
+## Notes on Examples and Use-Cases
+
+### Object Detection
+
+:construction:
+
+TBD.
+
+### Semantic Segmentation
+
+:construction:
+
+TBD.
