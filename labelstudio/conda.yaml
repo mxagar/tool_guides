@@ -46,6 +46,7 @@ dependencies:
       - imutils
       - label-studio
       - label-studio-sdk
+      - label-studio-ml
       - Flask
       - Flask-CORS
       - python-dotenv
