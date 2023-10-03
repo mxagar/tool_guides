@@ -35,8 +35,10 @@ Table of contents:
     - [Notes on the Basic Label Studio JSON Format](#notes-on-the-basic-label-studio-json-format)
     - [Import Pre-Annotated Datasets](#import-pre-annotated-datasets)
     - [Basic API Usage](#basic-api-usage)
-    - [Machine Learning Backend](#machine-learning-backend)
     - [Basic SDK Usage](#basic-sdk-usage)
+      - [Create a Project](#create-a-project-1)
+      - [Add/Import Tasks: Empty of Pre-Annotated](#addimport-tasks-empty-of-pre-annotated)
+    - [Machine Learning Backend](#machine-learning-backend)
   - [Notes on Examples and Use-Cases](#notes-on-examples-and-use-cases)
     - [Object Detection](#object-detection)
     - [Semantic Segmentation](#semantic-segmentation)
@@ -66,6 +68,9 @@ conda activate label
 pip install --user label-studio
 # If on Windows, add to Path the correct URL to be able to locate the binary
 # C:\Users\<User>\AppData\Roaming\Python\Python39\Scripts
+
+# If we want to use the Label Studio SDK
+pip install label-studio-sdk
 
 # Start Label Studio
 label-studio start
@@ -108,6 +113,7 @@ The official guide suggests these steps after we launch Label Studio:
     - Audio: Speech Recognition, etc.
     - Videos
     - ...
+    - Further project templates can be found in [Project Templates](https://labelstud.io/templates).
 > - Click `Save` to save your project.
 
 We can access to the **Project Settings** clicking on the `...` icon.
@@ -126,7 +132,10 @@ In the project settings, in the *Labeling Interface*, we edit the UI with an XML
 </View>
 ```
 
-Note the field `$image_path`.
+Note the field `$image_path`, which is later used whenever we import/create/update the image path of a **task**.
+A **task** is a sample (e.g., image) which needs to be labelled.
+
+Further project templates (i.e., XML specifications) can be found in [Project Templates](https://labelstud.io/templates).
 
 ### Serve the Images as URLs
 
@@ -551,9 +560,243 @@ Even though the tasks/examples are pre-annotated, we need to go manually/individ
 
 ### Basic API Usage
 
-:construction:
+Label Studio starts a REST API which we can interact with, which resides under the same Label Studio server URL:
 
-TBD.
+    http://localhost:8000/api
+
+For all calls, we need to set our `LABEL_STUDIO_API_TOKEN` and pass it in the header; the token is obtained in the Label Studio account settings.
+
+All API calls are listed here: [Label Studio API](https://labelstud.io/api).
+Examples shown here:
+
+- 1. List projects and their information.
+- 2. List the tasks (labeled / samples to be labeled) of a project.
+- 3. Label tasks programmatically in bulk.
+- But there are much much more options!
+
+```python
+import requests
+
+# Access the LABEL_STUDIO_API_TOKEN
+LABEL_STUDIO_API_TOKEN = os.getenv("LABEL_STUDIO_API_TOKEN")
+
+# Base URL
+base_url = "http://localhost:8080"
+
+# Setup headers with the API token
+headers = {
+    "Authorization": f"Token {LABEL_STUDIO_API_TOKEN}"
+}
+
+## -- 1. List projects and their information
+
+response = requests.get(f"{base_url}/api/projects", headers=headers)
+
+if response.status_code == 200:
+    projects = response.json()
+    # projects = {count, next, previous, results}
+    for project_dict in projects["results"]: # for all projects
+        #print(project_dict)  # dict
+        project_json = json.dumps(project, indent=4) # json, for nice print
+        print(project_json)
+else:
+    print(f"Failed to retrieve projects. Status code: {response.status_code}")
+    print(response.text)  # This might give additional info about the error.
+
+## -- 2. List the tasks in a project
+
+def get_all_tasks(project_id, limit=None):
+    page = 1
+    tasks = []
+    num_fetched_tasks = 0
+
+    def determine_page_size(project_id):
+        response = requests.get(f"{base_url}/api/projects/{project_id}/tasks?page=1", headers=headers)
+        
+        if response.status_code != 200:
+            print(f"Failed to retrieve tasks to determine page size. Status code: {response.status_code}")
+            return None
+
+        tasks = response.json()
+        return len(tasks)
+
+    page_size = determine_page_size(project_id)
+
+    while True:
+        #response = requests.get(f"{base_url}/api/projects/{project_id}/tasks", headers=headers)
+        response = requests.get(f"{base_url}/api/projects/{project_id}/tasks?page={page}", headers=headers)
+        if response.status_code != 200:
+            print(f"Failed to retrieve tasks on page {page}. Status code: {response.status_code}")
+            break
+
+        page_data = response.json()
+        tasks.extend(page_data)
+        num_fetched_tasks += len(page_data)
+
+        # Check if there are more pages
+        if not page_data or len(page_data) < page_size:
+            break
+        if limit is not None:
+            if num_fetched_tasks >= limit:
+                tasks = tasks[:num_fetched_tasks]
+                break
+
+        page += 1
+
+    return tasks
+
+project_id = 6 # can be obtained with previous call
+tasks = get_all_tasks(project_id)
+print(f"Total tasks: {len(tasks)}")
+
+for task_dict in tasks[:10]:
+    #print(task_dict) # dict
+    task_json = json.dumps(task, indent=4) # nice formatting
+    print(formatted_task)
+
+## -- 3. Programmatically annotate tasks in bulk
+
+# Fetch (all) tasks for the specified project
+# Note: limited to the first 90 tasks!
+project_id = 6 # can be obtained with previous call
+tasks = get_all_tasks(project_id, limit=90)
+
+# Define the list of flower classes
+flower_classes = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip']
+
+# Iterate through each task and update its annotations
+for task in tasks:
+    task_id = task['id']
+    cluster = task['data']['cluster']
+
+    # Filter by cluster, if desired
+    if cluster == 1:
+        # Create a random annotation for the task
+        annotation_class = random.choice(flower_classes)
+        payload = {
+            "result": [{
+                "from_name": "class",
+                "to_name": "image",
+                "type": "choices",
+                "value": {"choices": [annotation_class]}
+            }],
+            "last_action": "prediction",
+            "task": task_id,
+            "project": project_id
+        }
+        
+        response = requests.post(f"{base_url}/api/tasks/{task_id}/annotations", headers=headers, json=payload)
+        if response.status_code != 201:
+            print(f"Failed to update task {task_id}. Status code: {response.status_code}")
+            print(response.text)
+        else:
+            print(f"Successfully updated task {task_id} with annotation: {annotation_class}")
+```
+
+### Basic SDK Usage
+
+Apart from the REST API, Label Studio provides a Python SDK which can be integrated into our projects.
+
+We need to install the SDK as follows:
+
+```bash
+pip install label-studio-sdk
+```
+
+Important links:
+
+- Main source for this section: [Backend SDK Python Tutorial](https://labelstud.io/guide/sdk)
+- Full [SDK reference](https://labelstud.io/sdk/index.html)
+
+We can do many things with the SDK; here I summarize two important topics:
+
+- Create a project
+- Add/Import tasks: empty of pre-annotated
+
+First of all, after the SDK is installed, we need to connect to the Label Studio server:
+
+```python
+# Import the SDK and the client module
+from label_studio_sdk import Client
+
+# Access the LABEL_STUDIO_API_TOKEN
+LABEL_STUDIO_API_TOKEN = os.getenv("LABEL_STUDIO_API_TOKEN")
+LABEL_STUDIO_URL = 'http://localhost:8080'
+
+# Connect to the Label Studio API and check the connection
+ls = Client(url=LABEL_STUDIO_URL, api_key=LABEL_STUDIO_API_TOKEN)
+ls.check_connection() # {'status': 'UP'}
+```
+
+#### Create a Project
+
+```python
+# Create a project with a template
+# More templates: https://labelstud.io/templates
+# After running the code, check the new project in the web UI
+project = ls.start_project(
+    title='Flowers 2',
+    label_config='''
+    <View>
+    <Image name="image" value="$image_path" zoom="true" zoomControl="true" rotateControl="true"/>
+    <Choices name="class" toName="image">
+        <Choice value="daisy"/>
+        <Choice value="dandelion"/>
+        <Choice value="rose"/>
+        <Choice value="sunflower"/>
+        <Choice value="tulip"/>
+    </Choices>
+    </View>
+    '''
+)
+```
+
+#### Add/Import Tasks: Empty of Pre-Annotated
+
+In Label Studio, tasks are *imported*.
+We follow the [Label Studio JSON format](https://labelstud.io/guide/tasks#Basic-Label-Studio-JSON-format), but as Python objects.
+
+```python
+project.import_tasks(
+    [
+        {'image_path': 'http://localhost:8000/flowers/test/Image_1.jpg'},
+        {'image_path': 'http://localhost:8000/flowers/test/Image_10.jpg'}
+    ]
+)
+```
+
+The field names should match the ones in the XML definition, I think:
+
+- `image_path`
+- `class`
+- etc.
+
+Usage examples:
+
+```python
+# Recall we already have a web server serving all images with URLs
+print(image_paths[:5]) # ['http://localhost:8000/flowers/test/Image_1.jpg', 'http://localhost:8000/flowers/test/Image_10.jpg', ...
+
+
+# -- If we have a list of image URLs, we can programmatically add/import tasks
+# Check the web UI to see the updates in there
+project.import_tasks(
+    [{'image_path': image_paths[i]} for i in range(10)]
+)
+
+# -- We can create predictions for tasks == pre-annotations
+task_ids = project.get_tasks_ids()
+project.create_prediction(task_ids[0], result='tulip', score=0.9)
+
+# -- We can also create/import tasks with pre-annotations/predictions
+
+flower_classes = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip']
+
+project.import_tasks(
+    [{'image_path': image_paths[i], 'class': random.choice(flower_classes),} for i in range(10,20)],
+    preannotated_from_fields=['class']
+)
+```
 
 ### Machine Learning Backend
 
@@ -561,11 +804,6 @@ TBD.
 
 TBD.
 
-### Basic SDK Usage
-
-:construction:
-
-TBD.
 
 ## Notes on Examples and Use-Cases
 
