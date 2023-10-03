@@ -23,6 +23,7 @@ Note that this repository comes with auxiliary files/scripts used across the gui
 
 - [`utils.ipynb`](./utils.ipynb)
 - [`serve_local_files.py`](./serve_local_files.py)
+- [`model.py`](./model.py)
 
 Table of contents:
 
@@ -71,6 +72,9 @@ pip install --user label-studio
 
 # If we want to use the Label Studio SDK
 pip install label-studio-sdk
+
+# If we want to use the Label Studio ML backend tool
+pip install --user label-studio-ml
 
 # Start Label Studio
 label-studio start
@@ -136,6 +140,10 @@ Note the field `$image_path`, which is later used whenever we import/create/upda
 A **task** is a sample (e.g., image) which needs to be labelled.
 
 Further project templates (i.e., XML specifications) can be found in [Project Templates](https://labelstud.io/templates).
+
+The project data (the annotations, etc.) are stored by default in a single SQLite file; if we want to have more than 100k tasks and 5+ users, we need to use another database framework, like PostgreSQL. For more information check [Database setup](https://labelstud.io/guide/storedata.html).
+
+In my local installation, the SQLite database is 
 
 ### Serve the Images as URLs
 
@@ -605,6 +613,8 @@ else:
 
 ## -- 2. List the tasks in a project
 
+# NOTE: There is also an export API!
+
 def get_all_tasks(project_id, limit=None):
     page = 1
     tasks = []
@@ -713,6 +723,17 @@ We can do many things with the SDK; here I summarize two important topics:
 - Create a project
 - Add/Import tasks: empty of pre-annotated
 
+Another interesting use-case are filters, not covered here; for more information, check [prepare and manage data with filters](https://labelstud.io/guide/sdk#Prepare-and-manage-data-with-filters).
+
+Note that the SDK has 6 submodules in total:
+
+    label_studio_sdk.client
+    label_studio_sdk.data_manager
+    label_studio_sdk.project
+    label_studio_sdk.users
+    label_studio_sdk.utils
+    label_studio_sdk.workspaces
+
 First of all, after the SDK is installed, we need to connect to the Label Studio server:
 
 ```python
@@ -800,10 +821,255 @@ project.import_tasks(
 
 ### Machine Learning Backend
 
-:construction:
+Label Studio has several ways of integrating a Machine Learning (ML) backend which predicts the labels (i.e., pre-annotation).
 
-TBD.
+See these interesting links:
 
+- [ML Integration: a ready Docker Image which is launched as an ML Backend](https://labelstud.io/guide/ml)
+- [ML Tutorials: Many examples](https://labelstud.io/guide/ml_tutorials)
+- [Writing custom ML backends](https://labelstud.io/guide/ml_create)
+- [ML Backend Github examples](https://github.com/HumanSignal/label-studio-ml-backend)
+
+I followed the tutorial [Create the simplest Machine Learning backend](https://labelstud.io/tutorials/dummy_model), which shows how to create and integrate a custom and simple image classification backend with a dummy model, i.e., a model which produces random predictions.
+
+Let's consider the Flowers project, with this XML specification (the same as before):
+
+```xml
+<View>
+<Image name="image" value="$image_path" zoom="true" zoomControl="true" rotateControl="true"/>
+<Choices name="class" toName="image">
+    <Choice value="daisy"/>
+    <Choice value="dandelion"/>
+    <Choice value="rose"/>
+    <Choice value="sunflower"/>
+    <Choice value="tulip"/>
+</Choices>
+</View>
+```
+
+We need to create a [`model.py`](./model.py) file which is then used by `label-studio-ml` to create a Docker project with all the necessary files:
+
+```bash
+# Install label-studio-ml in our environment
+conda activate label
+pip install --user label-studio-ml
+
+# Create a ml_backend directory with the default model.py which contains the files to run a backend
+cd path/to/model.py
+label-studio-ml init ml_backend
+# If the file is somewhere else
+labal-studio-ml init ml_backend --script /path/to/my/script.py
+```
+
+The generated folder ml_backend/ contains:
+
+    docker-compose.yml      redis container & ML backend server container
+    Dockerfile              image definition which runs _wsgi using guinicorn
+    model.py                copy of this file
+    requirements.txt
+    _wsgi.py                web server/API that runs the ML model
+
+We can start the backend as follows:
+
+```bash
+# Launch in development model
+label-studio-ml start my_backend
+# The server started on http://localhost:9090 and outputs logs in console.
+
+# Launch in production model
+cd ml_backend/
+docker-compose up
+
+# Start Label Studio - by default in http://localhost:8080.
+label-studio start
+```
+
+Then, we need to [add the ML backend to Label Studio](https://labelstud.io/guide/ml#Add-an-ML-backend-to-Label-Studio):
+
+
+> - From Label Studio, open the project that you want to use with your ML backend.
+> - Select Settings > Machine Learning.
+> - Click Add Model.
+> - Enter a title for the model and provide the URL for the ML backend. For example, http://localhost:9090.
+> - (Optional) Enter a description.
+> - (Optional) Select Allow version auto-update. See [Version auto-update](https://labelstud.io/guide/ml#Enable-auto-update-for-a-model) for more.
+> - (Optional) Select Use for interactive preannotation. See Get interactive pre-annotations for more.
+> - Click Validate and Save.
+
+Also, we can [add the ML backend using the API](https://labelstud.io/api/#operation/api_ml_create).
+
+The API allows to train the model, too; here are the URLs:
+
+```bash
+# Get ML backends (ids)
+https://localhost:8080/api/ml?project={project_id}
+
+# Train an ML backend
+http://localhost:8080/api/ml/{id}/train
+```
+
+In the following, the content of [`model.py`](./model.py) is added:
+
+```python
+'''
+This module contains a dummy ML model interface
+which can be used to generate an ML backed for Label Studio.
+
+I followed the tutorial in the link below, but made some changes:
+
+    https://labelstud.io/tutorials/dummy_model
+
+We can use a project with the following XML definition:
+
+    <View>
+    <Image name="image" value="$image_path" zoom="true" zoomControl="true" rotateControl="true"/>
+    <Choices name="class" toName="image">
+        <Choice value="daisy"/>
+        <Choice value="dandelion"/>
+        <Choice value="rose"/>
+        <Choice value="sunflower"/>
+        <Choice value="tulip"/>
+    </Choices>
+    </View>
+
+Other examples:
+
+    https://github.com/HumanSignal/label-studio-ml-backend
+    
+    https://github.com/HumanSignal/label-studio-ml-backend/blob/master/label_studio_ml/examples/dummy_model/dummy_model.py
+    
+    https://github.com/HumanSignal/label-studio-ml-backend/blob/master/label_studio_ml/examples/the_simplest_backend/model.py
+    
+    https://github.com/HumanSignal/label-studio-ml-backend/blob/master/label_studio_ml/examples/simple_text_classifier/simple_text_classifier.py
+
+Usage: Use this model.py to create an ml_backend folder with the
+necessary files to run the ML backend
+
+    conda activate label
+    pip install --user label-studio-ml
+    cd path/to/model.py
+    label-studio-ml init ml_backend
+
+The generated folder ml_backend/ contains:
+
+    docker-compose.yml      redis container & ML backend server container
+    Dockerfile              image definition which runs _wsgi using guinicorn
+    model.py                copy of this file
+    requirements.txt
+    _wsgi.py                web server/API that runs the ML model
+
+To start the ML backend
+
+    label-studio-ml start .\ml_backend
+
+The server started on http://localhost:9090 and outputs logs in console.
+
+Read the README.md for more details.
+'''
+
+import os
+import random
+import requests
+import json
+from label_studio_ml.model import LabelStudioMLBase
+
+from dotenv import load_dotenv
+# Load .env file
+load_dotenv()
+
+LABEL_STUDIO_HOSTNAME = 'http://localhost:8080'
+LABEL_STUDIO_API_TOKEN = os.getenv("LABEL_STUDIO_API_TOKEN", "token-value")
+
+class DummyModel(LabelStudioMLBase):
+
+    def __init__(self, **kwargs):
+        # don't forget to call base class constructor
+        super(DummyModel, self).__init__(**kwargs)
+    
+        # you can preinitialize variables with keys needed to extract info from tasks and annotations and form predictions
+        from_name, schema = list(self.parsed_label_config.items())[0]
+        self.from_name = from_name
+        self.to_name = schema['to_name'][0]
+        self.labels = schema['labels'] # classes specified in the XML
+        
+        # We can define/set the model
+        self.model = None
+
+    def _get_annotated_dataset(self, project_id):
+        """Just for demo/example purposes:
+           retrieve annotated data from Label Studio API.
+           UNUSED in this model!
+        """
+        download_url = f'{LABEL_STUDIO_HOSTNAME.rstrip("/")}/api/projects/{project_id}/export'
+        response = requests.get(download_url,
+                                headers={'Authorization': f'Token {LABEL_STUDIO_API_TOKEN}'})
+        if response.status_code != 200:
+            raise Exception(f"Can't load task data using {download_url}, "
+                            f"response status_code = {response.status_code}")
+        return json.loads(response.content)
+        
+    def set_model(self, model):
+        """Just for demo/example purposes:
+           set a model instance from outside.
+           UNUSED in this model!"""
+        self.model = model
+    
+    def predict(self, tasks, **kwargs):
+        """ This is where inference happens: model returns 
+            the list of predictions based on input list of tasks 
+        """
+        predictions = []
+        #flower_classes = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip']
+
+        # Now, we could use the self.model to
+        # predict the class of each task
+        
+        for task in tasks:
+            #prediction_class = random.choice(flower_classes)
+            prediction_class = random.choice(self.labels)
+            predictions.append({
+                'score': random.uniform(0.0, 1.0),  # prediction overall score, visible in the data manager columns
+                'model_version': 'delorean-2023-10-02',  # all predictions will be differentiated by model version
+                'result': [{
+                    'from_name': self.from_name,
+                    'to_name': self.to_name,
+                    'type': 'choices',
+                    #'score': 0.5,  # per-region score, visible in the editor 
+                    'value': {
+                        'choices': [prediction_class]
+                    }
+                }]
+            })
+        return predictions
+
+    def fit(self, annotations, **kwargs):
+        """ This is where training happens: train your model given list of annotations, 
+            then returns dict with created links and resources.
+            
+            In some other examples, the function has the following definition:
+                def fit(self, event, data, **kwargs)
+            In those examples
+            - event is not used
+            - data is a dictionary with many information; it can be used as
+            
+                project_id = data['project']['id']
+                tasks = self._get_annotated_dataset(project_id)
+        """
+        # In this function, may things should happen, not really done here:
+        # - Pick the annotations, either from annotations of using _get_annotated_dataset()
+        # - Pick the model, e.g., if self.model is defined, from there
+        # - Extract the X (image vectors, tabular, etc.) and y (labels) vectors
+        # - Train the model wit hits specific interface, e.g., self.model.fit(X,y)
+        # - Save the model to disk, e.g. with pickle/joblib
+        # - Pack the train_output dictionary with the data we want and return it
+        
+        train_output = {
+            "model_path": "path/to/model.pkl"
+        }
+        
+        return train_output
+
+```
 
 ## Notes on Examples and Use-Cases
 
