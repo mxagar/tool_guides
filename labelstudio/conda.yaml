@@ -45,6 +45,7 @@ dependencies:
       - spacy
       - imutils
       - label-studio
+      - label-studio-sdk
       - Flask
       - Flask-CORS
       - python-dotenv
