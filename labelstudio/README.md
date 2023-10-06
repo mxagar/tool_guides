@@ -36,9 +36,11 @@ Table of contents:
     - [Notes on the Basic Label Studio JSON Format](#notes-on-the-basic-label-studio-json-format)
     - [Import Pre-Annotated Datasets](#import-pre-annotated-datasets)
     - [Basic API Usage](#basic-api-usage)
+      - [Note on Predictions and Annotations](#note-on-predictions-and-annotations)
     - [Basic SDK Usage](#basic-sdk-usage)
       - [Create a Project](#create-a-project-1)
       - [Add/Import Tasks: Empty of Pre-Annotated](#addimport-tasks-empty-of-pre-annotated)
+      - [Example: Get Project Tasks and Add Annotations](#example-get-project-tasks-and-add-annotations)
     - [Machine Learning Backend](#machine-learning-backend)
   - [Notes on Examples and Use-Cases](#notes-on-examples-and-use-cases)
     - [Object Detection](#object-detection)
@@ -138,6 +140,7 @@ In the project settings, in the *Labeling Interface*, we edit the UI with an XML
 
 Note the field `$image_path`, which is later used whenever we import/create/update the image path of a **task**.
 A **task** is a sample (e.g., image) which needs to be labelled.
+The `image_path` column must be in the CSV/JSON file we use to import the samples to be labelled; that CSV/JSON can contain any columns, which are nested under the value/dictionary `data` in each task &mdash; more on that below, in the sections [Notes on the Basic Label Studio JSON Format](#notes-on-the-basic-label-studio-json-format) and [Import Pre-Annotated Datasets](#import-pre-annotated-datasets).
 
 Further project templates (i.e., XML specifications) can be found in [Project Templates](https://labelstud.io/templates).
 
@@ -258,7 +261,7 @@ When the images are served and the project is created, we can click on it in the
 
 - `Import` the CSV with the image URLs; then, the images are listed automatically. Images or samples are **tasks**.
 - `Label All Tasks`: label the images with the custom UI we have defined in the project creation (accessible in the `Settings`).
-- `Filter` the samples/tasks, according to their properties; if we upload a CSV/JSON with custom fields in `data`, these can be used here, too.
+- `Filter` the samples/tasks, according to their properties; if we upload a CSV/JSON with custom fields in `data`, these can be used here, too. However, exact value searches seem to be working with regex filters; e.g., to filter tasks with `data.my_field == 10`, use `data.my_field - regex ^10$`.
 - `Export` the labelled images as a CSV or JSON. If filters are active, only the filtered results are exported!
 
 ![Projects UI](./assets/ls_ui_projects.png)
@@ -409,6 +412,7 @@ The JSON import format is the same as the one we output; the most important fiel
 
 - `id`: Identifier for the labeling task from the dataset.
 - `data`: Data copied from the input data task format. See the documentation for Task Format.
+  - **Important: If we import a CSV, all the column values go here; we can add any columns we want, but specifically one needs to have the image path/URL referenced in the XML schema of the UI.**
 - `project`: Identifier for a specific project in Label Studio.
 - `annotations`: Array containing the labeling results for the task. It has several children fields.
 - `predictions`: Array of machine learning predictions. Follows the same format as the annotations array, with one additional parameter: `predictions.score`. It can be used to import pre-annotations.
@@ -566,7 +570,7 @@ output_filepath = "images_paths_preannotated.json"
 save_to_json_preannotated(df, output_filepath)
 ```
 
-Note that the `cluster` field is a custom field which is not necessary; however, we can include such fields in `data` so that we use them in the `Filters`.
+Note that the `cluster` field is a custom field which is not necessary; however, we can include such fields in `data` so that we use them in the `Filters`.  However, exact value searches seem to be working with regex filters; e.g., to filter tasks with `data.cluster == 10`, use `data.cluster - regex ^10$`.
 
 Even though the tasks/examples are pre-annotated, we need to go manually/individually through all of them and `submit` them one by one; in other words, **we cannot submit in bulk using the UI**. In order to submit tasks in bulk, we can use the API &mdash; see next section below.
 
@@ -609,7 +613,7 @@ if response.status_code == 200:
     # projects = {count, next, previous, results}
     for project_dict in projects["results"]: # for all projects
         #print(project_dict)  # dict
-        project_json = json.dumps(project, indent=4) # json, for nice print
+        project_json = json.dumps(project_dict, indent=4) # json, for nice print
         print(project_json)
 else:
     print(f"Failed to retrieve projects. Status code: {response.status_code}")
@@ -665,8 +669,8 @@ print(f"Total tasks: {len(tasks)}")
 
 for task_dict in tasks[:10]:
     #print(task_dict) # dict
-    task_json = json.dumps(task, indent=4) # nice formatting
-    print(formatted_task)
+    task_json = json.dumps(task_dict, indent=4) # nice formatting
+    print(task_json)
 
 ## -- 3. Programmatically annotate tasks in bulk
 
@@ -705,6 +709,108 @@ for task in tasks:
             print(response.text)
         else:
             print(f"Successfully updated task {task_id} with annotation: {annotation_class}")
+```
+
+Edit:
+
+Better approach for `get_all_tasks` using the `export` API:
+
+```python
+def get_all_tasks(project_id):
+    # Using the export API
+    response = requests.get(f"{base_url}/api/projects/{project_id}/export?exportType=JSON&download_all_tasks=true", headers=headers)
+    
+    if response.status_code != 200:
+        print(f"Failed to retrieve tasks. Status code: {response.status_code}")
+        return []
+
+    tasks = response.json()
+    return tasks
+```
+
+#### Note on Predictions and Annotations
+
+In Label Studio a **pre-annotation** is implemented as a `prediction` in the task JSON. In order for it to be a valid **annotation**, we need to **submit** it in the UI; when we do that, the `prediction` content is transferred to the `annotation` field. We can also do that programmatically, i.e., instead of updating the `predictions` field, if we update the `annotations` field, we are simulating the click on the **submit** button in the UI.
+
+The following snippet simulates the clicking of **submit** for all the tasks which have a `prediction`:
+
+```python
+import requests
+
+base_url = "http://localhost:8080"
+headers = {
+    "Authorization": "Token YOUR_API_TOKEN"
+}
+
+def accept_predictions_for_project(project_id):
+    # Get all tasks for the project
+    tasks = get_all_tasks(project_id)
+    
+    for task in tasks:
+        task_id = task['id']
+        if 'predictions' in task and task['predictions']:
+            prediction = task['predictions'][0]  # Assuming there's only one prediction per task
+            result = prediction['result']
+            
+            # Post new annotation for the task
+            annotation_data = {
+                "result": result,
+                "task": task_id
+            }
+            
+            response = requests.post(f"{base_url}/api/tasks/{task_id}/annotations/", headers=headers, json=annotation_data)
+            if response.status_code != 201:
+                print(f"Failed to accept prediction for task {task_id}. Status code: {response.status_code}")
+
+project_id = YOUR_PROJECT_ID
+accept_predictions_for_project(project_id)
+```
+
+Additionally, note that the XML and the `result` object fields must match:
+
+```xml
+<Choices name="class" toName="image">
+  <Choice value="daisy"/>
+  <Choice value="dandelion"/>
+  <!-- ... -->
+</Choices>
+```
+
+```python
+{
+    "from_name": "class", # same as in <Choices name="class" ... >
+    "to_name": "image", # same as in <Choices ... toName="image">
+    "type": "choices",
+    "value": {
+        "choices": ["daisy", "dandelion", ...]
+    }
+}
+```
+
+Also, note that apparently, predictions need to have the field
+
+    "last_action": "prediction"
+
+However, I have experienced that even with that field they are treated as annotations. Thus, when we open the UI, we see the annotations, and not the predictions; if we click on the JSON they are annotations and if we open the Labeling view of a task, we see the label as an annotation. We can **update** the annotations, and a new one is created. If the SDK is used instead of the API, we can create predictions/pre-annotations without any issues and it's 9x faster. See the SDK section.
+
+Note that we can have several annotations for one task; in such cases, we can apply majority voting or select one annotation, e.g., the last one:
+
+```python
+import json
+
+# Load exported data
+with open('exported_data.json', 'r') as f:
+    data = json.load(f)
+
+# Keep only the last annotation for each task
+for item in data:
+    if 'annotations' in item and len(item['annotations']) > 0:
+        item['annotations'] = [item['annotations'][-1]]
+
+# Save the processed data
+with open('processed_exported_data.json', 'w') as f:
+    json.dump(data, f, indent=4)
+
 ```
 
 ### Basic SDK Usage
@@ -821,6 +927,69 @@ project.import_tasks(
     [{'image_path': image_paths[i], 'class': random.choice(flower_classes),} for i in range(10,20)],
     preannotated_from_fields=['class']
 )
+```
+
+#### Example: Get Project Tasks and Add Annotations
+
+Project schema:
+
+'''xml
+<View>
+<Image name="image" value="$image_path" zoom="true" zoomControl="true" rotateControl="true"/>
+<Choices name="class" toName="image">
+    <Choice value="daisy"/>
+    <Choice value="dandelion"/>
+    <Choice value="rose"/>
+    <Choice value="sunflower"/>
+    <Choice value="tulip"/>
+</Choices>
+</View>
+'''
+
+Code to create annotations programmatically:
+
+```python
+from label_studio_sdk import Client
+import random
+
+# Initialize the SDK client
+ls = Client(url=BASE_URL, api_key=LABEL_STUDIO_API_TOKEN)
+print("Connecting to Label Studio...", ls.check_connection())
+
+pr = ls.get_project(project_id) # can be obtained with other calls...
+
+# Fetch all tasks for the project
+print("Getting all tasks...")
+tasks = pr.get_tasks()
+
+flower_classes = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip']
+
+# Iterate through each task to assign a prediction
+for task in tqdm(tasks, desc="Processing tasks"):
+    cluster_id = task["data"]["cluster"]
+
+    # Get class prediction
+    class_label = random.choice(flower_classes)
+
+    # Create the prediction
+    prediction = {
+        "result": [{
+            "from_name": "page_type",
+            "to_name": "image",
+            "type": "choices",
+            "value": {
+                "choices": [class_label]
+            }
+        }],
+        "score": 1  # if a prediction, score is usual
+    }
+
+    # Use SDK to post the prediction
+    try:
+        pr.create_annotation(task['id'], **prediction)
+        #pr.create_prediction(task['id'], prediction["result"])
+    except Exception as e:
+        print(f"Failed to post prediction for task {task['id']}. Error: {str(e)}")
 ```
 
 ### Machine Learning Backend
