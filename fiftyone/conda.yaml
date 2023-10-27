@@ -1,0 +1,53 @@
+name: label
+channels:
+  - conda-forge
+  - defaults
+  - pytorch
+dependencies:
+  - python=3.9
+  - requests
+  - pip
+  - mlflow
+  - hydra-core
+  - jupyter
+  - jupyterlab
+  - pytorch
+  - scikit-learn
+  - scipy
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - cython
+  - nltk
+  - numba
+  - pillow
+  - scikit-image
+  - tqdm
+  - posix
+  - pip:
+      - protobuf
+      - opencv-python
+      - opencv-contrib-python
+      - onnx
+      - onnxruntime
+      - torch
+      - torchvision
+      - torchaudio
+      - tensorflow
+      - chardet
+      - wandb
+      - autopep8
+      - joblib
+      - pytest
+      - setuptools
+      - wheel
+      - spacy
+      - imutils
+      - label-studio
+      - label-studio-sdk
+      - label-studio-ml
+      - Flask
+      - Flask-CORS
+      - python-dotenv
+
