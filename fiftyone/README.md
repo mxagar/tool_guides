@@ -4,7 +4,9 @@
 
 > an open-source tool for building high-quality datasets and computer vision models
 
-which can be used, among others, to visualize prediction data, i.e., we can perform error analysis with it.
+which can be used, among others, to visualize prediction data, curate datasets, or we can perform **error analysis** with it.
+
+This tutorial shows how to use FiftyOne mainly for **error analysis**.
 
 Table of contents:
 
@@ -12,9 +14,9 @@ Table of contents:
   - [Setup](#setup)
   - [Test Dataset](#test-dataset)
   - [Tutorials](#tutorials)
-    - [Utilities](#utilities)
-    - [Pandas](#pandas)
-    - [Classification](#classification)
+    - [General Utilities for Error Analysis](#general-utilities-for-error-analysis)
+    - [Tabular Datasets](#tabular-datasets)
+    - [Image Classification](#image-classification)
   - [Further Information](#further-information)
 
 
@@ -56,24 +58,25 @@ Additionally, instead of using the images of the dataset directly, I used image 
 
 The tutorials are implemented in Jupyter notebooks, they are located in the [`notebooks`](./notebooks/) folder, and focus on the following topics:
 
-- [`00_utils.ipynb`](./notebooks/00_utils.ipynb): general utilities.
-- [`01_pandas.ipynb`](./notebooks/01_pandas.ipynb): [Pandas Queries in FiftyOne](https://docs.voxel51.com/tutorials/pandas_comparison.html)
-- [`02_classification.ipynb`](./notebooks/02_classification.ipynb): [Evaluating a Classifier in FiftyOne](https://docs.voxel51.com/tutorials/evaluate_classifications.html)
+- [`00_general.ipynb`](./notebooks/00_general.ipynb): general utilities for error analysis.
+- [`01_tabular.ipynb`](./notebooks/01_tabular.ipynb): Iris dataset modelling error analysis; see also: [Pandas Queries in FiftyOne](https://docs.voxel51.com/tutorials/pandas_comparison.html)
+- [`02_image_classification.ipynb`](./notebooks/02_image_classification.ipynb): [Evaluating a Classifier in FiftyOne](https://docs.voxel51.com/tutorials/evaluate_classifications.html)
 
-### Utilities
+### General Utilities for Error Analysis
 
-Notebook: [`00_utils.ipynb`](./notebooks/00_utils.ipynb).
-
-
-### Pandas
-
-Notebook: [`01_pandas.ipynb`](./notebooks/01_pandas.ipynb) - [Pandas Queries in FiftyOne](https://docs.voxel51.com/tutorials/pandas_comparison.html).
+Notebook: [`00_general.ipynb`](./notebooks/00_general.ipynb).
 
 
-### Classification
+### Tabular Datasets
 
-Notebook: [`02_classification.ipynb`](./notebooks/02_classification.ipynb) - [Evaluating a Classifier in FiftyOne](https://docs.voxel51.com/tutorials/evaluate_classifications.html).
+Notebook: [`01_tabular.ipynb`](./notebooks/01_tabular.ipynb) - Iris dataset modelling error analysis.
 
+See also: [Pandas Queries in FiftyOne](https://docs.voxel51.com/tutorials/pandas_comparison.html).
+
+
+### Image Classification
+
+Notebook: [`02_image_classification.ipynb`](./notebooks/02_image_classification.ipynb) - [Evaluating a Classifier in FiftyOne](https://docs.voxel51.com/tutorials/evaluate_classifications.html)
 
 
 
@@ -82,4 +85,5 @@ Notebook: [`02_classification.ipynb`](./notebooks/02_classification.ipynb) - [Ev
 Interesting links:
 
 - [See What You Segment with SAM](https://medium.com/towards-data-science/see-what-you-sam-4eea9ad9a5de)
+- [From RAGs to Riches](https://medium.com/towards-data-science/from-rags-to-riches-53ba89087966)
 
