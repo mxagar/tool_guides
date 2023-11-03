@@ -1,1 +1,3 @@
 datasets/flowers
+datasets/cell_*
+notebooks/models/*
