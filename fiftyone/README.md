@@ -625,7 +625,7 @@ Notebook: [`03_image_embeddings.ipynb`](./notebooks/03_image_embeddings.ipynb) -
 
 ### Example: Flower Image Classification
 
-In some examples, for testing puposes, I used the [Flowers dataset](https://www.kaggle.com/datasets/imsparsh/flowers-dataset) from Kaggle, placed in the local folder `data/flowers` (not committed).
+This example was completely done by me, using the [Flowers dataset](https://www.kaggle.com/datasets/imsparsh/flowers-dataset) from Kaggle, placed in the local folder `data/flowers` (not committed).
 
 Additionally, instead of using the images of the dataset directly, I used image vectors created with SimCLR in my other repository [simclr_pytorch_flowers](https://github.com/mxagar/simclr_pytorch_flowers): `datasets/vectors_dataset.csv`. The CSV compiles for each image the following information:
 
@@ -635,6 +635,7 @@ Additionally, instead of using the images of the dataset directly, I used image 
 - `linear_pred`: prediction with downstream ANN
 - `embedding`: vector generated with SimCLR
 - `cluster`: a cluster value, which could be compared to an unsupervised class prediction.
+
 
 
 ## Further Information
