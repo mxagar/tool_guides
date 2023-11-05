@@ -19,6 +19,11 @@ Table of contents:
     - [Image Classification](#image-classification)
       - [Launch the Web UI](#launch-the-web-ui)
     - [Image Embeddings](#image-embeddings)
+      - [Visualize Embeddings and Selected Samples](#visualize-embeddings-and-selected-samples)
+        - [Visualization and Selection in the Web UI](#visualization-and-selection-in-the-web-ui)
+        - [Visualization and Selection in Interactive Notebook Plots](#visualization-and-selection-in-interactive-notebook-plots)
+        - [Pre-Annotations of Samples](#pre-annotations-of-samples)
+        - [Re-Load Previous Visualizations](#re-load-previous-visualizations)
     - [Example: Flower Image Classification](#example-flower-image-classification)
   - [Further Information](#further-information)
 
@@ -229,7 +234,9 @@ Some general considerations related to FiftyOne:
 - We should launch the UI app (running in the browser) once the dataset is uploaded to FiftyOne. There are at least two ways to do that:
   - In the code, using the SDK: `session = fo.launch_app(...)`
   - Via the CLI: `(env) fiftyone app launch <dataset_name>`
-- If we launch the UI app in the code, we have the advantage of getting the `session` object, which can be used to create filters in the code. However, I have experienced several issues when running it from a Jupyter notebook, thus I usually opted for the CLI way.
+- If we launch the UI app in the code, we have the advantage of getting the `session` object, which can be used to create filters in the code. However, if we use this approach:
+  - We should use Jupyter Lab notebooks, not VSCode; otherwise, we might have issues.
+  - We can click on "Create new View for Cell Output" and put the view side-by-side with our notebook code.
 
 ### Tabular Datasets
 
@@ -298,6 +305,11 @@ We can launch the FiftyOne UI app in several ways; the two most common ways:
     (label) fiftyone app launch "Iris_Error_Analysis"
     # Browser: http://localhost:5151
     ```
+
+Launching the UI in the code has the advantage of obtaining the `session` object, with which can do additional things. However, if we use this approach:
+
+- We should use Jupyter Lab notebooks, not VSCode; otherwise, we might have issues.
+- We can click on "Create new View for Cell Output" and put the view side-by-side with our notebook code.
 
 ### Image Classification
 
@@ -544,6 +556,11 @@ We can launch the FiftyOne UI app in several ways; the two most common ways:
     # Browser: http://localhost:5151
     ```
 
+Launching the UI in the code has the advantage of obtaining the `session` object, with which can do additional things. However, if we use this approach:
+
+- We should use Jupyter Lab notebooks, not VSCode; otherwise, we might have issues.
+- We can click on "Create new View for Cell Output" and put the view side-by-side with our notebook code.
+
 Basic usage of the UI:
 
 - Left frame: select tags / labels / primitives (features added in code)
@@ -621,7 +638,319 @@ session.view = (
 
 ### Image Embeddings
 
-Notebook: [`03_image_embeddings.ipynb`](./notebooks/03_image_embeddings.ipynb) - [Using Image Embeddings](https://docs.voxel51.com/tutorials/image_embeddings.html).
+Notebook: [`03_image_embeddings.ipynb`](./notebooks/03_image_embeddings.ipynb).
+
+Original tutorial:
+
+- [Using Image Embeddings](https://docs.voxel51.com/tutorials/image_embeddings.html)
+- [FiftyOne Embeddings Visualization](https://docs.voxel51.com/user_guide/brain.html#visualizing-embeddings)
+
+> Covered concepts:
+> - Loading datasets from the FiftyOne Dataset Zoo
+> - Using compute_visualization() to generate 2D representations of images
+> - Providing custom embeddings to compute_visualization()
+> - Visualizing embeddings via interactive plots connected to the FiftyOne App
+>
+> And we’ll demonstrate how to use embeddings to:
+> - Identify anomolous/incorrect image labels
+> - Find examples of scenarios of interest
+> - Pre-annotate unlabeled data for training
+
+In summary, the following animation from [FiftyOne](https://docs.voxel51.com/tutorials/image_embeddings.html#Using-Image-Embeddings) shows the use-case in favor of embeddings: we can plot in 2D image vectors, color them with the predicted class labels and select interactively the ones which seem to be incorrect. Then, those selected samples are filtered in the web UI of FiftyOne.
+
+![MNIST embedding selection](./assets/mnist-interactive-fiftyone.gif)
+
+```python
+## -- Upload Dataset: MNIST
+
+import fiftyone as fo
+import fiftyone.zoo as foz
+
+# Datasets downloaded to: C:\Users\Msagardi\fiftyone\mnist\
+# Additionally, this command creates a dataset in the FiftyOne database
+dataset = foz.load_zoo_dataset("mnist")
+
+# Load existing dataset
+# If we restart the notebook/session, we can load the dataset as follows
+import fiftyone as fo
+
+dataset = fo.load_dataset("mnist")
+print(dataset)
+
+# We start working with the test split, which contais 10k images
+test_split = dataset.match_tags("test")
+
+print(test_split)
+
+## --- Compute Image Embeddings
+
+import cv2
+import numpy as np
+
+import fiftyone.brain as fob
+
+# Construct a ``num_samples x num_pixels`` array of images
+# Usually, first we need to generate image vectors/embeddings with a DL model
+# and them apply UMAP/T-SNE to project them to 2D
+# However, since MNIST has so small images (28x28), we can ravel them and use them
+# as embedding vectors, passed to UMAP/T-SNE
+embeddings = np.array([
+    cv2.imread(f, cv2.IMREAD_UNCHANGED).ravel()
+    for f in test_split.values("filepath")
+])
+
+# Compute 2D representation
+# We can select one of the default methods
+# point to a model or a field in our dataset where vectors are stored
+# https://docs.voxel51.com/api/fiftyone.brain.html#fiftyone.brain.compute_visualization
+results = fob.compute_visualization(
+    test_split,
+    embeddings=embeddings,
+    num_dims=2,
+    method="umap", # "tsne", "pca", "manual"
+    brain_key="mnist_test",
+    verbose=True,
+    seed=51,
+)
+
+print(type(results))
+print(results.points.shape)
+```
+
+#### Visualize Embeddings and Selected Samples
+
+##### Visualization and Selection in the Web UI
+
+We can launch the FiftyOne UI app in several ways; the two most common ways:
+
+1. With code in our environment:
+
+    ```python
+    # dataset = test_split
+    session = fo.launch_app(view=test_split, desktop=True) # Browser: http://localhost:5151
+    session = fo.launch_app(view=test_split, desktop=False) # Embedded in Jupyter
+    ```
+
+2. In the CLI:
+
+    ```bash
+    # fiftyone app launch <dataset_name>
+    # Note that if we launch it via the CLI the entire dataset is loaded
+    # not only the test_split
+    (label) fiftyone app launch "mnist"
+    # Browser: http://localhost:5151
+    ```
+
+Note that the main use-case of embeddings is to be able to visualize them in a 2D projection in order to select samples that have dubious locations/labels. In that sense, take into account that we have a subset of smaples `test_split = dataset.match_tags("test")` for which we have generated the `embedding` vectors and uploaded to the dataset with `fob.compute_visualization()`.
+
+Launching the UI in the code has the advantage of obtaining the `session` object, with which can do additional things. However, if we use this approach:
+
+- We should use Jupyter Lab notebooks, not VSCode; otherwise, we might have issues.
+- We can click on "Create new View for Cell Output" and put the view side-by-side with our notebook code.
+
+If we launch the the app via the CLI loading the entire dataset, we need to:
+
+- Add a filter/stage `MatchTags(test)` to narrow down to the samples in `test_split`; i.e., we are reproducing the command  `test_split = dataset.match_tags("test")` but in the UI.
+- Create an `Embeddings` view in the tabs of the main frame, using:
+  - brain key: `mnist_test` - that was created with `fob.compute_visualization()`
+  - color by: `ground_truth.label`
+
+When the embeddings are visualized, we can select weird/bordeline samples and open the tab of the samples; there, we see which are those samples.
+
+Recall the basic usage of the UI:
+
+- Left frame: select tags / labels / primitives (features added in code)
+- Main frame: we can visualize several **panels**
+  - Samples: we can click on each of them and a detailed view is opened
+  - Histograms: we can select which vaiables to plot: labels, scalar values, etc.
+  - Embeddings: we can plot scatterplots that represent the dataset
+- We can add stages or filters, e.g.:
+  - `Limit(int)` takes the number of samples we specify
+  - `MatchTags(str)`: 
+  - `SortBy`
+  - ...
+
+![MNIST embedding and sample selection](./assets/mnist_embedding_selection.png)
+![MNIST embedding and sample selection](./assets/mnist_embedding_selection_samples.png)
+
+##### Visualization and Selection in Interactive Notebook Plots
+
+```python
+# Launch App instance from the code using the SDK
+# The advantage of this approach is that we get the session object
+# Recommendations:
+# - Use Jupyter lab
+# - Right click on this cell and select: "Create New View for Cell Output"
+# - Place cell output side-by-side
+# - Continue interacting with the UI using code! :)
+session = fo.launch_app(view=test_split)
+
+# Plot embeddings colored by ground truth label
+# Using the SDK interaction approach
+# we can plot a scatterplot of the embeddings (plotly)
+# zoom and select the weird samples
+# Then, the UI view is updated! :)
+# We can make use of the tools in plotly plots:
+# Zoom, lasso selection, label-based selection, etc.
+plot = results.visualize(labels="ground_truth.label")
+plot.show(height=720)
+
+# Attach plot to session
+session.plots.attach(plot)
+
+session.freeze()  # screenshots App and plot for sharing
+```
+
+![MNIST: Selection of embeddings side-by-side](./assets/mnist_embedding_selection_jupyter.png)
+
+##### Pre-Annotations of Samples
+
+```python
+# Let’s see how compute_visualization() can be used to efficiently pre-annotate the train split with minimal effort.
+# First, load existing dataset
+# If we restart the notebook/session, we can load the dataset as follows
+import fiftyone as fo
+
+dataset = fo.load_dataset("mnist")
+print(dataset)
+
+import cv2
+import numpy as np
+
+import fiftyone.brain as fob
+
+# Now, let's create embeddings for the entire dataset
+# Since MNIST images are so small, we ravel them and take their 28x28 pixel values as the embedding vectors
+# Construct a ``num_samples x num_pixels`` array of images
+embeddings = np.array([
+    cv2.imread(f, cv2.IMREAD_UNCHANGED).ravel()
+    for f in dataset.values("filepath")
+])
+
+# Compute 2D representation
+results = fob.compute_visualization(
+    dataset,
+    embeddings=embeddings,
+    num_dims=2,
+    method="umap",
+    brain_key="mnist",
+    verbose=True,
+    seed=51,
+)
+
+from fiftyone import ViewField as F
+
+# Of course, our dataset already has ground truth labels for the train split,
+# but let’s pretend that’s not the case
+# Label `test` split samples by their ground truth label
+# Mark all samples in `train` split as `unlabeled`
+expr = F("$tags").contains("test").if_else(F("label"), "unlabeled")
+labels = dataset.values("ground_truth", expr=expr)
+
+# Launch App instance from the code using the SDK
+# The advantage of this approach is that we get the session object
+# Recommendations:
+# - Use Jupyter lab
+# - Right click on this cell and select: "Create New View for Cell Output"
+# - Place cell output side-by-side
+# - Continue interacting with the UI using code! :)
+session = fo.launch_app(dataset)
+
+# Visualize results
+# The samples from both splits are visualized: train & test
+# The key is that the samples from the train split are labeled as "unlabeled"
+# Meanwhile, the samples from test have their correct labels: 0, 1, 2, ...
+# When we plot the embeddings using a UMAP projection
+# the regions are the same!
+# Therefore, we can select the "unlabeled" samples in each blob
+# and label/annotate them!
+# We use the plotly tools (un/select labels, box/lasso selection, etc.)
+plot = results.visualize(labels=labels)
+plot.show(height=720)
+
+# Attach plot to session
+session.plots.attach(plot)
+```
+
+When the plot is created, the samples from both splits are visualized: train & test. The key is that the samples from the train split are labeled as "unlabeled". Meanwhile, the samples from test have their correct labels: 0, 1, 2, ... When we plot the embeddings using a UMAP projection, the regions are the same! Therefore, we can select the "unlabeled" samples in each blob and label/annotate them! We use the plotly tools (un/select labels, box/lasso selection, etc.).
+
+The annotation process is as follows:
+
+- Plot both train & test
+- Hide "unlabeled", see blob labels
+- Hide labeled, visualize "unlabeled"
+- Select a blob in plotly with lasso
+- Samples are updated in the UI main frame
+- Click on "Tag" icon, provide a tag (e.g., 6 for a blob containing images of 6)
+- Apply to samples
+- Now, the `sample_tags` should have another tag: "6"
+
+```python
+# Take the train split that we pre-annotated
+# and print some statistics
+train_split = dataset.match_tags("train")
+
+# Print state about labels that were added
+print(train_split.count_sample_tags())
+
+# Converts the sample tags into Classification labels
+# in a new hypothesis field of the dataset
+# Add a new Classification field called `hypothesis` to store our guesses
+# https://docs.voxel51.com/user_guide/using_datasets.html#classification
+with fo.ProgressBar() as pb:
+    for sample in pb(train_split):
+        labels = [t for t in sample.tags if t != "train"]
+        if labels:
+            sample["hypothesis"] = fo.Classification(label=labels[0])
+            sample.save()
+
+# Print stats about the labels we created
+print(train_split.count_values("hypothesis.label"))
+
+# Imagine we do that for all classes
+# We still would have some samples which are not labeled
+# We can filter them and apply a tag manually!
+no_hypothesis = train_split.exists("hypothesis.label", False)
+print(no_hypothesis)
+
+# Export options:
+# https://docs.voxel51.com/user_guide/export_datasets.html
+
+# Export `hypothesis` labels as a classification directory tree format
+# `exists()` ensures that we only export samples with a hypothesis
+train_split.exists("hypothesis.label").export(
+    export_dir="/path/for/dataset",
+    dataset_type=fo.types.ImageClassificationDirectoryTree,
+    label_field="hypothesis",
+)
+
+# Export **only** labels in the `hypothesis` field as classification label
+# with absolute image filepaths
+train_split.exists("hypothesis.label").export(
+    dataset_type=fo.types.FiftyOneImageClassificationDataset,
+    labels_path="mnist_hypothesis.json",
+    label_field="hypothesis",
+    abs_paths=True
+)
+```
+
+##### Re-Load Previous Visualizations
+
+```python
+# If you provide the brain_key argument to compute_visualization(),
+# then the visualization results that you generate will be saved
+# and you can recall them later.
+# List brain runs saved on the dataset
+print(dataset.list_brain_runs())
+
+# Load the results for a brain run
+results = dataset.load_brain_results("mnist_test")
+print(type(results))
+
+# Load the dataset view on which the results were computed
+results_view = dataset.load_brain_view("mnist_test")
+print(len(results_view))
+```
 
 ### Example: Flower Image Classification
 
