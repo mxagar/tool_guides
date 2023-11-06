@@ -522,6 +522,7 @@ print(dataset.count_values("eval"))
 # Compute hardness
 # Identify samples that are more difficult for a model to learn
 # so that training can be more focused around these hard samples.
+# You need to have the logits!
 # https://docs.voxel51.com/user_guide/brain.html#sample-hardness
 import fiftyone.brain as fob
 
@@ -966,6 +967,397 @@ Additionally, instead of using the images of the dataset directly, I used image 
 - `linear_pred`: prediction with downstream ANN
 - `embedding`: vector generated with SimCLR
 - `cluster`: a cluster value, which could be compared to an unsupervised class prediction.
+
+#### 1. Load Dataset File
+
+```python
+import os
+from pathlib import Path
+import joblib
+
+import numpy as np
+import pandas as pd
+import ast
+
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+import fiftyone as fo
+import fiftyone.zoo as foz
+import fiftyone.brain as fob
+
+from sklearn.manifold import TSNE
+
+df = pd.read_csv('../datasets/vectors_dataset.csv')
+df['embedding'] = df['embedding'].apply(ast.literal_eval)
+
+def get_absolute_path(relative_path):
+    """
+    Given a relative file path,
+    resolve its absolute path.
+    """
+    base_path = Path.cwd()  # gets the current working directory
+    absolute_path = (base_path / relative_path).resolve()
+    return absolute_path
+
+def visualize_image(df, index, filepath_col="filepath"):
+    """
+    Visualizes an image given the index of the DataFrame row.
+    
+    Parameters:
+    - df: pandas DataFrame containing the file paths of images under the column filepath_col
+    - index: Index (int) of the DataFrame row containing the file path
+    - filepath_col (str): column nam ein df which contains the file paths; default: "filepath"
+    """
+    if index < 0 or index >= len(df):
+        raise ValueError("Index out of bounds")
+
+    # Assuming the 'filepath' column contains relative paths like '../datasets/flowers/train/daisy/image.jpg'
+    relative_image_path = df.iloc[index][filepath_col]
+    
+    # Convert to absolute path
+    absolute_image_path = get_absolute_path(relative_image_path)
+
+    # Load and display the image
+    img = mpimg.imread(absolute_image_path)
+    plt.imshow(img)
+    plt.axis('off')  # Hide the axis
+    plt.show()
+
+visualize_image(df,1000)
+
+# Convert 'filepath' to absolute paths
+df['filepath'] = df['filepath'].apply(get_absolute_path)
+```
+
+#### 2. Create FiftyOne Dataset and Visualize It
+
+```python
+DATASET_NAME = "flowers_dataset"
+
+# List all available datasets in FiftyOne
+dataset_list = fo.list_datasets()
+print(dataset_list)
+
+if DATASET_NAME in set(dataset_list):
+    fo.delete_dataset(DATASET_NAME)
+
+# Initialize FiftyOne dataset
+dataset = fo.Dataset(DATASET_NAME)
+print(fo.list_datasets())
+
+# Loop over DataFrame's rows and create FiftyOne samples
+for index, row in df.iterrows():
+    # Create FiftyOne sample
+    sample = fo.Sample(
+        filepath=row['filepath'],
+        ground_truth=fo.Classification(label=row['label']),
+        linear_pred=fo.Classification(label=row['linear_pred']),
+        # Add embedding as a FiftyOne vector field; must convert to a list
+        embedding=np.array(row['embedding']).tolist(),
+        # Convert cluster id to string before creating Classification
+        cluster=fo.Classification(label=str(row['cluster']))
+    )
+
+    # Add sample to dataset
+    dataset.add_sample(sample)
+
+# Launch the FiftyOne app
+# Right click on cell -> Create New View for Cell Output
+session = fo.launch_app(dataset)
+
+# Optional: Create 2D embeddings for visualization with UMAP or t-SNE
+# Extract embeddings into a numpy array
+embeddings = np.stack(df['embedding'].values)
+
+# Compute 2D embeddings
+tsne = TSNE(n_components=2, random_state=42)
+reduced_embeddings = tsne.fit_transform(embeddings)
+
+# Add 2D embeddings to the samples
+for sample, embedding_2d in zip(dataset, reduced_embeddings):
+    sample['embedding_tsne_2d'] = embedding_2d.tolist()
+    sample.save()
+
+# Save the dataset after all samples are added
+dataset.save()
+
+# Compute visual uniqueness
+# https://docs.voxel51.com/user_guide/brain.html#image-uniqueness
+# A model is downloaded for us and a scalar [0, 1]
+# related to the uniqueness of each image is computed
+# following different computations: embeddings, neighbors, etc.
+# Unique samples are vital in creating training batches
+# that help your model learn as efficiently and effectively as possible.
+fob.compute_uniqueness(dataset)
+
+# Delete the field from the dataset
+try:
+    dataset.delete_sample_field("embedding_2d")
+except AttributeError as err:
+    pass
+
+# Compute 2D representation
+# We can select one of the default methods
+# point to a model or a field in our dataset where vectors are stored
+# https://docs.voxel51.com/api/fiftyone.brain.html#fiftyone.brain.compute_visualization
+results = fob.compute_visualization(
+    dataset,
+    points=reduced_embeddings,
+    brain_key="flowers_tsne_2d",
+    verbose=True,
+    seed=51,
+)
+# Now, we can reload the UI frame
+# check the "Embeddings" tab in the main frame
+# There, we select the brain_key "flowers_tsne_2d"
+
+plot = results.visualize(labels="ground_truth.label")
+plot.show(height=720)
+
+# Attach plot to session:
+# necessary to interact with Plotly -> Web UI
+session.plots.attach(plot)
+```
+
+#### 3. Train Model and Evaluate Predictions
+
+```python
+import optuna
+from xgboost import XGBClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+def objective(trial):
+    param = {
+        'n_estimators': trial.suggest_int('n_estimators', 50, 1000),
+        'max_depth': trial.suggest_int('max_depth', 3, 25),
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+        'subsample': trial.suggest_float('subsample', 0.5, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
+        'min_child_weight': trial.suggest_int('min_child_weight', 1, 300),
+    }
+
+    clf = XGBClassifier(**param)
+
+    return cross_val_score(clf, X_train, y_train, n_jobs=-1, scoring='f1_macro', cv=3).mean()
+
+X = np.stack(df['embedding'].values)
+y_org = df['label'].values
+label_encoder = LabelEncoder()
+y = label_encoder.fit_transform(y_org)
+
+# Perform the split and get the indices
+X_train, X_test, y_train, y_test, indices_train, indices_test = train_test_split(
+    X,
+    y,
+    range(X.shape[0]),
+    test_size=0.2,
+    stratify=y,
+    random_state=42
+)
+
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=20)
+
+best_params = study.best_params
+print("Best params:", best_params)
+
+xgb_clf = XGBClassifier(**best_params)
+xgb_clf.fit(X_train, y_train)
+
+# Persist model
+model_filename = os.path.join("models", "xgboost_flowers.joblib")
+joblib.dump(xgb_clf,
+            model_filename)
+
+# Load persisted model
+xgb_clf = joblib.load(model_filename)
+
+# Get the predicted probabilities for each class
+train_probabilities = xgb_clf.predict_proba(X_train)
+test_probabilities = xgb_clf.predict_proba(X_test)
+
+def probabilities_to_logits(probabilities):
+    # This is an approximation and may not be accurate,
+    # especially for probabilities close to 0 or 1
+    # If we have access to the logits (like in a NN), we should use them
+    # The problem with XGBoost ist that we don't have logits,
+    # so we approximate them from the probabilities
+    probabilities = np.clip(probabilities, 1e-15, 1 - 1e-15)  # Avoid division by zero or log(0)
+    return np.log(probabilities / (1 - probabilities))
+
+# Create dictionaries to map from index to prediction,
+# including the probabilities
+train_predictions = {
+    idx: {
+        'label': label_encoder.inverse_transform([label])[0],
+        'confidence': confidence,
+        #'probabilities': probabilities.tolist(),
+        'logits': probabilities_to_logits(probabilities).tolist()
+    }
+    for idx, label, confidence, probabilities in zip(
+        indices_train,
+        np.argmax(train_probabilities, axis=1),
+        np.max(train_probabilities, axis=1),
+        train_probabilities
+    )
+}
+
+test_predictions = {
+    idx: {
+        'label': label_encoder.inverse_transform([label])[0],
+        'confidence': confidence,
+        #'probabilities': probabilities.tolist(),
+        'logits': probabilities_to_logits(probabilities).tolist()        
+    }
+    for idx, label, confidence, probabilities in zip(
+        indices_test,
+        np.argmax(test_probabilities, axis=1),
+        np.max(test_probabilities, axis=1),
+        test_probabilities
+    )
+}
+
+def add_predictions(df,
+                    dataset,
+                    train_predictions,
+                    test_predictions):
+    # Add predictions, probabilities, and tags to FiftyOne
+    for index, row in df.iterrows():
+        sample = dataset[str(row['filepath'])]
+        
+        if index in train_predictions:
+            pred = train_predictions[index]
+            sample.tags.append('train')
+        else:
+            pred = test_predictions[index]
+            sample.tags.append('test')
+        
+        # Store the probabilities alongside the label and confidence
+        sample['prediction'] = fo.Classification(
+            label=pred['label'],
+            confidence=float(pred['confidence']),
+            #probabilities=pred['probabilities']
+            logits=pred['logits']
+        )
+        sample.save()
+
+add_predictions(df,
+                dataset,
+                train_predictions,
+                test_predictions)
+
+session = fo.launch_app(dataset)
+
+```
+
+#### 4. Evaluate the Predictions
+
+```python
+import fiftyone as fo
+import fiftyone.brain as fob
+from fiftyone import ViewField as F
+
+def add_evaluation_tags_multiclass(dataset):
+    for sample in dataset:
+        ground_truth = sample['ground_truth'].label
+        prediction = sample['prediction'].label
+
+        # Determine if the prediction was correct
+        # Since we have a multi-class situation, we tag the samples as T/F
+        # We can determine TP, TN, FP, FN only in two cases:
+        # - in binary classifications
+        # - in multi-class classifications BUT only class-wise, using a one-vs-others scheme
+        if ground_truth == prediction:
+            sample.tags.append('T')  # Correct prediction
+        else:
+            sample.tags.append('F')  # Incorrect prediction
+
+        # Save the changes to the sample
+        sample.save()
+
+# Call the function to add evaluation tags for multi-class
+add_evaluation_tags_multiclass(dataset)
+
+# Evaluate the model's predictions
+# 'prediction' is the name of the field in which the model's predictions are stored
+# 'ground_truth' is the name of the field containing the ground truth labels
+results = dataset.evaluate_classifications(
+    "prediction", # field in which the model's predictions are stored
+    gt_field="ground_truth", # field containing the ground truth labels
+    eval_key="eval", # eval
+    #compute_mAP=True
+)
+
+# Aggregate metrics
+results.print_report()
+
+# Print the confusion matrix
+results.plot_confusion_matrix(backend="matplotlib")
+
+# Compute hardness
+# Identify samples that are more difficult for a model to learn
+# so that training can be more focused around these hard samples.
+# You need to have the logits!
+# https://docs.voxel51.com/user_guide/brain.html#sample-hardness
+fob.compute_hardness(dataset, "prediction")
+
+# Compute mistakenness
+# Automatically identify the potential ground truth mistakes in your dataset
+# https://docs.voxel51.com/user_guide/brain.html#label-mistakes
+fob.compute_mistakenness(dataset, "prediction", label_field="ground_truth")
+```
+
+##### Views / Filters
+
+```python
+# Re-Launch UI app
+session = fo.launch_app(dataset)
+
+# To visualize the worst-performing samples (e.g., false positives)
+view = dataset.filter_labels("prediction", F("label") != F("ground_truth.label"), only_matches=True)
+session = fo.launch_app(view=view)
+# ... OR
+session = fo.launch_app(dataset)
+session.view = (
+    dataset
+    .filter_labels("prediction", F("label") != F("ground_truth.label"), only_matches=True)
+)
+
+# Show most unique CORRECT predictions on test split
+session.view = (
+    dataset
+    .match_tags("test")
+    .match(F("predictions.label") == F("ground_truth.label"))
+    .sort_by("uniqueness", reverse=True)
+)
+
+# Show most unique INCORRECT predictions on test split
+session.view = (
+    dataset
+    .match_tags("test")
+    .match(F("predictions.label") != F("ground_truth.label"))
+    .sort_by("uniqueness", reverse=True)
+)
+
+# Show the HARDEST FALSES on test split
+# We can extend it to FP & FN if binary classification
+session.view = (
+    dataset
+    .match_tags("test")
+    .match(F("eval") == "False")
+    .sort_by("hardness", reverse=True)
+)
+
+# Show the most likely ANNOTATION MISTAKES on the train split
+session.view = (
+    dataset
+    .match_tags("train")
+    .sort_by("mistakenness", reverse=True)
+)
+```
 
 
 
