@@ -59,8 +59,9 @@ The tutorials are implemented in Jupyter notebooks, they are located in the [`no
 
 - [`00_general.ipynb`](./notebooks/00_general.ipynb): general utilities for error analysis.
 - [`01_tabular.ipynb`](./notebooks/01_tabular.ipynb): Iris dataset modelling error analysis; see also: [Pandas Queries in FiftyOne](https://docs.voxel51.com/tutorials/pandas_comparison.html)
-- [`02_image_classification.ipynb`](./notebooks/02_image_classification.ipynb): [Evaluating a Classifier in FiftyOne](https://docs.voxel51.com/tutorials/evaluate_classifications.html)
-- [`03_image_embeddings.ipynb`](./notebooks/03_image_embeddings.ipynb): [Using Image Embeddings](https://docs.voxel51.com/tutorials/image_embeddings.html).
+- [`02_image_classification.ipynb`](./notebooks/02_image_classification.ipynb): binary image classification with Malaria dataset from Kaggle - [Evaluating a Classifier in FiftyOne](https://docs.voxel51.com/tutorials/evaluate_classifications.html)
+- [`03_image_embeddings.ipynb`](./notebooks/03_image_embeddings.ipynb): MNIST image embeddings - [Using Image Embeddings](https://docs.voxel51.com/tutorials/image_embeddings.html).
+- [`04_flowers_classification.ipynb`](./notebooks/04_flowers_classification.ipynb): multi-class image classification using the Flowers dataset from Kaggle.
 
 ### General Utilities for Error Analysis (ndependent from FiftyOne)
 
