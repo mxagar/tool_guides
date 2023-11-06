@@ -795,7 +795,8 @@ session = fo.launch_app(view=test_split)
 plot = results.visualize(labels="ground_truth.label")
 plot.show(height=720)
 
-# Attach plot to session
+# Attach plot to session:
+# necessary to interact with Plotly -> Web UI
 session.plots.attach(plot)
 
 session.freeze()  # screenshots App and plot for sharing
@@ -868,7 +869,8 @@ session = fo.launch_app(dataset)
 plot = results.visualize(labels=labels)
 plot.show(height=720)
 
-# Attach plot to session
+# Attach plot to session:
+# necessary to interact with Plotly -> Web UI
 session.plots.attach(plot)
 ```
 
