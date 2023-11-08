@@ -15,6 +15,8 @@ The original repository of pip-tools [jazzband/pip-tools](https://github.com/jaz
   - As an alternative to `pip install`, we can use `pip-sync requirements.txt`: that will update our environment according to what's in `requirements.txt`; note: do not forget to `pip-compile` beforehand to have an updated `requirements.txt`.
   - We should commit to the repository both `requirements.in` (`pyproject.toml`) and `requirements.txt`.
 
+:warning: `pip-tools` does not handle different Python versions, i.e., we need to manually install and select the Python version we want to use!
+
 Table of contents:
 
 - [Pip-Tools Guide](#pip-tools-guide)
