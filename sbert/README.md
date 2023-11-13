@@ -58,6 +58,11 @@ For more related information, you can check these repositories of mine:
 - [deep_learning_udacity](https://github.com/mxagar/deep_learning_udacity)
 - [nlp_guide](https://github.com/mxagar/nlp_guide)
 
+Also, some other interesting links (not all of them checked):
+
+- [Large Language Models: SBERT — Sentence-BERT](https://medium.com/towards-data-science/sbert-deb3d4aef8a4)
+- [Large Language Models: BERT — Bidirectional Encoder Representations from Transformer](https://towardsdatascience.com/bert-3d1bf880386a)
+
 Mikel Sagardia, 2023.  
 Enjoy and link it if you find it useful.  
 No guarantees.  
