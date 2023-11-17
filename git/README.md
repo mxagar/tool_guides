@@ -6,5 +6,5 @@ Additionally, I have also created a summary of the most common git workflow when
 
 For more detailed explanations on how to use git in teams (with images), check: [Version Control in Teams](https://github.com/mxagar/mlops_udacity/blob/main/01_Clean_Code/MLOpsND_CleanCode.md#3-lesson-3-working-with-others-using-version-control).
 
-Mikel Sagardia, 2022.  
+Mikel Sagardia, 2020.  
 No guarantees.
