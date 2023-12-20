@@ -78,11 +78,14 @@ git pull origin dev
 git merge --no-ff dev
 git checkout feature/jira-XXX-concept
 git push origin
-# NOTE: one way to perform a "dry-run" merge is with the flag "--no-commit"
+# NOTE: Check conflicts befor merge:
+# One way to perform a "dry-run" merge is with the flag "--no-commit"
 # That way, the merge is not performed/committed, but instead it's checked for conflicts:
 # git merge --no-commit --no-ff dev
 # Then, if no conflicts/after resolving them, we finish the merge:
 # git merge --continue
+# Alternatively, if we want to 
+# git merge --abort
 
 # SECOND step: Merge locally our feature/jira-XXX-concept (where we are) to dev
 # The end result will be a 'dev' branch that incorporates our changes from feature/jira-XXX-concept
