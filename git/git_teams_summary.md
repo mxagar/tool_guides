@@ -84,7 +84,7 @@ git push origin
 # git merge --no-commit --no-ff dev
 # Then, if no conflicts/after resolving them, we finish the merge:
 # git merge --continue
-# Alternatively, if we want to 
+# Alternatively, if we want to cancel the merge
 # git merge --abort
 
 # SECOND step: Merge locally our feature/jira-XXX-concept (where we are) to dev
