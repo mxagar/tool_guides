@@ -72,20 +72,27 @@ git push origin
 # Git will create a new merge commit to record the resolution,
 # and both sets of changes will be incorporated into the 'dev' branch.
 git checkout dev
-git pull
+git pull # update dev locally
 git checkout feature/jira-XXX-concept
-git pull origin dev
-git merge --no-ff dev
+git pull # update feature branch locally
+# Perform a "dry-run" merge
+# i.e., the merge is not performed/committed, but instead it's checked for conflicts
+git merge --no-commit --no-ff dev
+# Then, if no conflicts/after resolving them, we finish the merge:
+git merge --continue # a commit will be prompted with a message
+# Alternatively, if we want to cancel the merge
+git merge --abort
+# Push changes
+git push origin feature/jira-XXX-concept
+# Or, alternatively:
 git checkout feature/jira-XXX-concept
 git push origin
-# NOTE: Check conflicts befor merge:
-# One way to perform a "dry-run" merge is with the flag "--no-commit"
-# That way, the merge is not performed/committed, but instead it's checked for conflicts:
-# git merge --no-commit --no-ff dev
-# Then, if no conflicts/after resolving them, we finish the merge:
-# git merge --continue
-# Alternatively, if we want to cancel the merge
-# git merge --abort
+# NOTE: ALTERNATIVELY, we can perform `git pull origin dev`
+# while you are on the feature/jira-XXX-concept branch
+# Then, git fetches the latest changes from the dev branch
+# and then merges them into the current branch (feature/jira-XXX-concept).
+# That operation includes a commit if the merge is successful.
+git pull origin dev
 
 # SECOND step: Merge locally our feature/jira-XXX-concept (where we are) to dev
 # The end result will be a 'dev' branch that incorporates our changes from feature/jira-XXX-concept
@@ -132,6 +139,66 @@ git pull origin
 git branch -D feature/jira-XXX-concept
 # and remotely, if not done automatically by Github/Gitlab
 git push origin --delete feature/jira-XXX-concept
+```
+
+## Artifacts, Binaries, Large Files
+
+Do not commit them to the repository!
+
+Alternatives:
+
+- Use model registries, artifactories, etc.
+- Use [Git LFS](https://git-lfs.com/)
+- Use [DVC](https://dvc.org/)
+
+### Git LFS
+
+[Git Large File Storage](https://git-lfs.com/):
+
+> Git Large File Storage (LFS) replaces large files such as audio samples, videos, datasets, and graphics with text pointers inside Git, while storing the file contents on a remote server like GitHub.com or GitHub Enterprise.
+
+Conditions to use LFS:
+
+- The host should have it installed (GitLab or GitHub).
+- The user needs to install it locally.
+- Any service which is using the repo needs to have it installed (e.g., runners that build container images with the repo).
+
+Local installation:
+
+```bash
+git install lfs
+```
+
+When committing artifacts/large binaries:
+
+```bash
+# We can track one file
+git lfs track filename
+
+# Or a pattern of files
+git lfs track "*.bin"
+
+# The git lfs track commands update the .gitattributes file
+git add .gitattributes
+git commit -m "Track *.bin files with Git LFS"
+
+# After those previous steps,
+# we can simply add & commit the large files
+git add your_large_file.bin
+git commit -m "Add a large binary file"
+git push origin
+```
+
+Note: we cannot track folders, but patterns of files, e.g.:
+
+```bash
+# Track
+git lfs track "large_files/*.bin"
+git lfs track "large_files/*.data"
+
+# Regular commits
+git add .gitattributes
+git commit -m "Track large files in large_files/ with Git LFS"
 ```
 
 ## Commit Messages: Best Practices
