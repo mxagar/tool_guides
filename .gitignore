@@ -9,7 +9,6 @@ token-drive.pickle
 token-sheets.pickle
 *.pth
 *.h5
-python_manual.txt
 .venv
 .pytest_cache
 eda_fe_summary
