@@ -363,6 +363,27 @@ Mikel Sagardia, 2020
 	git config --global user.signingkey <gpg-key-id>
 	git config --list
 
+	If we want to commit with different emails for different repos (e.g., Gitlab/work, Github/private)
+
+		first, we set the default email in CML
+			git config --global user.email "default_email@example.com"
+		
+		then, in the repos that should be committed with anothe email
+		we create a .gitconfig file with
+
+			[user]
+			    email = specific_email@example.com
+
+		finally, we modify our global .gitconfig in home to include:
+
+			[includeIf "gitdir:~/path/to/repo1/"]
+				path = ~/path/to/repo1/.gitconfig
+			[includeIf "gitdir:~/path/to/repo2/"]
+				path = ~/path/to/repo2/.gitconfig
+
+		i.e., we add the local .gitconfig files in the repos that should
+		be committed with another email
+
 ## Github: Intro
 
 	Repositories vs Projects
