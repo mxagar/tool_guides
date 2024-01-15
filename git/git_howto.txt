@@ -1009,6 +1009,7 @@ Mikel Sagardia, 2020
 			# Input
 			# - username
 			# - pw: token
+			# Or... only token, if option available
 
 			# Check that the credential is there!
 			# If we chose 'store', it should be there
