@@ -793,7 +793,6 @@ Mikel Sagardia, 2020
 
 		NOTE: to see the conversion from SSH keys to access token, see section "Access Tokens"!
 
-
 	Deal with .DS_Store correctly = ignore it
 
 		https://gist.github.com/lohenyumnam/2b127b9c3d1435dc12a33613c44e6308
