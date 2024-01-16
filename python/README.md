@@ -18,6 +18,7 @@ Finally, the following repository collects many other aspects related to softwar
 
 [python_software_engineering](https://github.com/mxagar/python_software_engineering)
 
+
 ## Interesting Links on Python Programming
 
 - [20 Python Concepts I Wish I Knew Way Earlier](https://blog.stackademic.com/20-python-concepts-i-wish-i-knew-way-earlier-40ed5674cd52)
