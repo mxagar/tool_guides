@@ -6,11 +6,13 @@ A summary/guide of the Python programming language is provided in
 
 Note that in that file I don't follow the Markdown format, but a personal style with indentations which I use for private documentation purposes.
 
-Additionally, the current folder contains other python templates/examples related to other libraries:
+Additionally, the current folder contains other python templates/examples related to other libraries or guides:
 
 - `pybind`: examples for binding C++ code/binaries to python 
 	- `pybind_example_00`: simple example based on the sample written by Alvaro; unfortunately, I am having some issues with it, probably related to my Anaconda distribution and my environments
-- ...
+- `automate`: examples from the course/tutorial/book by Al Sweigart ["Automate the Boring Stuff with Python"](https://www.udemy.com/course/automate/).
+- `export_conda_envs.sh`
+- ... :construction:
 
 Finally, the following repository collects many other aspects related to software engineering with Python:
 
