@@ -1,10 +1,13 @@
 # Git Version Control in Teams
 
-This file contains a summary of the most common git commands when working in teams (*fork-branch-merge* workflow) as well as best practices for git messages and *readme* files:
+This file contains a summary of the most common git commands and workflows when working in teams (*fork-branch-merge* workflow), among others:
 
-- [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow)
-- [Commit Messages: Best Practices](#commit-messages-best-practices)
-- [Readme: Best Practices](#readme-best-practices)
+- [Git Version Control in Teams](#git-version-control-in-teams)
+  - [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow)
+  - [Artifacts, Binaries, Large Files](#artifacts-binaries-large-files)
+    - [Git LFS](#git-lfs)
+  - [Commit Messages: Best Practices](#commit-messages-best-practices)
+  - [Readme: Best Practices](#readme-best-practices)
     - [Markdown 101](#markdown-101)
 
 ## Fork-Branch-Merge Workflow
