@@ -30,7 +30,17 @@ Table of contents:
   - [3. Cloud Service Types](#3-cloud-service-types)
     - [Serverless](#serverless)
   - [4. Core Architectural Components](#4-core-architectural-components)
-  - [5. Networking](#5-networking)
+    - [Regions, Region Pairs, Sovereign Regions](#regions-region-pairs-sovereign-regions)
+      - [Sovereign Regions](#sovereign-regions)
+    - [Availability Zones (AZ) and Data Centers](#availability-zones-az-and-data-centers)
+    - [Resources and Resource Groups](#resources-and-resource-groups)
+    - [Subscriptions](#subscriptions)
+    - [Management Groups](#management-groups)
+  - [5. Compute and Networking](#5-compute-and-networking)
+    - [Azure Functions](#azure-functions)
+    - [Azure Networking Services](#azure-networking-services)
+    - [Network Peering](#network-peering)
+    - [Public and Private Endpoints](#public-and-private-endpoints)
   - [6. Storage](#6-storage)
   - [7. Identity, Access and Security](#7-identity-access-and-security)
   - [8. Cost Management](#8-cost-management)
@@ -39,6 +49,14 @@ Table of contents:
   - [11. Monitoring](#11-monitoring)
   - [12. Demos](#12-demos)
     - [Create a Virtual Machine (Appetizer)](#create-a-virtual-machine-appetizer)
+  - [Extra: Azure Cloud Shell](#extra-azure-cloud-shell)
+  - [Extra: Azure CLI](#extra-azure-cli)
+  - [Extra: Azure Blob Storage](#extra-azure-blob-storage)
+  - [Extra: Azure Cognitive Search](#extra-azure-cognitive-search)
+  - [Extra: Azure Form Recognizer](#extra-azure-form-recognizer)
+  - [Extra: Azure Networking Basics](#extra-azure-networking-basics)
+  - [Extra: Azure Keyvaluts](#extra-azure-keyvaluts)
+  - [Extra: Azure OpenAI](#extra-azure-openai)
 
 ## 1. Introduction
 
@@ -372,11 +390,201 @@ There are primarily three types of cloud services, as introduced in the shared r
 
 ### Serverless
 
+It has become a *buzz word*: it is effectively another pricing model in which we pay for service, not for renting the HW. But of course there are servers behind!
 
+We don't pick the HW, concretely, but some size/compute capacity:
+
+- Examples of *non-serverless* payment for SQL DBs:
+  - DTU for Azure SQL DB (Data Transaction Unit): we can choose a DTU number withs corresponding price
+  - vCORE for Azure SQL DBs: in this case it is related to the number of CPU cores, and the larger the vCORE, the larger the price
+- Examples of *serveless* payment model: we don't have a table to choose the size/compute!
+  - Azure takes care of the necessary scaling and we pay, for instance, for CPU second.
+
+The advantage of servlerless is that if we don't use the service, we don't pay for it! However, **the price is not predicteble!**
+
+Serverless services:
+
+- Functions
+- Container Apps
+- Kubernetes
+- SQL DB
+- Cosmos DB
 
 ## 4. Core Architectural Components
 
-## 5. Networking
+### Regions, Region Pairs, Sovereign Regions
+
+Regions:
+
+- Areas of the world where MS has at least 3 data centers
+- Currently 60 world-wide, but we not always can use all of them (e.g., sometimes we need to live in the region, etc.)
+- Not necessarily countries, but can be; some countries have multiple regions
+- Each region has a **region pair**, to which the connection is the fastest
+  - We should use that pair for backups, etc.
+
+[2D/3D Azure Infrastructure Map](https://datacenters.microsoft.com/globe/explore)
+
+![Azure Infrastructure Map](./assets/azure_infra_map.jpg)
+
+- Light blue dots: regions
+- High speed connections under the see displayed
+- US has 9 regions (this can be modified)
+- New coming regions are gray dots
+
+Example: Canada:
+
+- It has 2 regions: Central & East
+- Data stored in these regions never leaves Canada; **however, that't not always like that**: Brazil has also a region, but the data leaves to the US. In fact, Brazil has a one-way pair to a US region.
+- Anyone can use these regions
+- These Canadian regions form a pair; as mentioned, each region has usually a pair - the exception is Qatar, which has a region *without* a pair.
+
+Every time we create a resource, we need to choose a region, and that affects the price.
+
+#### Sovereign Regions
+
+They are connected to a country/government. They are not connected to the Azure Public Cloud, and we need an approval to use them. They use different compliance standards. Many details of these sovereign regions are undisclosed.
+
+For instance, in the US:
+
+- We have the Azure Commencial / Public Cloud
+- But also other clouds:
+  - Azure Government
+  - Azure Government Secret: Secret operations (military)
+  - Azure Government Top Secret
+
+The Chinese Government has also Azure Sovereign Region(s).
+
+### Availability Zones (AZ) and Data Centers
+
+Availability Zones = physically separate locations within each Azure region. So we have several data centers connected with really high speed cables (5 ms delay):
+
+- They have their own separate building
+- Their own connection to the internet
+- Their own power supply
+- They don't rely on each other
+
+**IMPORTANT**:
+
+- Not all regions have availability zones; that requires having several data centers! If we are interested on deploying on a region with availability zones, we need to see which ones offer that.
+- Not all services support availability zones, although most do.
+
+![Availability Zones](./assets/azure_availability_zones.jpg)
+
+We have 3 types of Azure Zone Services:
+
+- Zonal Services
+  - You choose to deploy to a specific Availability Zone
+  - You should duplicate services in other zones
+  - Example: VMs
+- Zone-Redundant Services
+  - We don't worry about the zone to deploy to
+  - Automatic deployment across zones
+  - Example: Azure SQL DB
+- Always Available Services
+  - Global services, not specific to a region
+  - Example: Azure Portal, Azure Active Directory, Azure Front Door
+
+In some cases (Gateway, Load Balancer), we can choose the of zone deployment (zone or zone-redundant).
+
+### Resources and Resource Groups
+
+![Azure Management Groups](./assets/azure_management_groups.jpg)
+
+Azure distinguishes hierarchically between:
+
+- Resources: generic Azure service, the actual things that perform the work, e.g., VM, Storage Unit, DB, etc.
+  - They are named
+  - We can create them in the portal, CLI, etc.
+  - Region is generally necessary
+  - A resource has a unique subscription, where its cost is managed
+- Resource Groups: a logical group of resources, like a folder/container structure
+  - Usually they belong to a region, but the resources inside can be from other regions
+  - Recommendation: all resources should be linked, e.g., when one is deleted, all should be deleted, when one is deployed, all should, etc.
+  - One resource must belong to one resource group.
+  - Permissions can be assigned to groups.
+  - Any resource can access any other resource in another resource group; so there is no boundary implicitly implemented.
+- Subscriptions
+- Management Groups
+
+### Subscriptions
+
+Resource groups belong to **Subscriptions**. Subscriptios are **billing units**. User can have access to several subscriptions and have different roles in them.
+
+There are different types of subscriptions:
+
+- Free plan
+- Pay as you go
+- Enterprise Agreement (EA)
+- Free credits
+
+Big organizations have different subscriptions; usually, each subscription is for a different business unit; that makes easier:
+
+- To manage billing between different business units.
+- To manage security; e.g., marketing should not be able to access engineering.
+
+### Management Groups
+
+The subscriptions belong to **Management Groups**; the groups can also belong to other groups.
+
+![Azure Subscription Management](./assets/azure_subscription_management.jpg)
+
+We can assing different policies to different groups; that enhances security.
+
+## 5. Compute and Networking
+
+*Compute* means executing in the cloud.
+
+Compute services covered:
+
+- Virtual Machines (VM)
+- VM Scale Sets (VMSS)
+- App services (Web apps)
+- Azure Container Instances (ACI)
+- Azure Kubernetes Service (AKS)
+- Windows Virtual Desktop
+
+Virtual Machines (VM): The most basic compute
+
+- IaaS
+- Full control over it: OS, HW, etc.
+- It is virtual, not physical
+- AWS equivalent: EC2
+- We have over 700 VM tyoes, depending on CPU speed, core, RAM, disk size, etc.
+
+VM Scale Sets (VMSS):
+
+- Two or more VMs running the same code, with a load balancer in front to randomly direct traffic to one of the machines.
+- Example: website.
+- We can add/remove machines (autoscaling); **elasticity**.
+- We can handle up to 100 VMs in a scale set, and can be configuerd to handle 1000
+
+App services (Web apps):
+
+- Cloud-native approach to running code: we upload our code + configuration and Azure runs it.
+- No access/configuration of the underlying HW.
+- PaaS
+
+Azure Container Instances (ACI) & Azure Kubernetes Service (AKS):
+
+- Another new paradigm for running code.
+- Fastest and easiest to deploy.
+- Three main containers:
+  - Azure Container Instances (ACI): single instance
+  - Azure Container Apps: service with several containers beneath; like an App service, but with features of a Kubernetes cluster.
+  - Azure Kubernetes Service (AKS): cluster of servers; most complicated.
+
+Azure Windows Virtual Desktop:
+
+- Desktop windows running on the Cloud.
+- We access it viw the browser: we log in and everything is installed.
+
+### Azure Functions
+
+### Azure Networking Services
+
+### Network Peering
+
+### Public and Private Endpoints
 
 ## 6. Storage
 
@@ -438,5 +646,23 @@ Finally, we review, create and deploy it.
 Then, we can connect to it (RDP, SSH); open the VM resource in the Azure Portal and click on the `Connect` button for more information.
 
 A standard VM costs around 17 cents/h; however, it's charged by the second.
+
+## Extra: Azure Cloud Shell
+
+[Azure Cloud Shell Tutorial - Adam Marczak](https://www.youtube.com/watch?v=If4g2vVaiYk)
+
+## Extra: Azure CLI
+
+## Extra: Azure Blob Storage
+
+## Extra: Azure Cognitive Search
+
+## Extra: Azure Form Recognizer
+
+## Extra: Azure Networking Basics
+
+## Extra: Azure Keyvaluts
+
+## Extra: Azure OpenAI
 
 
