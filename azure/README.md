@@ -37,8 +37,13 @@ Table of contents:
     - [Subscriptions](#subscriptions)
     - [Management Groups](#management-groups)
   - [5. Compute and Networking](#5-compute-and-networking)
+    - [Most Important Compute Services](#most-important-compute-services)
     - [Azure Functions](#azure-functions)
     - [Azure Networking Services](#azure-networking-services)
+      - [Connectivity Services](#connectivity-services)
+      - [Protection Services](#protection-services)
+      - [Delivery Services](#delivery-services)
+      - [Monitoring Services](#monitoring-services)
     - [Network Peering](#network-peering)
     - [Public and Private Endpoints](#public-and-private-endpoints)
   - [6. Storage](#6-storage)
@@ -534,7 +539,7 @@ We can assing different policies to different groups; that enhances security.
 
 *Compute* means executing in the cloud.
 
-Compute services covered:
+### Most Important Compute Services
 
 - Virtual Machines (VM)
 - VM Scale Sets (VMSS)
@@ -580,7 +585,66 @@ Azure Windows Virtual Desktop:
 
 ### Azure Functions
 
+Azure Functions = Serverless compute offering:
+
+- Small pieces of code that can be run in the cloud.
+- Cheap and we don't care about infrastructure.
+- Simple/light utility functions (jobs): does something specific in a finite period of time.
+- Can be triggered by:
+  - HTTP call
+  - Timer
+  - Blob creation
+  - Message queue
+  - etc.
+
+Examples:
+
+- On a regular basis, moves all files from one container to another.
+- Every 6h, call an API that clears an external web cache.
+- Every tme a new message arrives, it creates 3 new messages in other three queues.
+- Every time a blob is updated, a notification email is sent.
+
 ### Azure Networking Services
+
+We always need a virtual network, which emulates a physical network between computers; e.g., in AWS it's called a Virtual Private Cloud (VPC). In Azure, it's called **Virtual Network** (VNet). Virtual networks are the most difficult part to understand; in general, we distinguish 4 types of networking services:
+
+- Connectivity Services
+- Protection Services
+- Delivery Services
+- Monitoring Services
+
+#### Connectivity Services
+
+The Virtual Network itself is the most important service.
+
+MS has a physical network (MS Global Network), so VNet is a SW-configured part of it.
+
+Other connectivity services:
+
+- Subnet: a subdivision of the VNet, each with specific security rules.
+- Virtual Private Network (VPN): we can connect 2 networks together as if they were on the same network; that's achieved witha network gateway. Similarly, we can connect 2 Azure VNets.
+- ExpressRoute: high-speed private connection to Azure.
+- DNS Services: we buy a domain name and Azure redirects our service to that URL.
+
+#### Protection Services
+
+- DDoS Protection
+- Azure Firewall
+- Network Security Groups
+- Private Link
+
+#### Delivery Services
+
+- Load Balancer: distribute traffic evely between multiple backend servers.
+- Application Gateway: higher level load balancer with optional firewall.
+- Content Delivery Network: stores common static files close to the user for perceived performance.
+- Azure Front Door Service: a load balancer, a CDN and a firewall all in one.
+
+#### Monitoring Services
+
+- Network watcher
+- ExpressRoute Monitor
+- Azure Monitor
 
 ### Network Peering
 
