@@ -21,7 +21,14 @@ Table of contents:
     - [Benefits of Cloud Computing](#benefits-of-cloud-computing)
       - [High Availability](#high-availability)
       - [Scalability](#scalability)
+      - [Elasticity](#elasticity)
+      - [Reliability](#reliability)
+      - [Predictability](#predictability)
+      - [Security](#security)
+      - [Governance](#governance)
+      - [Manageability](#manageability)
   - [3. Cloud Service Types](#3-cloud-service-types)
+    - [Serverless](#serverless)
   - [4. Core Architectural Components](#4-core-architectural-components)
   - [5. Networking](#5-networking)
   - [6. Storage](#6-storage)
@@ -164,6 +171,12 @@ In a nutshell:
 
 - High availability
 - Scalability
+- Elasticity
+- Reliability
+- Predictability
+- Security
+- Governance
+- Manageability
 
 #### High Availability
 
@@ -234,10 +247,130 @@ There are different types of scalings:
   - We have additional complexities for load balancing
   - It improves the systems availability
 
+Impact on system cost:
+
+- Cost increases linearly with the amount of resources
+- However, we can control our **maximum capacity** on the system easily, so we spend only th emoney we need to spend!
+
+#### Elasticity
+
+Ability of a system to **quickly and easily** scale up/down:
+
+- It needs to be automated: *autoscaling*; metrics are monitored (e.g., CPU usage) and scaling is managed, by modifying the **capacity**.
+- *Waste* resources are minimized: systems that are paid for and not used; in non-cloud environments, waste is much larger.
+
+#### Reliability
+
+A high quality service should be:
+
+- Available: accessible to the users when they need it.
+- Reliable: system performs as intended without interruption.
+  - We want to trust the system, which also requires transparency.
+  - Autoscaling is related to the reliability.
+  - Multiple-regions are also related to reliability.
+  - Backups.
+  - Health probes.
+- Predictable
+
+#### Predictability
+
+Ability to forecasr and control performance and behaviour of a system:
+
+- We have the confidence the system will work.
+- How is the predictability achieved?
+  - Autoscaling
+  - Load balancing
+  - Different instance types
+  - Cost management
+  - API
+  - Pricing calculators
+
+#### Security
+
+Coud providers are massive targets for hackers. Thus, the providers spend a lot of money to be secure. Among others:
+
+- They follow standard compliance certifications.
+- They go through audits.
+- They provide the users with tools to assure security (for apps and data).
+- There is an always-on DDoS (Denial of service attack).
+- There is a Microsoft Security Response Center (MSRC).
+- They have always up-to-date platform services.
+- Encryption by default.
+- There are many Azure tools to enhance our security, like Firewalls, etc.
 
 
+#### Governance
+
+Governance is about how the organization does business and how that is related to the cloud services, i.e., how these services interact with the business processes. It involves the definition, implementation and monitoring of the policies that shape that business-cloud interaction.
+
+Examples:
+
+- The company wants that given policies/measures are followed in the cloud.
+- Basic auditing and reporting is required.
+- Sometimes some standard compliance is required: GDPR, etc.
+
+How is governance achieved?
+
+- Azure Policy & Blueprint: we can add taging, metadata, etc.
+- Management groups: we can have management of different subscriptions.
+- Custom roles: we define roles with accesses to certain resources.
+- Soft delete: some data is sent to the trash, instead of deleting it (avoid accidental deletes).
+- Guides on best practices are provided.
+
+#### Manageability
+
+Management **of** the cloud and **in** the cloud. The *of* part is achieved by:
+
+- Templates
+- Automation
+- Scaling: autoscaling is possible for many resources.
+- Monitoring and alerts: notify resource status, traffic, etc.
+- Self-healing
+
+In the case of the managenet *in* the cloud, we achieve it with:
+
+- Web portal
+- CLI & scripts
+- Cloud Shell: in the we UI
+- APIs
+- Powershell
 
 ## 3. Cloud Service Types
+
+The term **I/P/S as a Service**:
+
+- It refers to something we could buy, but instead, we rent it.
+- If we wish, we don't need to commit to a given volume/amount; but we can, so prices are cheaper.
+- We pay for what we use.
+- The cloud provider is responsible for maintenance & Co.
+
+There are primarily three types of cloud services, as introduced in the shared responsibility model:
+
+- IaaS (Infrastructure as a Service) - VMs
+  - Usually, consists of real-world elements we could have on our data center, no abstracted products.
+  - Essential services: computing, storage, networking
+  - Example: Virtual Machines
+    - We pay them by the second
+    - We can choose different sizes
+  - Example: Azure Storage
+    - 5 PB capacity
+    - Very cheap
+    - Can handle blobs, files, queues, tables, etc.
+    - Can be configured as a data lake.
+  - Example: Virtual Networks
+    - No cost, but we do have bandwidth cost
+- PaaS (Platform) - Heroku / Docker container
+  - A layer on top of IaaS: middleware, development tools, DB server, etc.
+  - Example: Azure App Service
+    - We upload code and configuration to Azure, and it runs without needing to configure the VM undereath
+    - CI/CD included
+  - Example: Managed Storage - Azure SQL Database
+    - We don't have to worry about the server, the VM, disk space, etc.
+  - Example: Azure Front Door / Load Balancer / Firewall
+- SaaS (Software) - Apps / O365 / GDrive
+  - App is ready to be used.
+
+### Serverless
 
 ## 4. Core Architectural Components
 
