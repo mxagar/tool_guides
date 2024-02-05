@@ -372,6 +372,8 @@ There are primarily three types of cloud services, as introduced in the shared r
 
 ### Serverless
 
+
+
 ## 4. Core Architectural Components
 
 ## 5. Networking
