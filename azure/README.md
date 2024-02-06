@@ -44,6 +44,7 @@ Table of contents:
       - [Protection Services](#protection-services)
       - [Delivery Services](#delivery-services)
       - [Monitoring Services](#monitoring-services)
+    - [IP Adress Spaces and Subnets](#ip-adress-spaces-and-subnets)
     - [Network Peering](#network-peering)
     - [Public and Private Endpoints](#public-and-private-endpoints)
   - [6. Storage](#6-storage)
@@ -52,14 +53,20 @@ Table of contents:
   - [9. Governance and Compliance](#9-governance-and-compliance)
   - [10. Tools for Managing Deployments](#10-tools-for-managing-deployments)
   - [11. Monitoring](#11-monitoring)
-  - [12. Demos](#12-demos)
-    - [Create a Virtual Machine (Appetizer)](#create-a-virtual-machine-appetizer)
+  - [12. Basic Demos](#12-basic-demos)
+    - [Create a Virtual Machine (VM)](#create-a-virtual-machine-vm)
+    - [Connecting to a VM](#connecting-to-a-vm)
+    - [Create an Azure App Service - Web App](#create-an-azure-app-service---web-app)
+    - [Using Azure App services](#using-azure-app-services)
+    - [Create Azure Functions](#create-azure-functions)
+    - [Kubernetes and Azure Container Instances](#kubernetes-and-azure-container-instances)
+    - [Azure Container Apps](#azure-container-apps)
+    - [Deleting Azure Resources](#deleting-azure-resources)
   - [Extra: Azure Cloud Shell](#extra-azure-cloud-shell)
   - [Extra: Azure CLI](#extra-azure-cli)
   - [Extra: Azure Blob Storage](#extra-azure-blob-storage)
   - [Extra: Azure Cognitive Search](#extra-azure-cognitive-search)
   - [Extra: Azure Form Recognizer](#extra-azure-form-recognizer)
-  - [Extra: Azure Networking Basics](#extra-azure-networking-basics)
   - [Extra: Azure Keyvaluts](#extra-azure-keyvaluts)
   - [Extra: Azure OpenAI](#extra-azure-openai)
 
@@ -75,7 +82,7 @@ Requirements for the exam (study guide): [Exam AZ-900: Microsoft Azure Fundament
 - Describe Azure architecture and services
 - Describe Azure management and governance
 
-**Very IMPORTANT**: [Study Resources](https://softwarearchitect.ca/az-900-study-resources/):
+**Very IMPORTANT**: Study resource links are contained in the non-comitted file [`scott_duffy_resources.txt`](./scott_duffy_resources.txt):
 
 - Study guide
 - Slides
@@ -608,9 +615,9 @@ Examples:
 
 We always need a virtual network, which emulates a physical network between computers; e.g., in AWS it's called a Virtual Private Cloud (VPC). In Azure, it's called **Virtual Network** (VNet). Virtual networks are the most difficult part to understand; in general, we distinguish 4 types of networking services:
 
-- Connectivity Services
-- Protection Services
-- Delivery Services
+- Connectivity Services: Virtual Networks, subnets, etc.
+- Protection Services: Firewall, etc.
+- Delivery Services: Load Balancer, Gateway, etc.
 - Monitoring Services
 
 #### Connectivity Services
@@ -629,14 +636,14 @@ Other connectivity services:
 #### Protection Services
 
 - DDoS Protection
-- Azure Firewall
+- **Azure Firewall: it can apply rules to multiple subscriptions and virtual networks.**
 - Network Security Groups
 - Private Link
 
 #### Delivery Services
 
-- Load Balancer: distribute traffic evely between multiple backend servers.
-- Application Gateway: higher level load balancer with optional firewall.
+- **Load Balancer: distribute traffic evely between multiple backend servers.**
+- **Application Gateway: higher level load balancer with optional firewall.**
 - Content Delivery Network: stores common static files close to the user for perceived performance.
 - Azure Front Door Service: a load balancer, a CDN and a firewall all in one.
 
@@ -646,9 +653,65 @@ Other connectivity services:
 - ExpressRoute Monitor
 - Azure Monitor
 
+### IP Adress Spaces and Subnets
+
+When we create a VNet (Virtual Network), we usually define:
+
+- An **adress space**: the range(s) of possible IPs (left vertical panel when VNet selected).
+- **Subnets**: slices/parts in the adress space which will be assigned for given functionalities, being possible to configure each of them with different rules (left vertical panel when VNet selected).
+
+![Azure Portal: Virtual Network](./assets/azure_vnet.jpg)
+
+An IP address is made up of 32 bits, typically represented in four octets (4 groups of 8 bits), and since 8 bits are 2^8 = 255:
+
+`11111111.11111111.11111111.11111111 == 255.255.255.255`
+
+An adress space is a compact way of defining a set of IPs. For instance: `10.0.0.0/16`; that means:
+
+- The first adress in the set/space is `10.0.0.0` (but the first and last are usually reserved).
+- Since we have `/16`, the first 16 bits (8 + 8) of the adress are fixed, i.e., the adress space has 2^(32-16) = 65k adresses of the form `10.0.x.x`, being `x in [0,255]`.
+- Note that the first and last adresses are usually reserved, so the usable adress space is `10.0.0.1 - 10.0.255.254`.
+  - The first adress `10.0.0.0` is the network address.
+  - The last `10.0.255.255` is typically reserved as the broadcast address: this address allows networked devices to send communications to all other devices on the same subnet/space simultaneously.
+- The notation `/16` is equivalent to saying that *the subnet mask* is `255.255.0.0`: 255 means the octet is fixed and 0 that it is free.
+
+Given the adress space `10.0.0.0/16`, for instance, we could define a **subnet** like `10.0.0.0/24`, which means:
+
+- `/24`: first 3 octets are fixed, i.e., the range is reduced to `10.0.0.0 - 10.0.0.x` with `x in [0,255]`. So we would have 256 possible adresses.
+- Note that Azure reserves about 5 adresses for internal tasks. Thus, we end up having 251 usable adresses.
+
+We can create and name as many subnets we want (e.g., `default`, `backend`), as far as their adress ranges are within the adress space of the virtual network.
+
 ### Network Peering
 
+A resource group can have several virtual networks! However, note that those networks cannot communicate with each other by default. To achieve that, we need to do **network peering** = notify the different VNets that the other exists.
+
+Note that the different VNets can be in different regions, but then the fees for international/inter-region communications are paid in addition to intra-region fees.
+
+On the left vertical panel, we'll see **Peerings**, which allow 1 or 2-way communications between VNets. For instance, if we have `vnet1` and `vnet2`:
+
+    Choose one network, e.g.: vnet1
+    Left panel: Peerings > Add
+    We can create 1 or 2 links.
+    Each link (1->2 and 2->1) needs a name.
+      In *This virtual network*: vnet1_to_vnet2
+      In *Remote virtual network*: vnet2_to_vnet1
+    We can leave everything default.
+    Add.
+
+We can choose the other network and remove the create peering manually under peerings. That way, we'd have a one way connection only (1->2): Select Peering, `...`, Delete.
+
 ### Public and Private Endpoints
+
+Resources have a *Networking* configuration (shown during creation) which specifies whether it can be accessed from 
+
+- the outside (i.e., Internet): *Enable access from all networks*. However, authetication is still needed!
+- or selected VNets and IP adresses,
+- or the access is **disabled**. However, when we disable the access, we can still create **private endpoints**, i.e., private links to access the resource.
+
+For instance, we can create the resource **storage account** and allow access to it from our previous `vnet1`. Note that an endpoint is created in a selected VNet subnet for that communication.
+
+This is not only for storage account, but other resources, too.
 
 ## 6. Storage
 
@@ -662,13 +725,13 @@ Other connectivity services:
 
 ## 11. Monitoring
 
-## 12. Demos
+## 12. Basic Demos
 
 First, create an Azure account; I created one with the Github credentials.
 
 After that, we basically open the [Azure portal](https://portal.azure.com).
 
-### Create a Virtual Machine (Appetizer)
+### Create a Virtual Machine (VM)
 
 This very simple demo shows how easy it is to create a VM in Azure.
 
@@ -711,6 +774,20 @@ Then, we can connect to it (RDP, SSH); open the VM resource in the Azure Portal 
 
 A standard VM costs around 17 cents/h; however, it's charged by the second.
 
+### Connecting to a VM
+
+### Create an Azure App Service - Web App
+
+### Using Azure App services
+
+### Create Azure Functions
+
+### Kubernetes and Azure Container Instances
+
+### Azure Container Apps
+
+### Deleting Azure Resources
+
 ## Extra: Azure Cloud Shell
 
 [Azure Cloud Shell Tutorial - Adam Marczak](https://www.youtube.com/watch?v=If4g2vVaiYk)
@@ -722,8 +799,6 @@ A standard VM costs around 17 cents/h; however, it's charged by the second.
 ## Extra: Azure Cognitive Search
 
 ## Extra: Azure Form Recognizer
-
-## Extra: Azure Networking Basics
 
 ## Extra: Azure Keyvaluts
 
