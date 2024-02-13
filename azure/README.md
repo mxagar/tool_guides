@@ -38,6 +38,8 @@ Table of contents:
     - [Management Groups](#management-groups)
   - [5. Compute and Networking](#5-compute-and-networking)
     - [Most Important Compute Services](#most-important-compute-services)
+    - [Scaling Virtual Machines Using VM Scale Sets (VMSS)](#scaling-virtual-machines-using-vm-scale-sets-vmss)
+    - [](#)
     - [Azure Functions](#azure-functions)
     - [Azure Networking Services](#azure-networking-services)
       - [Connectivity Services](#connectivity-services)
@@ -568,7 +570,8 @@ VM Scale Sets (VMSS):
 - Two or more VMs running the same code, with a load balancer in front to randomly direct traffic to one of the machines.
 - Example: website.
 - We can add/remove machines (autoscaling); **elasticity**.
-- We can handle up to 100 VMs in a scale set, and can be configuerd to handle 1000
+- We can handle up to 100 VMs in a scale set, and can be configuerd to handle 1000.
+- To use this functinality, instead of creating a VM, we create a VM scale set, which can scale in/out.
 
 App services (Web apps):
 
@@ -589,6 +592,10 @@ Azure Windows Virtual Desktop:
 
 - Desktop windows running on the Cloud.
 - We access it viw the browser: we log in and everything is installed.
+
+### Scaling Virtual Machines Using VM Scale Sets (VMSS)
+
+### 
 
 ### Azure Functions
 
