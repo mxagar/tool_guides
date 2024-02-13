@@ -1,0 +1,8 @@
+numpy
+pandas
+Flask
+Flask-SQLAlchemy
+jupyter
+python-dotenv
+requests
+matplotlib

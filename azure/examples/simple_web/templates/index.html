@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flask Text App</title>
+</head>
+<body>
+    <h1>Submit Text</h1>
+    <form method="post">
+        <input type="text" name="content" required>
+        <button type="submit">Submit</button>
+    </form>
+    <h2>Last 5 Text Pieces</h2>
+    <ul>
+        {% for text in texts %}
+            <li>{{ text.id }}: {{ text.content }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
