@@ -4,8 +4,9 @@ This file contains a summary of the most common git commands and workflows when 
 
 - [Git Version Control in Teams](#git-version-control-in-teams)
   - [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow)
-  - [Artifacts, Binaries, Large Files](#artifacts-binaries-large-files)
+  - [Artifacts, Binaries, Large Files, Submodules](#artifacts-binaries-large-files-submodules)
     - [Git LFS](#git-lfs)
+    - [Git Submodules](#git-submodules)
   - [Commit Messages: Best Practices](#commit-messages-best-practices)
   - [Readme: Best Practices](#readme-best-practices)
     - [Markdown 101](#markdown-101)
@@ -144,15 +145,17 @@ git branch -D feature/jira-XXX-concept
 git push origin --delete feature/jira-XXX-concept
 ```
 
-## Artifacts, Binaries, Large Files
+## Artifacts, Binaries, Large Files, Submodules
 
-Do not commit them to the repository!
+Do not commit binaries to the repository!
 
 Alternatives:
 
 - Use model registries, artifactories, etc.
 - Use [Git LFS](https://git-lfs.com/)
 - Use [DVC](https://dvc.org/)
+
+Additionally, if you can separate the project into independent subprojects that can be re-used somewhere else, do it with submodules!
 
 ### Git LFS
 
@@ -203,6 +206,42 @@ git lfs track "large_files/*.data"
 git add .gitattributes
 git commit -m "Track large files in large_files/ with Git LFS"
 ```
+
+### Git Submodules
+
+Git submodules allow to have an isolated repository A within another repository B. Sometimes this is necessary, because both A and B are independent projects, but B uses A; a concrete example: 
+
+- repository B is a guide with many examples, one of them repository A,
+- the repository A is an example app which needs to be deployed using CI/CD tools and should not know B; additionally, the repository A can be used in many other cases, not only for the guide B.
+
+In the following, a concrete workflow is provided with two example repositories:
+
+- App repository A (submodule): [simple_web_app_test](https://github.com/mxagar/simple_web_app_test)
+- Guide repository B, aka. *host*: [tool_guides](https://github.com/mxagar/tool_guides)
+
+```bash
+# Go to the folder were we'd like to have the submodule
+cd .../tool_guides/azure/examples
+# Add external repository as submodule to the host repository
+git submodule add https://github.com/mxagar/simple_web_app_test simple_web_app_test
+# Initialize submodule -> .gitmodules is created in the root of the host/large repository
+git submodule update --init --recursive
+
+# Commit the .gitmodules file
+git add .
+git commit -m "Added the repository in simple_web_app_test as a submodule"
+git push
+
+# If the large/host repository is cloned somewhere else, we need to run an additional command
+git clone https://github.com/mxagar/tool_guides.git
+git submodule update --init --recursive
+```
+
+Usage:
+
+- If we use the CLI, inside the submodule folder, we're connected to the submodule repository; outside from it, we're connected to the host repository.
+- If we use an IDE (e.g., VSCode), we should see the 2 repositories in the git panel.
+
 
 ## Commit Messages: Best Practices
 
