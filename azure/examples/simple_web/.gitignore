@@ -1,0 +1,4 @@
+.env
+set_env.ps1
+venv
+instance

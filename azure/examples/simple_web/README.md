@@ -1,6 +1,6 @@
 # Simple Web App
 
-This repository contains a simple web app with a SQLite databse.
+This repository contains a simple web app with a SQLite databse used to test cloud deployment functionalities.
 
 :warning: The app is **for test puposes only**. You should not deploy an app in a container with the database inside, due to many reasons:
 
@@ -69,9 +69,9 @@ docker stop <id_or_name>
 
 ### Procfile
 
-Procfiles are used by [Heroku](https://www.heroku.com/), however, they can be used by other platforms.
+Procfiles are native to [Heroku](https://www.heroku.com/), however, they can be used by other platforms, too.
 
-We need to set [`Procfile`](./Procfile) with the correct `app:app` parameter, being `app:app == module_name:flask_app_instance`, e.g.:
+Any [`Procfile`](./Procfile) needs to be set with the correct `app:app` parameter, being `app:app == module_name:flask_app_instance`, e.g.:
 
 ```bash
 # Heroku
