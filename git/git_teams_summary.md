@@ -257,6 +257,10 @@ git commit -m "Updated submodule to the latest commit"
 git push
 ```
 
+To avoid those synchronization issues:
+
+- Work on the separate submodule in its separate project folder using another IDE.
+- Just pull the changes in the host repository to get the last version of the submodule.
 
 
 ## Commit Messages: Best Practices
