@@ -242,6 +242,22 @@ Usage:
 - If we use the CLI, inside the submodule folder, we're connected to the submodule repository; outside from it, we're connected to the host repository.
 - If we use an IDE (e.g., VSCode), we should see the 2 repositories in the git panel.
 
+Sometimes we might run into dis-synchronization in the large repository wrt. to the other one; in those cases, VSCode shows an inexsistent file with the name of the repository to be committed in the larger repo. In those cases, we need to update/re-synch.
+
+```bash
+# Go to the host root directory and get the submodule status
+cd .../tool_guides/
+git submodule status
+
+# Go to the host root directory and update the module
+git submodule update --remote azure/examples/simple_web_app_test
+# Commit the update & push
+git add azure/examples/simple_web_app_test
+git commit -m "Updated submodule to the latest commit"
+git push
+```
+
+
 
 ## Commit Messages: Best Practices
 
