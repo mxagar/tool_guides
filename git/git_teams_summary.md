@@ -242,7 +242,7 @@ Usage:
 - If we use the CLI, inside the submodule folder, we're connected to the submodule repository; outside from it, we're connected to the host repository.
 - If we use an IDE (e.g., VSCode), we should see the 2 repositories in the git panel.
 
-Sometimes we might run into dis-synchronization in the large repository wrt. to the other one; in those cases, VSCode shows an inexsistent file with the name of the repository to be committed in the larger repo. In those cases, we need to update/re-synch.
+Sometimes we might run into dis-synchronization in the large repository wrt. to the other one; in those cases, VSCode shows an inexsistent file with the name of the repository to be committed in the larger repo. To address this issue, we can just committ that file *or* we can update/re-synch the larger repository:
 
 ```bash
 # Go to the host root directory and get the submodule status
