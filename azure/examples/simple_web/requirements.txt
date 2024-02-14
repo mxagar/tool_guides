@@ -1,8 +1,8 @@
-numpy
-pandas
-Flask
-Flask-SQLAlchemy
-jupyter
-python-dotenv
-requests
-matplotlib
+Flask==3.0.2
+Flask-SQLAlchemy==3.1.1
+gunicorn==21.2.0
+requests==2.31.0
+numpy==1.26.4
+pandas==2.2.0
+#jupyter==1.0.0
+#matplotlib==3.8.2
