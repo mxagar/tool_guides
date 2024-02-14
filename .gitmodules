@@ -1,0 +1,3 @@
+[submodule "azure/examples/simple_web_app_test"]
+	path = azure/examples/simple_web_app_test
+	url = https://github.com/mxagar/simple_web_app_test
