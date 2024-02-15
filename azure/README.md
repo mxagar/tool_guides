@@ -64,6 +64,7 @@ Table of contents:
     - [Kubernetes and Azure Container Instances](#kubernetes-and-azure-container-instances)
     - [Azure Container Apps](#azure-container-apps)
     - [Deleting Azure Resources](#deleting-azure-resources)
+  - [Extra: Spending Limits](#extra-spending-limits)
   - [Extra: Azure Cloud Shell](#extra-azure-cloud-shell)
   - [Extra: Azure CLI](#extra-azure-cli)
   - [Extra: Azure Blob Storage](#extra-azure-blob-storage)
@@ -794,6 +795,16 @@ A standard VM costs around 17 cents/h; however, it's charged by the second.
 ### Azure Container Apps
 
 ### Deleting Azure Resources
+
+## Extra: Spending Limits
+
+Select Subscription > Budgets: Create/Add one; for instance:
+
+- Name, e.g., `HobbyBudget`
+- Amount: 10, monthly
+- Expiration date: +1 year
+- Alerts: add one, e.g., 90% of actual
+- Alert emails: xxx
 
 ## Extra: Azure Cloud Shell
 
