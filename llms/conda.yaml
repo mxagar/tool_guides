@@ -1,0 +1,24 @@
+name: llms
+channels:
+  - conda-forge
+  - defaults
+  - pytorch
+dependencies:
+  - python=3.9
+  - requests
+  - pip
+  - jupyter
+  - jupyterlab
+  - numpy
+  - pandas
+  - matplotlib
+  - pip:
+      - autopep8
+      - joblib
+      - pytest
+      - setuptools
+      - wheel
+      - python-dotenv
+      - openai
+      - instructor
+      - pydantic
