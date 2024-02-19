@@ -1,0 +1,7 @@
+.ipynb_checkpoints
+logs
+.env
+models
+daniel_llama.md
+bin
+*.log
