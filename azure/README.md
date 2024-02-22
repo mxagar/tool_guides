@@ -39,7 +39,7 @@ Table of contents:
   - [5. Compute and Networking](#5-compute-and-networking)
     - [Most Important Compute Services](#most-important-compute-services)
     - [Scaling Virtual Machines Using VM Scale Sets (VMSS)](#scaling-virtual-machines-using-vm-scale-sets-vmss)
-    - [](#)
+    - [App Services, Containers and Azure Virtual Desktop](#app-services-containers-and-azure-virtual-desktop)
     - [Azure Functions](#azure-functions)
     - [Azure Networking Services](#azure-networking-services)
       - [Connectivity Services](#connectivity-services)
@@ -49,6 +49,7 @@ Table of contents:
     - [IP Adress Spaces and Subnets](#ip-adress-spaces-and-subnets)
     - [Network Peering](#network-peering)
     - [Public and Private Endpoints](#public-and-private-endpoints)
+    - [Basic Demos](#basic-demos)
   - [6. Storage](#6-storage)
   - [7. Identity, Access and Security](#7-identity-access-and-security)
   - [8. Cost Management](#8-cost-management)
@@ -59,11 +60,12 @@ Table of contents:
     - [Create a Virtual Machine (VM)](#create-a-virtual-machine-vm)
     - [Connecting to a VM](#connecting-to-a-vm)
     - [Create an Azure App Service - Web App](#create-an-azure-app-service---web-app)
-    - [Using Azure App services](#using-azure-app-services)
+    - [Modifying and Using an Azure App Service - Web App](#modifying-and-using-an-azure-app-service---web-app)
     - [Create Azure Functions](#create-azure-functions)
     - [Kubernetes and Azure Container Instances](#kubernetes-and-azure-container-instances)
     - [Azure Container Apps](#azure-container-apps)
     - [Deleting Azure Resources](#deleting-azure-resources)
+  - [13. Examples](#13-examples)
   - [Extra: Spending Limits](#extra-spending-limits)
   - [Extra: Azure Cloud Shell](#extra-azure-cloud-shell)
   - [Extra: Azure CLI](#extra-azure-cli)
@@ -596,7 +598,30 @@ Azure Windows Virtual Desktop:
 
 ### Scaling Virtual Machines Using VM Scale Sets (VMSS)
 
-### 
+These are two or more virtual machines in which the same code is running and they have a load balancer in front. That way, we can scale the service they VM offers if the number of requests/users increases.
+
+Some features:
+
+- In a normal configuration, up to 100 VMs in a single Scale Set.
+- Can be configured to increase to 1000; if we need more, we create another Scale Set and put a load balancer in front of all.
+
+### App Services, Containers and Azure Virtual Desktop
+
+These services are more cloud native than VMs or VMSS.
+
+App Service, aka. Web App (PaaS):
+
+- We pass packaged code and configuration to Azure, and everything is set up.
+- Performance is promised, but no access to HW.
+- Example: [simple_web_app_test](https://github.com/mxagar/simple_web_app_test). In that example, I link a repository to Azure.
+
+Container Services:
+
+- Azure Container Instance: easiest version
+- Azure Container Apps: container version of web apps
+- Azure Kubernetes Service
+
+Azure Virtual Desktop: Desktop version of Windows that runs in the cloud.
 
 ### Azure Functions
 
@@ -721,6 +746,10 @@ For instance, we can create the resource **storage account** and allow access to
 
 This is not only for storage account, but other resources, too.
 
+### Basic Demos
+
+Basic demos are explained in section [12. Basic Demos](#12-basic-demos).
+
 ## 6. Storage
 
 ## 7. Identity, Access and Security
@@ -746,24 +775,47 @@ This very simple demo shows how easy it is to create a VM in Azure.
 In [Azure portal](https://portal.azure.com), look for `Virtual Machines`: Create, Fill in form: 
 
     Basics
-        Location
-        Resource Group
+        Subscription: billing account
+        Location/Region
+          Not all regions offer all services, sometimes we need to check them
+        Resource Group: every resource goes to a group
         Name
-        Operating System
-        Security Type
-        VM architecture: Windows, Linux
+        Operating System: Windows, Linux (the most chosen)
+        Availability options: we can choose to deploy redundant instances -> Zone / VMSS / etc.; we can take None for this example
+          Availability zones: if Zone chosen as availability option, we can select the number oz available zones in the Region
+        Security Type: Standard; we can upgrade to Trusted if needed
+        Image
+          There are 9k images! Click on See all images
+          In most cases we have an OS + a concrete SW running on top: SQL server, etc. Sometimes licensing options are provided.
+          Examples
+            Windows Server 2022
+            Ubuntu Server 22.04 LTS
+        VM architecture
+          Arm64: power-efficient new arch (e.g., Apple M1/2), gaining popularity
+          x64: typical desktop arch, most extended
+        Size: vCPU & RAM
+          See all sizes
+          Select appropriate; the bigger, the larger the cost
+          Standard B1
         Spot instances: free VMs assigned, but can also be evicted (cheaper)
-        Size
-        Username, Password (if Windows VM)
-        Inbound Ports: SSH (Linux), RDP (WIndows), HTTP (80), HTTPS (443)
+        Authentication type / Administrator account
+          Username, Password (if Windows VM, optional in Linux)
+            azuser
+        Inbound Ports: 
+          SSH (Linux), RDP (Windows), HTTP (80), HTTPS (443)
+          If we want a web server, we need all those
     Disk
         Hard Disk: SSD, etc.
+        Disks independently of VMs, we can choose to keep them 
+          https://learn.microsoft.com/en-us/azure/virtual-machines/delete
+        We can leave the defaults if we want
     Networking
-        Virtual Network
-        Subnet
-        Public IP
+        Virtual Network (created a new by default)
+        Subnet (created a new by default)
+        Public IP (created a new by default)
         Load balancers
         ...
+        We can leave the defaults
     Management
         Antivirus
         Auto-shutdown
@@ -771,22 +823,122 @@ In [Azure portal](https://portal.azure.com), look for `Virtual Machines`: Create
         OS Updates
     Monitoring
         OS dignostics
+        Boot diagnostics: disable!
     Advanced
         ...
     Tags
         Phone number, etc.
 
-Finally, we review, create and deploy it.
+Finally, we `Review + Create`, `Create` and it is deployed.
 
 Then, we can connect to it (RDP, SSH); open the VM resource in the Azure Portal and click on the `Connect` button for more information.
 
-A standard VM costs around 17 cents/h; however, it's charged by the second.
+A standard VM costs around 2-17 USD cents/h; however, it's charged by the second.
+
+After the VM is created, we can go to its RG (Resource Group) and check all the resources associated to it:
+
+- The VM itself
+- The VNet (virtual network)
+- The Network Security Group
+- The Public IP
+- The Network interface
+- ...
+
+![VM Resource Group](./assets/vm_rg.jpg)
+
+We can open the VM resource and check its status or tune its settings:
+
+- We see it's running
+- We see its public IP adress
+- We can change the size (it stops and starts the VM again)
+- ...
 
 ### Connecting to a VM
 
+Once the VM has been created as explained in the section above, we can connect to it.
+
+We go to the VM, click on `Connect`.
+
+If the instance is a Windows Server: **RDP connection**:
+
+- A file is donwloaded, we execute it and we can see the Windows desktop in the browser.
+  - We need to introduce our username + pw (the ones we created)
+- The first time a Windows server is started the configuration is launched (Server manager); we could configure it to be a web server.
+
+If the instance is a Linux, we can connect in 2 ways:
+
+- SSH using Azure CLI: in Azure portal, using the Azure CLI
+- **Native SSH**: on the local machine
+  - A SSH key is necessary, even if we have chosen user+pw authentication
+  - If we don't have an SSH key, we create one and it is donwloaded, e.g.: azure-key-test.pem
+  - We place it in `~/.ssh`
+  - Then, we open a Terminal an ssh into the VM using the Public IP
+
+```bash
+# Download the SSH key to ~/.ssh/azure-key-test.pem
+ssh -i ~/.ssh/azure-key-test.pem azuser@<Public-IP>
+# If we have specified a username + pw, we are prompted to introduce the PW
+```
+
 ### Create an Azure App Service - Web App
 
-### Using Azure App services
+Web apps are more abstracted components, PaaS: We simply deploy our code and configuration.
+
+We click on `Create > Web App`.
+
+As for the VM, the definition parameters need to be set:
+
+    Basics
+      Subscription
+      Resource Group
+      Name
+        The name needs to be unique, since we get a DNS based on it
+        E.g., yet-another-web-app.azurewebsite.net
+      Publish: we can choose between
+        [x] Code
+        [ ] Docker Container
+        [ ] Static Web App
+      Runtime stack: we can choose basically the main language + version
+        Python, Java, PHP, .NET, Node
+      Region
+      Pricing Plan: F1 (Free) / B1 (Basic) / ...
+        The prices depend on the capabilities of the plan
+        The plans are listed according to ACUs = Azure Compute Units
+        We can see how much powerful a plan is compared to another by checking their ACU values
+      Zone redundancy
+        Obly for the Premium options
+        Disabled
+    Database
+      Not for free plans, but available for basic
+    Deployment
+      We can connect a Github repo so that we apply CI/CD
+      Not for free plans, but available for basic.
+    Networking
+      We can enable public access or not: usually a web app is accessible from the Internet
+      Enable network injection: we can disable internet access and enable access from another Azure VNet
+        Not for free plans, but available for basic.
+    Monitoring
+      Disable
+    Review + Create, Create
+      The B1 plan costs 13 USD / Month
+
+### Modifying and Using an Azure App Service - Web App
+
+Once the App Service / Web App has been deployed, we can go to its resource group to check all its related resources:
+
+![Web App: Resource Group](./assets/web_app_rg.jpg)
+
+If we click on the web app itself, we interact with it can modify many things of it:
+
+- **Scale up** app service plans (left menu): basic -> standard -> premium
+- **Scale out** (left menu): manual/automatic number of instances, etc. We can set some scaling rules, e.g.: scale up/down if x% of CPU is used, etc.
+- We can open a web **SSH** to it (left menu)
+- **Deployment slots**: if we have a Standard/Premium plan, we can deploy more than one web app simultaneously; use cases:
+  - One version could be dev, the other prod.
+  - We can control the % of traffic that goes to each other, so we perform A/B testing
+  - ...
+
+![Web App: Scale App Service Plan](./assets/web_app_scale.jpg)
 
 ### Create Azure Functions
 
@@ -795,6 +947,10 @@ A standard VM costs around 17 cents/h; however, it's charged by the second.
 ### Azure Container Apps
 
 ### Deleting Azure Resources
+
+## 13. Examples
+
+The folder [`examples`](./examples/) is a stand-alone directory which contains independent practical examples, explained in the `README.md` located in there.
 
 ## Extra: Spending Limits
 
@@ -809,6 +965,8 @@ Select Subscription > Budgets: Create/Add one; for instance:
 ## Extra: Azure Cloud Shell
 
 [Azure Cloud Shell Tutorial - Adam Marczak](https://www.youtube.com/watch?v=If4g2vVaiYk)
+
+A storage is created whenever we enable the Azure Cloud Shell. That storage persists across different Cloud Shell sessions, so we can have different scripts stored in it, associated to our account. The Azure Cloud Shell is free, but the storage not; however, the cost should be minimal if we don't save many things in it.
 
 ## Extra: Azure CLI
 
