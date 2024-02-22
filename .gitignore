@@ -1,5 +1,5 @@
 build
-.vscode
+
 .ipynb_checkpoints
 .DS_Store
 __pycache__
@@ -16,3 +16,4 @@ machine_learning_ibm
 deep_learning_udacity
 data_science_udacity
 mlops_udacity
+.python_packages
