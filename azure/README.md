@@ -942,7 +942,73 @@ If we click on the web app itself, we interact with it can modify many things of
 
 ### Create Azure Functions
 
+Another even more abstracted method than web apps are Azure Functions.
+
+We click on `Create > Web App`.
+
+    Basics
+      Subscription
+      Resource Group
+      Name
+        The name needs to be unique, since we get a DNS based on it
+        E.g., yet-another-azure-function.azurewebsite.net
+      Publish: we can choose between
+        [x] Code
+        [ ] Container Image: we can even create our own images and used them!
+      Runtime stack: we can choose basically the main language + version
+        Python, Java, PHP, .NET, Node, etc.
+      Region
+      Operating System
+      Hosting plan: how we are charged, how it scales
+        [x] Consumption: Serverless: we don't need to care about anything; for event-driven workloads
+          That's the ideal choice for Functions
+        [ ] Functions premium: for workloads running continuously
+        [ ] App service plan: functions co-located with app services; similar to an app service
+    Networking
+      We can enable public access or not: usually a Function is accessible from the Internet
+      Enable network injection: we can disable internet access and enable access from another Azure VNet
+        Available only starting at Function premium.
+    Monitoring
+      Disable
+    Deployment
+      We cann connect our Github account + repo & branch
+      to perform Continuous deployment.
+      We leave it without connection for this example, since we will write the code another way.
+    Review + Create, Create
+      The B1 plan costs 13 USD / Month
+
+We haven't written the function code yet, but the Azure Function is deployed. Now, we open the Function resource in the portal and select to write the code with VSCode:
+
+- We sign in to MS Azure using VSCode.
+- We need to have the Azure extension on VSCode
+
+Then, we are brought to the site [Develop Azure Functions by using Visual Studio Code](https://learn.microsoft.com/en-us/azure/azure-functions/functions-develop-vs-code?tabs=node-v3%2Cpython-v2%2Cisolated-process&pivots=programming-language-python), which explains to to proceed in VSCode by creating a new Function locally.
+
+Basically:
+
+- We create a local Function in a desired folder
+- Select a language: Python
+- Select a programming model: V2
+- Select a Python interpreter
+- Select a typo of trigger: Functions have a trigger which makes them run:
+  - [x] HTTP trigger: when we open the URL, they run
+  - [ ] Blob
+  - [ ] CosmoDB
+  - [ ] EventGrid
+  - [ ] Timer
+  - [ ] ...
+- Name: `http_trigger`
+- Authorization: Function (usual), Anonymous (anyone can access/use it), Admin
+- Then, the Function environment is created with an example Python file.
+
+![Azure VSCode Function](./assets/azure_vscode_function.png)
+
+I guess that when we modify it  
+
+
 ### Kubernetes and Azure Container Instances
+
+
 
 ### Azure Container Apps
 
