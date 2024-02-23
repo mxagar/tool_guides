@@ -832,13 +832,37 @@ See Section [12. Basic Demos](#12-basic-demos).
 
 ### Azure Files and Azure File Sync
 
+In contrast to blob containers, Azure Files is the true hierarchical structure of a file system; it supports SMB (cross-platform) and NFS (Linux). We can mount it locally on our OS as a volume.
 
+This is like a file server on the cloud, not on premises (prem); and we get additional benefits, like redundancy, recovery, failover, etc.
+
+Azure File Sync is another related service which enables cloud tiering:
+
+- Most used files are local (e.g., 20 GiB)
+- Rest of files are on the cloud (20 TB, so hybrid storage)
+- We can configura distributed access, backups, etc.
 
 ### Azure Migrate
 
+It mighth be ambitious to move to the cloud. Azure Migrate is for that: it guides us.
+
+We can look for Azur Migrate in the search bar and see its features.
+
+![Azure Migrate](./assets/azure_migrate.jpg)
+
 ### Azure Data Box
 
+Sometimes it is in-practical to upload huge amounts of data to the cloud. Therefore, Azure hase some HW options to upload data:
+
+- Data box: 100 TB
+- Data box disk: 8TB
+- Data box heavy: 1 PB
+
+These are basically HW pieces which are used to locally: we upload data to them much faster than using the Internet. Then, the HW is shiped to Azure/MS data centers.
+
 ## 7. Identity, Access and Security
+
+
 
 ## 8. Cost Management
 
