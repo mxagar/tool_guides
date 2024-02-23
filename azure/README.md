@@ -51,6 +51,12 @@ Table of contents:
     - [Public and Private Endpoints](#public-and-private-endpoints)
     - [Basic Demos](#basic-demos)
   - [6. Storage](#6-storage)
+    - [Overview of Azure Storage](#overview-of-azure-storage)
+    - [Azure Blob Storage](#azure-blob-storage)
+    - [Azure Storage Demos](#azure-storage-demos)
+    - [Azure Files and Azure File Sync](#azure-files-and-azure-file-sync)
+    - [Azure Migrate](#azure-migrate)
+    - [Azure Data Box](#azure-data-box)
   - [7. Identity, Access and Security](#7-identity-access-and-security)
   - [8. Cost Management](#8-cost-management)
   - [9. Governance and Compliance](#9-governance-and-compliance)
@@ -62,9 +68,9 @@ Table of contents:
     - [Create an Azure App Service - Web App](#create-an-azure-app-service---web-app)
     - [Modifying and Using an Azure App Service - Web App](#modifying-and-using-an-azure-app-service---web-app)
     - [Create Azure Functions](#create-azure-functions)
-    - [Kubernetes and Azure Container Instances](#kubernetes-and-azure-container-instances)
-    - [Azure Container Apps](#azure-container-apps)
-    - [Deleting Azure Resources](#deleting-azure-resources)
+    - [Create Azure Container Instances](#create-azure-container-instances)
+    - [Create Azure Container Apps](#create-azure-container-apps)
+    - [Create an Unmanaged Storage Account](#create-an-unmanaged-storage-account)
   - [13. Examples](#13-examples)
   - [Extra: Spending Limits](#extra-spending-limits)
   - [Extra: Azure Cloud Shell](#extra-azure-cloud-shell)
@@ -752,6 +758,81 @@ Basic demos are explained in section [12. Basic Demos](#12-basic-demos).
 
 ## 6. Storage
 
+Recall the 3 pillars:
+
+- Compute
+- Networking
+- **Storage**
+
+### Overview of Azure Storage
+
+We have
+
+- Unmanaged storage: General Purpose Storage = Blob
+- Managed storage: Disk storage = Virtual HDs
+- File storage
+- Storage tiers
+
+Storage is considered IaaS.
+
+**Unmanaged Azure Storage: General Purpose Storage (GPv2)**
+
+- Aka. "Standard storage"
+- Four types of data:
+  - Container
+  - File
+  - Queue
+  - Table
+- Up to 5 PT = 5 million GB
+- Pay per use: 2 cents / GB / month: very cheap
+- Not recommended for high demand workloads, like a DB
+- We get the option to create a **Data lake**:
+  - Extremely large storage, up to exabytes (beyond 3 PB)
+  - Good for big data analytics
+- We also have Premium storage options (for high performance requirements)
+  - We can choose between
+    - Blob storage: page/block blobs, BLOB = Binary Large OBjects = images, video, audio, etc. Unstructured data.
+    - File storage
+  - We get
+    - premium SSDs
+    - triple the operations/second
+    - lower latency
+    - more cost!
+  - The highest premium typpe is Ultra, usually not used.
+
+### Azure Blob Storage
+
+Probably the most famous type os storage.
+
+BLOB = Binary Large OBjects: It means basically any kind of file: PDF, ZIP, JPEG, AVI, ... and also, TXT, CSV, XLSX, ...
+
+Main features:
+
+- Data is stored in so called *containers* (not like Docker containers!); these are like buckets: these are like folders; each container contains blobs
+- We have unstructured data
+- Can be public/private
+- We pay only what we use
+- Amazon equivalent: S3
+- We can choose the desired region: keep the data close to the compute that uses it; costs vary for each location.
+- Redundancy: Azure keeps 3 copies of the data by default (locally or in zone).
+  - We can choose the option of Global redundancy: 6 copies = 3 locally, 3 in another region.
+  - Failover happens automatically behind the scenes: we don't notice if a disk has a failure, our data is save due to the other copies.
+- Access tiers: scale of price depending on how access is easier or not
+  - Hot: default, continuous access
+  - Cool: cheaper storage, not that frequent access, but more expensive read/write
+  - Cold: yet cheaper, less frequent access.
+  - Archive: offline (cheapest). It takes several hours to find the files.
+
+### Azure Storage Demos
+
+See Section [12. Basic Demos](#12-basic-demos).
+
+### Azure Files and Azure File Sync
+
+### Azure Migrate
+
+### Azure Data Box
+
 ## 7. Identity, Access and Security
 
 ## 8. Cost Management
@@ -767,6 +848,12 @@ Basic demos are explained in section [12. Basic Demos](#12-basic-demos).
 First, create an Azure account; I created one with the Github credentials.
 
 After that, we basically open the [Azure portal](https://portal.azure.com).
+
+This section is very interesting, because we see in practice the features of the difference services/resources.
+
+Very important to avoid unwanted costs! Delete the created resources, if not used:
+
+    Open each Resource Group > Delete resource group!
 
 ### Create a Virtual Machine (VM)
 
@@ -1003,16 +1090,133 @@ Basically:
 
 ![Azure VSCode Function](./assets/azure_vscode_function.png)
 
-I guess that when we modify it  
+**However**, I have not managed to upload/deploy the local Function to the Azure instance yet! Maybe the best idea is to link a Github repository or use a container instead of code...?
 
+### Create Azure Container Instances
 
-### Kubernetes and Azure Container Instances
+We can also use containers in Azure, actually in several ways:
 
+- Web apps support containers
+- Functions support containers
+- VMs can have containers
+- Service Fabric
+- ...
 
+However, there are 3 specific resources that are designed for containers:
 
-### Azure Container Apps
+- Azure Kubernetes Service (AKS)
+  - Enterprise-level orchestration
+  - A cluster is built
+  - Orchestration: management of different containers, networking, etc.
+- Container Apps:
+  - Easier to use than a Kubernetes, but limited to containers, not clusters.
+  - Scaling is possible, and load balancing is done, too.
+  - It's very similar to web apps.
+- Contariner Instances: smallest, quickest way to deploy a container
+  - Designed for low-prio jobs, for testing, etc.
+  - Not critical part of an application
+  - Not great at scaling, etc.
 
-### Deleting Azure Resources
+This section shows how to create a **Container Instance**.
+Look for it in the search bar and click on `Create`:
+
+    Basics
+      Subscription
+      RG: we can create one, e.g., rg-udemy-aci
+      Container name (unique): aci-test
+      Region: West Europe
+      Avalability Zones: None
+      SKU: Standard
+      Image source
+        [x] Quistart images: blank template images provided
+        [ ] Azure Container Registry: we can have an Azure Registry and push an image there
+        [ ] Other registry: We use another registry
+      Image
+        ms/aci-helloworld:latest
+        Hello World template
+      Size
+        1 vcpu, 1.5 GiB
+    Networking
+      Public: with puclic IP, accessible from Internet
+      Other options: Private, None
+      Here, we can also specify a Fully Qualified Domain Name/address = FQDN
+    Advanced
+      Restart policy
+    Review + Create, Create
+
+Now, we can go to the resource and we can see:
+
+- Overview (left menu): the public IP address, along with the FQDN (domain)
+- Containers (left menu): events, properties, logs, etc.
+
+If we open the public IP, we see the image of the *Hello World* container:
+
+![ACI Hello World](./assets/aci_helloworld.jpg)
+
+### Create Azure Container Apps
+
+Azure Container Apps are newer than Container Instances.
+Apps provide some scaling capabilities compared to the instances; it's very similar to a web app.
+
+Look for **Container Apps** in the search bar and click on `Create`:
+
+    Basics
+      Subscription
+      RG: we can create one, e.g., rg-udemy-aca
+      Container app name (unique): aca-test
+      Container Apps Environment
+        Region: West Europe
+        Container Apps Environment
+          This is similar to the web apps' app service plan, it's a hosting plan
+          We create one.
+            Basics
+              Environment type: Workload / Consumption
+              Zone Redundancy
+            ... Leave the defaults.
+    Container
+      We can use a quickstart image
+      or select an image source: Azure Container Registry / Docker Hub
+      We select for the demo purpose the Quickstart Hello World
+    Review + Create, Create
+
+Once created, we can open the resource and explore its options (left menu):
+
+- Containers: we see which containers are deployed
+- Scale and replicas: we can define scaling rules by clicking on `Edit and deploy`.
+
+### Create an Unmanaged Storage Account
+
+Look for **Storage account** in the search bar and click on `Create`:
+
+    Basics
+      Subscription
+      Resource group: we can create a new one, e.g., rg-udemy-storage-demo
+      Storage account name: must be unique in Azure, e.g., udemystoragedemo
+      Region: West Europe; it has an effect on cost
+      Performance: Standard / Premium (a lot faster: SSD)
+        If we select Premium, we need to choose an account type
+          Block blobs: high transaction rates, low storage latency (more general)
+          Page blobs: best for random/read operations
+      Redundancy: Local LRS (3 copies locally) / Geo (3+3) / ...
+    Advanced
+      Security
+      Access protocols
+        We can choose to enable SFTP access
+      Blob storage access tiers: hot / cold (half the price for storage, but more expensive access)
+      Azure files: simulated the old SMB protocol, it enables to mount the drive on Windows
+    Networking
+      Access:
+        Public (but still key is required)
+        Public from selected VNets
+        Disable
+      Network routing
+        MS has its own networks world-wide; we can choose to use them instead of the regular internet.
+    Data protection
+      Recovery: options for soft delete (trash can)
+      Tracking: option for versioning
+      Access control: we can make data immutable, i.e., ensure it does not change (important for legal stuff)
+    Encryption
+    Review + Create, Create
 
 ## 13. Examples
 
