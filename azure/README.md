@@ -58,6 +58,7 @@ Table of contents:
     - [Azure Migrate](#azure-migrate)
     - [Azure Data Box](#azure-data-box)
   - [7. Identity, Access and Security](#7-identity-access-and-security)
+    - [Microsoft Entra: Benefits](#microsoft-entra-benefits)
   - [8. Cost Management](#8-cost-management)
   - [9. Governance and Compliance](#9-governance-and-compliance)
   - [10. Tools for Managing Deployments](#10-tools-for-managing-deployments)
@@ -862,6 +863,41 @@ These are basically HW pieces which are used to locally: we upload data to them 
 
 ## 7. Identity, Access and Security
 
+Identity = Representation of a **Person, Application or Device**. Examples of identity:
+
+- My name
+- My email address
+- An application
+- A printer
+
+Authntication of the identity can happen in varios ways
+
+- Username + password.
+- A secret key received via email or other means.
+- A certificate that proves the id.
+
+Some years ago, the mechanism to handle user identity authentication consisted in having a custom, own-managed server which checked the introduced username and password in a database. This is a very bad practice, because:
+
+- Passwords were sometimes stored as plain text, not hashes; thus, if hacked, the passwords were leaked.
+- Sometimes old hashing algorithms were used which have been hacked, e.g., MD5.
+- In some cases, no password requirements were asked (e.g., 12 symbols, numbers and letters, etc.).
+
+![Authentication: Old, Bad Ways](./assets/authentication_bad.jpg)
+
+**Azure Active Directory (AAD)** and newly **Microsoft Entra ID** are two tools that provide authentication services; that way, we don't have to code our own solution (as said, bad practice). Microsoft Entra is not a replacement of AAD, but it has gained popularity; Entra uses web protocols such as Oauth and SAML.
+
+We can use one of those services as identity provider in our application.
+
+The new model is as follows:
+
+- The user authenticates with the Identity provider (MS Entra), which returns a token, signed by it.
+- The user then identifies in the server with the token signed by the trusted Identity provider, which recognizes the signature and the user ID.
+
+This new approach is much more secure and saves a lot of work to the programmers.
+
+![Authentication: Azure Active Directory and Entra](./assets/authentication_aad.jpg)
+
+### Microsoft Entra: Benefits
 
 
 ## 8. Cost Management
