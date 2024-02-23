@@ -70,7 +70,10 @@ Table of contents:
     - [Create Azure Functions](#create-azure-functions)
     - [Create Azure Container Instances](#create-azure-container-instances)
     - [Create Azure Container Apps](#create-azure-container-apps)
-    - [Create an Unmanaged Storage Account](#create-an-unmanaged-storage-account)
+    - [Create an Unmanaged Storage Account, Upload and Manage Files](#create-an-unmanaged-storage-account-upload-and-manage-files)
+      - [Containers = Buckets for BLOBs](#containers--buckets-for-blobs)
+      - [Storage Browser](#storage-browser)
+      - [AzCopy: Programmatic Copy of Storage Elements](#azcopy-programmatic-copy-of-storage-elements)
   - [13. Examples](#13-examples)
   - [Extra: Spending Limits](#extra-spending-limits)
   - [Extra: Azure Cloud Shell](#extra-azure-cloud-shell)
@@ -829,6 +832,8 @@ See Section [12. Basic Demos](#12-basic-demos).
 
 ### Azure Files and Azure File Sync
 
+
+
 ### Azure Migrate
 
 ### Azure Data Box
@@ -859,7 +864,13 @@ Very important to avoid unwanted costs! Delete the created resources, if not use
 
 This very simple demo shows how easy it is to create a VM in Azure.
 
-In [Azure portal](https://portal.azure.com), look for `Virtual Machines`: Create, Fill in form: 
+In [Azure portal](https://portal.azure.com), look for `Virtual Machines` and click on `Create`.
+We'll see the typical form composed of several tabs that needs to be filled in to configure/define the resource we want to create.
+Each resource has its own features, but the form and the process of creation are similar.
+
+![Azure VM: Create Form](./assets/azure_create_vm.jpg)
+
+We fill in the form:
 
     Basics
         Subscription: billing account
@@ -1184,7 +1195,7 @@ Once created, we can open the resource and explore its options (left menu):
 - Containers: we see which containers are deployed
 - Scale and replicas: we can define scaling rules by clicking on `Edit and deploy`.
 
-### Create an Unmanaged Storage Account
+### Create an Unmanaged Storage Account, Upload and Manage Files
 
 Look for **Storage account** in the search bar and click on `Create`:
 
@@ -1216,7 +1227,82 @@ Look for **Storage account** in the search bar and click on `Create`:
       Tracking: option for versioning
       Access control: we can make data immutable, i.e., ensure it does not change (important for legal stuff)
     Encryption
+      Encrypted by default, but we can use our own keys, etc.
     Review + Create, Create
+
+We then go to the resource and we see something like this:
+
+![Azure Storage Account](./assets/azure_storage_account.jpg)
+
+As we see in the left panel, we have 4 types of data that can be stored:
+
+- Containers: Blob storage; like a bucket where we can store BLOBs, things.
+- File shares: File storage
+- Queues: one app comes and leaves a message, the other comes then and reads it; it's a messaging service
+- Tables: similar to a DB, but not as reliable as CosmosDB
+
+For all of these 4 types, we need to create their instances to use them.
+
+#### Containers = Buckets for BLOBs
+
+We will focus on **Containers**, not to be confused with docker containers; storage containers are like buckets. Once a Storage account is created, we need to create containers in it:
+
+    Got to Storage account resource
+    Containers (left menu)
+      + Container
+      Name: firstone
+      Anonymous level: Private; all other require no key to access the data
+
+Now, we have a container `firstone` in our Storage account. If we go to the container, we can upload files (e.g., files) to it manually and set different properties to them (e.g., blob type, access tier, etc.)
+
+![Storage Container: Upload BLOB](./assets/storage_container_upload_blob.jpg)
+
+Even though storage accounts are created public, we'll need a key to access the files in them.
+Storage account keys are located in the `Access keys` (left menu) tab; however, we won't use them &mdash; they should be kept secret.
+Instead, we create **Shared Access Signatures (SAS)**, which can be created at container or blob level (do it in the blob/file level to visualize the file/image in the browser):
+    
+    Select desired element (container, blob, etc.) > Click on `...` > `Generate SAS`
+      Important: Check the Permissions we want
+
+In the SAS generation window we can configure the time window of the key, among others, and them create a **SAS token and URL**.
+
+If we take the **URL**, we can access the file via a browser or any other app which operates with the HTTPS protocol.
+
+![Dall-e Cloud](./assets/DALL·E%202024-02-23%2016.24.17%20-%20A%20realistic%20photo%20of%20a%20single%20cloud%20in%20the%20sky%20during%20the%20day.png)
+
+In the left side menu of the storage account we can see several interesting tabs:
+
+- Data management: Redundancy: where the files are, etc.
+- Data management: Lifecycle management: we can define rules to manage blobs, e.g., if a file hasn't been modified in a moth, move to cold storage, or vice versa.
+
+#### Storage Browser
+
+Storage services should be used programmatically; if we want to use the browser, we can use the `Storage browser` option (left menu on container).
+
+#### AzCopy: Programmatic Copy of Storage Elements
+
+[AzCopy](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10) is a CLI tool that can be used to upload/download files to/from storage accounts; we can use it to move data between storage accounts, too, even between Azure and other cloud provides (e.g., AWS).
+
+- We [download AzCopy](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10#download-azcopy); it is a binary, so I
+  - Copied it to `C:\Users\Username\bin\azcopy\10.23.0`
+  - And added that path to the Environment variables (Path)
+- We create the SAS for
+  - the source file/blob: SRC = 'https://xxx'
+  - the destination container: DST = 'https://yyy' (we should have write/full permisions here, check them when generating the SAS)
+  
+Then, we run the command in the Terminal or also in the Azure cloud shell:
+
+```bash
+# Check help
+azcopy -?
+
+# Copy one file SRC to a container DST
+# We can also copy a local SRC file to a DST container!
+azcopy copy SRC DST
+azcopy copy 'https://xxx' 'https://yyy'
+```
+
+This is not the only way of doing it: we can also use authentication instead of SAS, etc.
 
 ## 13. Examples
 
