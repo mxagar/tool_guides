@@ -7,6 +7,7 @@ Table of contents:
 - [LLM Playground](#llm-playground)
   - [0. Setup](#0-setup)
   - [1. Llamafile](#1-llamafile)
+  - [2. Chatbot Evaluation](#2-chatbot-evaluation)
   - [Authorship](#authorship)
 
 
@@ -36,6 +37,12 @@ Covered topics:
   - via a provided REST API,
   - or using the OpenAI library: we connect the REST API to it and we can use the OpenAI interfaces!
 - Running a any local LLM served with llamafile to OpenAI and connecting that OpenAI instance to [`instructor`](https://pypi.org/project/instructor/), which parses natural language into JSONs.
+
+## 2. Chatbot Evaluation
+
+I created a simple chatbot evaluation package which can be used to score chatbots using a dataset of predefined and rated chat sessions.
+
+I moved the package to its own repository: [chatbot_evaluation](https://github.com/mxagar/chatbot_evaluation).
 
 ## Authorship
 
