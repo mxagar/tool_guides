@@ -5,7 +5,9 @@ This file contains a summary of the most common git commands and workflows when 
 - [Git Version Control in Teams](#git-version-control-in-teams)
   - [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow)
   - [Artifacts, Binaries, Large Files, Submodules](#artifacts-binaries-large-files-submodules)
+    - [Model Registries](#model-registries)
     - [Git LFS](#git-lfs)
+    - [DVC](#dvc)
     - [Git Submodules](#git-submodules)
   - [Commit Messages: Best Practices](#commit-messages-best-practices)
   - [Readme: Best Practices](#readme-best-practices)
@@ -157,6 +159,10 @@ Alternatives:
 
 Additionally, if you can separate the project into independent subprojects that can be re-used somewhere else, do it with submodules!
 
+### Model Registries
+
+Check my guide on [MLflow](mxagar/mlflow_guide): [mxagar/mlflow_guide](https://github.com/mxagar/mlflow_guide).
+
 ### Git LFS
 
 [Git Large File Storage](https://git-lfs.com/):
@@ -206,6 +212,10 @@ git lfs track "large_files/*.data"
 git add .gitattributes
 git commit -m "Track large files in large_files/ with Git LFS"
 ```
+
+### DVC
+
+Check my guide on [DVC](https://dvc.org/): [mxagar/tool_guides/dvc](https://github.com/mxagar/tool_guides/tree/master/dvc).
 
 ### Git Submodules
 
