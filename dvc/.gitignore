@@ -1,2 +1,4 @@
 .dvc
 data/*.csv
+data/remote/*
+.env
