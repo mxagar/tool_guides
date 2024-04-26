@@ -6,12 +6,15 @@ I follow the official documentation: [NumPy user guide](https://numpy.org/doc/st
 
 Altogether, 3 notebooks are contained in here, with the following contents:
 
-- [`01_UserTutorial.ipynb`](01_UserTutorial.ipynb): complete (beginner-intermmediate) tutorial based on [NumPy quickstart](https://numpy.org/doc/stable/user/quickstart.html):
+- [`01_UserTutorial.ipynb`](01_UserTutorial.ipynb): complete (beginner-intermmediate) tutorial based on [NumPy quickstart](https://numpy.org/doc/stable/user/quickstart.html) and selected topics from [NumPy fundamentals](https://numpy.org/doc/stable/user/basics.html):
   - 1. Basics
     - 1.1 Array creation: `np.array(), np.zeros(), np.ones(), np.arange(), n.random.random()`
     - 1.2 Array operations: `+, -, *, *, @, np.dot(), np.sum(), np.min(), np.cumsum()`
     - 1.3 Universal functions: `np.frompyfunc()`
     - 1.4 Indexing, slicing, iterating
+    - 1.5 Data types
+      - [Data types](https://numpy.org/doc/stable/user/basics.types.html)
+      - [Data type objects](https://numpy.org/doc/stable/reference/arrays.dtypes.html#arrays-dtypes)
   - 2. Shape manipulation
     - 2.1. Changing the shape: `reshape()`, `ravel()`, `resize()`
     - 2.2. Stacking and splitting arrays: `np.vstack()`, `np.hstack()`, `np.vsplit()`, `np.hsplit()`
@@ -33,8 +36,9 @@ Altogether, 3 notebooks are contained in here, with the following contents:
   - 5. Advanced indexing and index tricks
     - 5.1 Indexing with Arrays of Indices
     - 5.2 Indexing with Boolean Arrays
-- [`02_Advanced.ipynb`](02_Advanced.ipynb): more advanced or deepened topics picked from [NumPy fundamentals](https://numpy.org/doc/stable/user/basics.html)
-- [`03_PerformanceTests.ipynb`](03_PerformanceTests.ipynb): personal performance and other tests.
+    - 5.3 Dimensional indexing tools: `Ellipsis` and `newaxis`
+  - 6. I/O with Numpy: [Importing data with genfromtxt](https://numpy.org/doc/stable/user/basics.io.genfromtxt.html)
+- [`02_PerformanceTests.ipynb`](03_PerformanceTests.ipynb): personal performance tests and other tests.
 
 So select the topic and open the corresponding notebook.
 
