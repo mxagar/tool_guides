@@ -2,7 +2,17 @@
 
 > [Trimesh](https://github.com/mikedh/trimesh) is a pure Python 3.7+ library for loading and using triangular meshes with an emphasis on watertight surfaces. The goal of the library is to provide a full featured and well tested Trimesh object which allows for easy manipulation and analysis, in the style of the Polygon object in the Shapely library.
 
-The majority of examples and models used in this tutorial come from the official documentation.
+The majority of examples in the section [TriMesh Guide](#trimesh-guide) and [`TriMesh.ipynb`](TriMesh.ipynb) come from the official site, as well as the used models.
+
+Additionally, I created some tests in [`TriMesh_Tests.ipynb`](TriMesh_Tests.ipynb) to try some functionalities interesting for me personally.
+
+Table of contents:
+- [TriMesh User Guide](#trimesh-user-guide)
+  - [Installation](#installation)
+  - [TriMesh Guide](#trimesh-guide)
+  - [Viewer](#viewer)
+  - [TriMesh Tests](#trimesh-tests)
+  - [Interesting Links](#interesting-links)
 
 ## Installation
 
@@ -134,6 +144,10 @@ See [https://github.com/mikedh/trimesh/tree/main?tab=readme-ov-file#viewer](http
 > - f toggles between fullscreen and windowed mode
 > - m maximizes the window
 > - q closes the window
+
+## TriMesh Tests
+
+See [`TriMesh_Tests.ipynb`](TriMesh_Tests.ipynb).
 
 ## Interesting Links
 
