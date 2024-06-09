@@ -4,6 +4,10 @@ This file contains a summary of the most common git commands and workflows when 
 
 - [Git Version Control in Teams](#git-version-control-in-teams)
   - [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow)
+  - [Git Merge and Rebase](#git-merge-and-rebase)
+    - [Three Way Merge from Our Branch to Main](#three-way-merge-from-our-branch-to-main)
+    - [Three Way Merge from Main to Our Branch](#three-way-merge-from-main-to-our-branch)
+    - [Fast-Forward Merge](#fast-forward-merge)
   - [Artifacts, Binaries, Large Files, Submodules](#artifacts-binaries-large-files-submodules)
     - [Model Registries](#model-registries)
     - [Git LFS](#git-lfs)
@@ -14,6 +18,8 @@ This file contains a summary of the most common git commands and workflows when 
     - [Markdown 101](#markdown-101)
 
 ## Fork-Branch-Merge Workflow
+
+This is the most common go-to workflow when working in teams.
 
 ```bash
 # -- 1. Create a new branch to work on, forking from the default branch (e.g., dev)
@@ -146,6 +152,77 @@ git branch -D feature/jira-XXX-concept
 # and remotely, if not done automatically by Github/Gitlab
 git push origin --delete feature/jira-XXX-concept
 ```
+
+## Git Merge and Rebase
+
+Source: [Youtube: Git MERGE vs REBASE - The Definitive Guide, by The Modern Coder](https://www.youtube.com/watch?v=zOnwgxiC0OA)
+
+### Three Way Merge from Our Branch to Main
+
+The 3-way merge is the most common situation/workflow:
+
+- We create a `feature_branch` from the `main` branch.
+- We work on `feature_branch` and add commits to it.
+- Another team member creates another branch, works on it and merges the changes into `main`.
+- We finish our work and want to merge our `feature_branch` into `main`.
+- Three states are taken into account, thus 3-way merge:
+  - The state when we create our branch.
+  - The last `main` state before we want to merge.
+  - The last `feature_branch` when we want to merge.
+
+```bash
+# Select the brach we want to merge INTO
+git checkout main
+# Merge the other branch to into the selected branch (the one we've checked out)
+git merge feature_branch
+# Default text editor is opened to write commit message: vim
+# Write message + ESC :wq
+```
+
+![Three Way Merge](./assets/three_way_merge.png)
+
+### Three Way Merge from Main to Our Branch
+
+Imagine we've been working very long on our `feature_branch` and our colleagues have substantially modified `main`; thus, we want to have the latest `main` modifications in `feature_branch`:
+
+- to avoid conflicts when we merge our final `feature_branch` to `main`
+- because we need features added to `main`
+
+To that end, we perform a 3-Way Merge but from `main` to `feature_branch`:
+
+```bash
+# Select the brach we want to merge INTO: our branch
+git checkout feature_branch
+# Merge the other branch to into the selected branch (the one we've checked out)
+git merge main
+# Default text editor is opened to write commit message: vim
+# Write message + ESC :wq
+```
+
+![Three Way Merge](./assets/three_way_merge_2.png)
+
+### Fast-Forward Merge
+
+The Fast-Forward Merge happens when:
+
+- We have created our `feature_branch` and have been working on it.
+- Meanwhile, there where no changes in main.
+- We merge `feature_branch` INTO `main`: no merge really occurs in reality, instead the `HEAD` pointer is moved from the last `main` state into the last `feature_branch` state! 
+
+By default, we don't need to specify any commit message, because there no new merge commit, instead the `HEAD` is moved forward into `feature_branch`. Additionally, the `merge` command notifies us it is a `Fast-forward` merge.
+
+![Fast-Forward Merge](./assets/fast_forward_merge.png)
+
+The Fast-Forward Merge is cleaner than the 3-Way Merge, but it has a drawback: we don't preserve in the history that we branched and merged; to prevent that, i.e., if we want to have a clear history of what happened, we can use the `--no-ff` flag: that way the default editor is opened to write a commit message.
+
+```bash
+git checkout main
+git merge feature_branch --no-ff
+# Write message + ESC :wq
+```
+
+![Fast-Forward Merge with --no-ff](./assets/fast_forward_merge_2.png)
+
 
 ## Artifacts, Binaries, Large Files, Submodules
 
