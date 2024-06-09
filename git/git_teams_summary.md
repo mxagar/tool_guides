@@ -8,6 +8,7 @@ This file contains a summary of the most common git commands and workflows when 
     - [Three Way Merge from Our Branch to Main](#three-way-merge-from-our-branch-to-main)
     - [Three Way Merge from Main to Our Branch](#three-way-merge-from-main-to-our-branch)
     - [Fast-Forward Merge](#fast-forward-merge)
+    - [Rebase](#rebase)
   - [Artifacts, Binaries, Large Files, Submodules](#artifacts-binaries-large-files-submodules)
     - [Model Registries](#model-registries)
     - [Git LFS](#git-lfs)
@@ -19,7 +20,7 @@ This file contains a summary of the most common git commands and workflows when 
 
 ## Fork-Branch-Merge Workflow
 
-This is the most common go-to workflow when working in teams.
+This is the most common go-to workflow when working in teams. It is also known as the **(Bidirectional) Three-Way Merge**; its rartionale is explained in [Three-Way Merge](#three-way-merge-from-our-branch-to-main).
 
 ```bash
 # -- 1. Create a new branch to work on, forking from the default branch (e.g., dev)
@@ -173,7 +174,7 @@ The 3-way merge is the most common situation/workflow:
 ```bash
 # Select the brach we want to merge INTO
 git checkout main
-# Merge the other branch to into the selected branch (the one we've checked out)
+# Merge the other branch into the selected branch (the one we've checked out)
 git merge feature_branch
 # Default text editor is opened to write commit message: vim
 # Write message + ESC :wq
@@ -193,13 +194,20 @@ To that end, we perform a 3-Way Merge but from `main` to `feature_branch`:
 ```bash
 # Select the brach we want to merge INTO: our branch
 git checkout feature_branch
-# Merge the other branch to into the selected branch (the one we've checked out)
+# Merge the other branch into the selected branch (the one we've checked out)
 git merge main
 # Default text editor is opened to write commit message: vim
 # Write message + ESC :wq
 ```
 
 ![Three Way Merge](./assets/three_way_merge_2.png)
+
+Therefore, a common approach is to use the **Three-Way Merge** but in both directions, i.e., the **Bidirectional Three-Way Merge**: when we finish developing in our `feature_branch` or when we have a milestone:
+
+- First, we merge from `main` into `feature_branch`.
+- Then, we merge from `feature_branch` into `main`.
+
+This **Bidirectional Three-Way Merge** is the usual workflow, summarized in [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow).
 
 ### Fast-Forward Merge
 
@@ -213,7 +221,7 @@ By default, we don't need to specify any commit message, because there no new me
 
 ![Fast-Forward Merge](./assets/fast_forward_merge.png)
 
-The Fast-Forward Merge is cleaner than the 3-Way Merge, but it has a drawback: we don't preserve in the history that we branched and merged; to prevent that, i.e., if we want to have a clear history of what happened, we can use the `--no-ff` flag: that way the default editor is opened to write a commit message.
+The Fast-Forward Merge is cleaner than the 3-Way Merge, but it has a drawback: we don't preserve in the history that we branched and merged, i.e., our history seems to be linear; to prevent that, i.e., if we want to have a clear history of what happened, we can use the `--no-ff` flag: that way the default editor is opened to write a commit message.
 
 ```bash
 git checkout main
@@ -222,6 +230,40 @@ git merge feature_branch --no-ff
 ```
 
 ![Fast-Forward Merge with --no-ff](./assets/fast_forward_merge_2.png)
+
+### Rebase
+
+Rebasing is a way of integrating the changes from `main` into our `feature_branch` while setting the `HEAD` pointer of the `main` branch in the last state or our `feature_branch`. In other words, it seems like a Fast-Forward Merge from `feature_branch` into `main`.
+
+The typical **Rebase Workflow** applied to `main` with changes and `feature_branch` is the following:
+
+```bash
+# Select the brach we want to merge FROM: our branch
+git checkout feature_branch
+# Rebase the other branch: integrate commits from feature_branch into main
+git rebase main
+# Go to main
+git checkout main
+# Merge new commits from feature_branch in main: Fast-Forward Merge
+git merge feature_branch
+# No commit message is required
+```
+
+The following happens in the background:
+
+- We have a `main` and a `feature_branch`; `main` has been updated since the branching. We want to merge both branches.
+- We run `git rebase main` from the `feature_branch`.
+  ![Rebase 1](./assets/rebase_1.png)
+- The `feature_branch` commits are set into a separate holding area.
+  ![Rebase 2](./assets/rebase_2.png)
+- Git copies one by one all the commits from `feature_branch` into `main`, starting in the latest `main` state; then, the `feature_branch` is removed. Our history is now linear, as it happened with the Fast-Forward Merge!
+  ![Rebase 3](./assets/rebase_3.png)
+  ![Rebase 4](./assets/rebase_4.png)
+
+One of the main advantages of using a **Rebase Workflow** instead of the **Bidirectional Three-Way Merge** is that the 
+
+
+![Rebase vs. Merge](./assets/rebase_vs_merge.png)
 
 
 ## Artifacts, Binaries, Large Files, Submodules
