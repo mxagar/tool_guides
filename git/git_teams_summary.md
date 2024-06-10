@@ -1,6 +1,6 @@
 # Git Version Control in Teams
 
-This file contains a summary of the most common git commands and workflows when working in teams (*fork-branch-merge* workflow), among others:
+This file contains a summary of the most common git commands and workflows when working in teams, among others:
 
 - [Git Version Control in Teams](#git-version-control-in-teams)
   - [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow)
@@ -18,6 +18,8 @@ This file contains a summary of the most common git commands and workflows when 
   - [Commit Messages: Best Practices](#commit-messages-best-practices)
   - [Readme: Best Practices](#readme-best-practices)
     - [Markdown 101](#markdown-101)
+
+This is not a basics guide, but rather an itermmediate-advanced one, focusing on team workflows. If you are looking fo basic git usage and commands, check the co-located [`git_howto.txt`](git_howto.txt).
 
 ## Fork-Branch-Merge Workflow
 
@@ -283,8 +285,77 @@ One of the main advantages of using a **Rebase + FF Merge Workflow** instead of 
 
 Source: [Youtube: Resolve Git MERGE CONFLICTS - The Definitive Guide, by The Modern Coder](https://www.youtube.com/watch?v=Sqsz1-o7nXk).
 
+Most conflicts happen during the [**Three-Way Merge**](#three-way-merge-from-our-branch-to-main) workflow, i.e., when we bidirectionally merge `main <-> feature_branch`, being:
+
+- `main` the reference branch we parted from,
+- and `feature_branch` the branch we worked on.
+
+![Three-Way Merge](./assets/three_way_merge.png)
+
+Conflicts occur usually when the same area has been modified in the `main` and the `feature_branch` branches. Git tries to use `automerge` via different algorithms to reolve the conflict, but that might not work always.
+
+![Conflict Area](./assets/conflict_area.png)
+
+The conflict is triggered by the `merge` command:
+
+```bash
+git checkout main
+git merge feature_branch
+# Two errors can appear
+# 1. error: Your local changes to the following files would be overwritten
+# 2. Auto-merging ... CONFLICT (content): Merge conflict in ...
+```
+
+Two types of errors are displayed by git when a merge conflict occurs, and each requires a different procedure
+
+1. `error: Your local changes to the following files would be overwritten`: Git has not even performed the merge; we can see the conflicting file(s) running `git status`. Solution:
+
+    ```bash
+    # Check list of conflicting files, e.g., index.html
+    git status
+    # Set aside our local changes for later
+    # so that they don't interfere
+    # BUT we need to merge them later...
+    git add .
+    git stash
+    # We re-try the merge, without our local conflicting changes
+    git merge feature_branch
+    ```
+
+2. `Auto-merging ... CONFLICT (content): Merge conflict in ...`. This time git did actually try to merge the files, but it failed. Git highlights the conflict areas in all the corresponding files with `<<<===>>>` markers, so we simply need to open them one by one and fix the issues manually. Solution step by step:
+
+    ```bash
+    # Which commits are in conflict?
+    git log --merge --oneline
+    # Which files are in confict? 
+    # We need to open them manually one by one and fix them
+    git status # e.g., index.html
+    ```
+    ![Conflicting Commits](./assets/conflicting_commits.png)
+    Abc.
 
 
+An alternative option is to cancel the merge altogether:
+
+```bash
+# This will cancel our merge and git will
+# return our status to the point before we started the merge
+# That way, we could make some changes, if necessary,
+# and re-try again :)
+git merge --abort
+```
+
+So, in summary:
+
+![Solving Merge Conflicts: Summary](./assets/solving_merge_conflicts_summary.png)
+
+```bash
+# Start Three-Way Merge
+
+# 0
+# 1
+# 3
+```
 
 ## Artifacts, Binaries, Large Files, Submodules
 
