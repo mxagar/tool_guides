@@ -7,8 +7,9 @@ This file contains a summary of the most common git commands and workflows when 
   - [Git Merge and Rebase](#git-merge-and-rebase)
     - [Three Way Merge from Our Branch to Main](#three-way-merge-from-our-branch-to-main)
     - [Three Way Merge from Main to Our Branch](#three-way-merge-from-main-to-our-branch)
-    - [Fast-Forward Merge](#fast-forward-merge)
-    - [Rebase](#rebase)
+    - [Fast-Forward (FF) Merge](#fast-forward-ff-merge)
+    - [Rebase (and FF Merge)](#rebase-and-ff-merge)
+  - [Resolving Merge Conflicts](#resolving-merge-conflicts)
   - [Artifacts, Binaries, Large Files, Submodules](#artifacts-binaries-large-files-submodules)
     - [Model Registries](#model-registries)
     - [Git LFS](#git-lfs)
@@ -156,7 +157,13 @@ git push origin --delete feature/jira-XXX-concept
 
 ## Git Merge and Rebase
 
-Source: [Youtube: Git MERGE vs REBASE - The Definitive Guide, by The Modern Coder](https://www.youtube.com/watch?v=zOnwgxiC0OA)
+Source: [Youtube: Git MERGE vs REBASE - The Definitive Guide, by The Modern Coder](https://www.youtube.com/watch?v=zOnwgxiC0OA).
+
+This section covers these merging workflows commly used when working on teams. In such cases, we usually have a `main` branch (reference, shared among all developers) and a `feature_branch` (particular, specific branch where only we or few work):
+
+- **Three-Way Merge**, which can be in both directions: `main -> feature_branch` and `main <- feature_branch`. This workflow, when done bidirectionally is the same as the [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow) explained above.
+- **Fast-Forward (FF) Merge**: equivalent to the previous one, but for the special case in which the `main` branch has not changed when we try to merge `feature_branch` into it.
+- **Rebase**: alternative to the **Bidirectional Three-Way Merge**; it simplifies the commit history but has some caveats.
 
 ### Three Way Merge from Our Branch to Main
 
@@ -209,7 +216,7 @@ Therefore, a common approach is to use the **Three-Way Merge** but in both direc
 
 This **Bidirectional Three-Way Merge** is the usual workflow, summarized in [Fork-Branch-Merge Workflow](#fork-branch-merge-workflow).
 
-### Fast-Forward Merge
+### Fast-Forward (FF) Merge
 
 The Fast-Forward Merge happens when:
 
@@ -231,11 +238,11 @@ git merge feature_branch --no-ff
 
 ![Fast-Forward Merge with --no-ff](./assets/fast_forward_merge_2.png)
 
-### Rebase
+### Rebase (and FF Merge)
 
 Rebasing is a way of integrating the changes from `main` into our `feature_branch` while setting the `HEAD` pointer of the `main` branch in the last state or our `feature_branch`. In other words, it seems like a Fast-Forward Merge from `feature_branch` into `main`.
 
-The typical **Rebase Workflow** applied to `main` with changes and `feature_branch` is the following:
+The typical (or most common) **Rebase Workflow** applied to `main` with changes and `feature_branch` is the following:
 
 ```bash
 # Select the brach we want to merge FROM: our branch
@@ -260,10 +267,23 @@ The following happens in the background:
   ![Rebase 3](./assets/rebase_3.png)
   ![Rebase 4](./assets/rebase_4.png)
 
-One of the main advantages of using a **Rebase Workflow** instead of the **Bidirectional Three-Way Merge** is that the 
-
+One of the main advantages of using a **Rebase + FF Merge Workflow** instead of the **Bidirectional Three-Way Merge** is that the commit and code change history is much more cleaner:
 
 ![Rebase vs. Merge](./assets/rebase_vs_merge.png)
+
+**But** there are some **caveats** when using **Rebase + FF Merge Workflow**:
+
+- We still have the same conflicts we would have in the Three-Way Merge.
+- All git commits are immutable, i.e., they cannot be changed; the commits added to main during a rebase are *copies* or their originals, we can check that running `git log --oneline` before and after the rebase: we'll see that the commit hashes are different (i.e., commits are new copies). Having *copy* commits is not an issue if `feature_branch` was used only by me, but it might be an issue if it was used by other people. If we have a *local* `feature_branch` shared with a *remote* `feature_branch`, the *remote* verion might have a different set of commits (e.g., one last one more) when we try to rebase. Therefore, it is not best practice to rely only the **Rebase + FF Merge Workflow** instead of the **Bidirectional Three-Way Merge**. A general recommendation: 
+  > Do not rebase commits that exist outside your repository and that people may have based work on.
+  ![Rebase Issues 1](./assets/rebase_issues_1.png)
+
+
+## Resolving Merge Conflicts
+
+Source: [Youtube: Resolve Git MERGE CONFLICTS - The Definitive Guide, by The Modern Coder](https://www.youtube.com/watch?v=Sqsz1-o7nXk).
+
+
 
 
 ## Artifacts, Binaries, Large Files, Submodules
