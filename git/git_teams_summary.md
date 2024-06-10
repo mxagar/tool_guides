@@ -323,7 +323,8 @@ Two types of errors are displayed by git when a merge conflict occurs, and each 
     ```
 
 2. `Auto-merging ... CONFLICT (content): Merge conflict in ...`. This time git did actually try to merge the files, but it failed. Git highlights the conflict areas in all the corresponding files with `<<<===>>>` markers, so we simply need to open them one by one and fix the issues manually. Solution step by step:
-
+    
+    Check the conflicting files:
     ```bash
     # Which commits are in conflict?
     git log --merge --oneline
@@ -332,8 +333,24 @@ Two types of errors are displayed by git when a merge conflict occurs, and each 
     git status # e.g., index.html
     ```
     ![Conflicting Commits](./assets/conflicting_commits.png)
-    Abc.
 
+    Open and edit each conflicting file one by one:
+    ```bash
+    # Open one-by-one all conflicting files
+    # look for conflict markers <<<===>>> in them and edit the part
+    # - after <<< and until === is the contet in main (first part)
+    # - the content between === and >>> is the content in feature_branch (second part)
+    vim index.html # ESC :wq
+    code index.html # UI selection of parts possible, etc.
+    ```
+    ![Conflict markers](./assets/conflict_markers.png)
+    
+    After correct editing, save and commit the new file version:
+    ```bash
+    git add index.html
+    git commit -m "Merged feature_branch with main and fixed merge conflicts."
+    ```
+    ![Conflict resolution](./assets/conflict_resolution.png)
 
 An alternative option is to cancel the merge altogether:
 
@@ -345,17 +362,36 @@ An alternative option is to cancel the merge altogether:
 git merge --abort
 ```
 
-So, in summary:
-
-![Solving Merge Conflicts: Summary](./assets/solving_merge_conflicts_summary.png)
+**Summary**:
 
 ```bash
 # Start Three-Way Merge
+git checkout main
+git merge feature_branch
+# Two errors can appear
+# 1. "error: Your local changes to the following files would be overwritten"
+# 2. "Auto-merging ... CONFLICT (content): Merge conflict in ..."
 
-# 0
-# 1
-# 3
+# 0. If error 1 occurs: Clear your working directory
+git add .
+git stash
+
+# 1. If error 2 appears: find out which files are in conflict
+git status
+
+# 2. Open files one-by-one and fix conflict marker sections <<<===>>>
+vim index.html
+
+# 3. Save and commit those fixed files
+git add index.html
+git commit -m "Merged feature_branch with main and fixed merge conflicts."
+
+# Alternative: abort merge and return to the state before starting it
+git merge --abort
 ```
+
+![Solving Merge Conflicts: Summary](./assets/solving_merge_conflicts_summary.png)
+
 
 ## Artifacts, Binaries, Large Files, Submodules
 
