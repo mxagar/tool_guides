@@ -104,9 +104,9 @@ huggingface-cli login
 
 # Then, we can browse and select a model and
 # download from the hub to ~/.chache/huggingface (default)
-# or specify a local folder which will contain .huggingface/download with the model inside
+# or specify a local folder which will contain the model inside
 # https://huggingface.co/TheBloke/MistralLite-7B-GGUF
-huggingface-cli download TheBloke/MistralLite-7B-GGUF mistrallite.Q4_K_M.gguf --local-dir ..\models --local-dir-use-symlinks False
+huggingface-cli download TheBloke/MistralLite-7B-GGUF mistrallite.Q4_K_M.gguf --local-dir ../models --local-dir-use-symlinks False
 
 # Alternatively, we can also download them manually from the web
 # or we can also clone the HuggingFace model repo
@@ -114,8 +114,10 @@ huggingface-cli download TheBloke/MistralLite-7B-GGUF mistrallite.Q4_K_M.gguf --
 git lfs install
 cd ../models
 # https://huggingface.co/bartowski/Starling-LM-7B-beta-GGUF
+# WATCH OUT: Many GBs are downloaded!
 git clone https://huggingface.co/bartowski/Starling-LM-7B-beta-GGUF
 # https://huggingface.co/ibm-granite/granite-3b-code-instruct
+# WATCH OUT: Many GBs are downloaded!
 git clone https://huggingface.co/ibm-granite/granite-3b-code-instruct
 ```
 
@@ -169,7 +171,7 @@ TEMPLATE """
 """
 ```
 
-#### Quantiation Summary
+#### Quantization and Model Types
 
 TBD.
 
