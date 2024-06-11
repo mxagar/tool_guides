@@ -8,6 +8,7 @@ Table of contents:
   - [0. Setup](#0-setup)
   - [1. Llamafile](#1-llamafile)
   - [2. Chatbot Evaluation](#2-chatbot-evaluation)
+  - [3. Ollama](#3-ollama)
   - [Authorship](#authorship)
 
 
@@ -19,6 +20,9 @@ Install the conda environment and activate it:
 # Install/activate a basic environment
 conda env create -f conda.yaml
 conda activate llms
+
+# If you extend the YAML list, update the environment
+conda env update --name llms --file conda.yaml --prune
 ```
 
 I will add the required dependencied to the YAML as the repository evolves.
@@ -43,6 +47,21 @@ Covered topics:
 I created a simple chatbot evaluation package which can be used to score chatbots using a dataset of predefined and rated chat sessions.
 
 I moved the package to its own repository: [chatbot_evaluation](https://github.com/mxagar/chatbot_evaluation).
+
+Also, consider libraries like [RAGAS](https://docs.ragas.io/en/latest/getstarted/index.html).
+
+## 3. Ollama
+
+The folder [`03_ollama/`](./03_ollama/README.md) contains an introduction tutorial to [Ollama](https://ollama.com/), a similar tool to `llamafile`.
+
+According to [github.com/ollama](https://github.com/ollama/ollama), `Ollama` is to
+
+> Get up and running with large language models.
+
+Covered topics:
+
+- ...
+- ...
 
 ## Authorship
 
