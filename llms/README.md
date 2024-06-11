@@ -21,6 +21,11 @@ Install the conda environment and activate it:
 conda env create -f conda.yaml
 conda activate llms
 
+# If you want to install the HuggingFace Hub conection
+# This is only necessary if we need programmatic access,
+# for which there is also a CLI tool
+pip install "huggingface_hub[cli]"
+
 # If you extend the YAML list, update the environment
 conda env update --name llms --file conda.yaml --prune
 ```
