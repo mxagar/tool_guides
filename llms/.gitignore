@@ -1,6 +1,6 @@
 .ipynb_checkpoints
 logs
 .env
-models
+models/*
 bin
 *.log
