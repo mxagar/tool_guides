@@ -13,6 +13,11 @@ dependencies:
   - pandas
   - matplotlib
   - pip:
+      - ollama
+      - bert-score
+      - transformers
+      - scikit-learn
+      - sentence-transformers
       - autopep8
       - joblib
       - pytest
