@@ -1,6 +1,10 @@
 # LLM Playground
 
-In this folder I test different tools related to LLMs. See also my quick guide on [LangChain](https://github.com/mxagar/tool_guides/tree/master/langchain).
+In this folder I test different tools related to LLMs. See also 
+
+- my quick guide on [LangChain](https://github.com/mxagar/tool_guides/tree/master/langchain),
+- my quick guide on [HuggingFace](https://github.com/mxagar/tool_guides/tree/master/hugging_face),
+- and my notes on the [Udacity Generative AI Nanodegree](https://www.udacity.com/course/generative-ai--nd608): [mxagar/generative_ai_udacity](https://github.com/mxagar/generative_ai_udacity).
 
 Table of contents:
 
@@ -9,8 +13,9 @@ Table of contents:
   - [1. Llamafile](#1-llamafile)
   - [2. Chatbot Evaluation](#2-chatbot-evaluation)
   - [3. Ollama](#3-ollama)
+  - [4. Finetuning LLMs with PEFT (Parameter-Efficient Fine-Tuning)](#4-finetuning-llms-with-peft-parameter-efficient-fine-tuning)
+  - [5. Personal Model Logbook](#5-personal-model-logbook)
   - [Authorship](#authorship)
-
 
 ## 0. Setup
 
@@ -57,6 +62,8 @@ Also, consider libraries like [RAGAS](https://docs.ragas.io/en/latest/getstarted
 
 ## 3. Ollama
 
+:construction:
+
 The folder [`03_ollama/`](./03_ollama/README.md) contains an introduction tutorial to [Ollama](https://ollama.com/), a similar tool to `llamafile`.
 
 According to [github.com/ollama](https://github.com/ollama/ollama), `Ollama` is to
@@ -65,8 +72,36 @@ According to [github.com/ollama](https://github.com/ollama/ollama), `Ollama` is 
 
 Covered topics:
 
+- TBD.
 - ...
 - ...
+
+## 4. Finetuning LLMs with PEFT (Parameter-Efficient Fine-Tuning)
+
+:construction:
+
+The folder [`04_finetuning_peft/`](./04_finetuning_peft/README.md) contains an introduction tutorial to [PEFT]:
+
+> PEFT approaches only fine-tune a small number of (extra) model parameters while freezing most parameters of the pretrained LLMs, thereby greatly decreasing the computational and storage costs.
+
+Covered topics:
+
+- TBD.
+- ...
+- ...
+
+## 5. Personal Model Logbook
+
+:construction:
+
+The folder [`05_model_logbook/`](./05_model_logbook/README.md) contains information on the models I have tried, in addition to other useful and practical information (e.g., type of models altogether, quantization types, etc.).
+
+Covered topics:
+
+- TBD.
+- ...
+- ...
+
 
 ## Authorship
 
