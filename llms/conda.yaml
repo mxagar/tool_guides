@@ -18,6 +18,7 @@ dependencies:
       - transformers
       - scikit-learn
       - sentence-transformers
+      - safetensors
       - autopep8
       - joblib
       - pytest
