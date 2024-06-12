@@ -72,36 +72,20 @@ According to [github.com/ollama](https://github.com/ollama/ollama), `Ollama` is 
 
 Covered topics:
 
-- TBD.
-- ...
-- ...
+- Basic Ollama usage: CLI, library, API, etc.
+- Import any GGUF from Hugging Face and use it in/with Ollama
+- User Interface: Open WebUI
+- Continue VSCode Plugin with local LLMs via Ollama
 
 ## 4. Finetuning LLMs with PEFT (Parameter-Efficient Fine-Tuning)
-
-:construction:
 
 The folder [`04_finetuning_peft/`](./04_finetuning_peft/README.md) contains an introduction tutorial to [PEFT]:
 
 > PEFT approaches only fine-tune a small number of (extra) model parameters while freezing most parameters of the pretrained LLMs, thereby greatly decreasing the computational and storage costs.
 
-Covered topics:
-
-- TBD.
-- ...
-- ...
-
 ## 5. Personal Model Logbook
 
-:construction:
-
 The folder [`05_model_logbook/`](./05_model_logbook/README.md) contains information on the models I have tried, in addition to other useful and practical information (e.g., type of models altogether, quantization types, etc.).
-
-Covered topics:
-
-- TBD.
-- ...
-- ...
-
 
 ## Authorship
 
