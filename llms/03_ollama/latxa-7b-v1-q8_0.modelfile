@@ -1,0 +1,1 @@
+FROM "../models/latxa-7b-v1-q8_0.gguf"

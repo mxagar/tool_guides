@@ -1,0 +1,1 @@
+FROM "../models/granite-3b-code-instruct-GGUF/granite-3b-code-instruct.Q4_K_M.gguf"

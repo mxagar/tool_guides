@@ -1,0 +1,10 @@
+FROM "../models/Starling-LM-7B-beta-GGUF/Starling-LM-7B-beta-Q6_K.gguf"
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+TEMPLATE """
+<|im_start|>system
+<|im_end|>
+<|im_start|>user
+<|im_end|>
+<|im_start|>assistant
+"""
