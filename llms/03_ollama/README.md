@@ -1,42 +1,47 @@
 # Ollama
 
-Ollama is a tool to run local Large Language Models (LLMs), among others.
+Ollama is a tool to run local Large Language Models (LLMs).
 
 - Website: [https://ollama.com/](https://ollama.com/)
 - Github: [https://github.com/ollama/ollama](https://github.com/ollama/ollama)
 - Python Library: [https://github.com/ollama/ollama-python](https://github.com/ollama/ollama-python)
 
-Sources of this guide:
-
-- [How to Use Ollama: Hands-On With Local LLMs and Building a Chatbot](https://hackernoon.com/how-to-use-ollama-hands-on-with-local-llms-and-building-a-chatbot)
-- [Running models with Ollama step-by-step](https://medium.com/@gabrielrodewald/running-models-with-ollama-step-by-step-60b6f6125807)
-- [Using Ollama in your IDE with Continue](https://medium.com/@omargohan/using-ollama-in-your-ide-with-continue-e8cefeeee033)
+I created this guide following primarily the official documentation, as well as some other resources listed in [Links and Sources](#links-and-sources).
 
 Table of contents:
 
 - [Ollama](#ollama)
   - [Setup](#setup)
   - [Basic Usage](#basic-usage)
+    - [Basic Commands](#basic-commands)
     - [Library and Models](#library-and-models)
-    - [Open WebUI](#open-webui)
     - [Importing Models: Download from Hugging Face and Build Model](#importing-models-download-from-hugging-face-and-build-model)
       - [Download Models](#download-models)
       - [Create a Modelfile](#create-a-modelfile)
       - [Build Ollama Models](#build-ollama-models)
       - [Run the Model](#run-the-model)
+  - [User Interface: Open WebUI](#user-interface-open-webui)
   - [API](#api)
   - [Python Library](#python-library)
   - [More on Modelfiles](#more-on-modelfiles)
   - [Quantization and Model Types](#quantization-and-model-types)
-  - [Links](#links)
+  - [Continue VSCode Plugin](#continue-vscode-plugin)
+  - [Links and Sources](#links-and-sources)
 
 
 ## Setup
 
 - First, we need to install the binaries from their website (Mac/Windows/Linux): [https://ollama.com/download](https://ollama.com/download).
-- Then, we need to install `ollama` in our Python environment of choise: `pip install ollama`.
+  - This will start a Ollama service in `http://localhost:11434/` and we should get an icon in the taskbar.
+  - We can check the service is up and running by checking the icon is there or openening the URL in the browser; if the service is not running, we can start it by
+    - launching the Ollama app in the OS
+    - or running `ollama run model_name:tag` (this will start the service and the CLI of the selected model)
+    - or running `ollama serve`.
+- Then, we can install `ollama` in our Python environment of choise: `pip install ollama`.
 
 ## Basic Usage
+
+### Basic Commands
 
 In this section, the basic commands for downloading and using models are used.
 If you cannot download a model, for any given reason (e.g., you're using a VPN), you can also download `GGUF` and `sefetensors` models from Hugging Face and import them into `ollama`!
@@ -74,7 +79,7 @@ ollama list
 ollama pull llama3
 
 # Run a model: interactive CLI starts
-# By default the model is also served in 
+# By default this and other models can be interacted via an API in http://localhost:11434/
 ollama run llama3
 
 # Remove a model
@@ -107,69 +112,6 @@ Some selected models from the official Github repository:
 | Solar              | 10.7B      | 6.1GB | `ollama run solar`             |
 
 > Note: You should have at least 8 GB of RAM available to run the 7B models, 16 GB to run the 13B models, and 32 GB to run the 33B models.
-
-### Open WebUI
-
-[Open WebUI](https://docs.openwebui.com/) allows a web UI similar to the one provided by OpenAI, but running locally. We can use the local `ollama` models with it!
-
-![Open WebUI with Ollama](../assets/open_webui_ollama.png)
-
-The installation is basically (pulling) a docker image, which is run as follows:
-
-```bash
-# (Pull image and) Run Open WebUI
-docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main
-# Open Browser in http://localhost:3000/
-# Sign up for the first time: credentials locally stored, for RBAC!
-# WARNING: if we remove the container, we need to sign up again!
-# Select Ollama model and start chatting
-
-# Is it still running?
-docker ps
-
-# Stop it, WITHOUT removing it
-# Stop + Restart is necessary if we add a new modell to our local Ollama library
-docker stop <container_name_or_id>
-
-# Restart it; refresh http://localhost:3000/
-docker ps -a
-docker start <container_name_or_id>
-
-# If we want to stop and remove everything
-docker stop open-webui
-docker rm open-webui
-docker volume rm open-webui
-
-docker network ls
-docker network rm <network_name> # 03_ollama_default
-
-# If we want to remove the image
-docker images # list images
-docker rmi ghcr.io/open-webui/open-webui:main
-```
-
-I have created a docker-compose YAML [`docker-compose-open-webui.yml`](docker-compose-open-webui.yml) for a more comfortable usage:
-
-```bash
-# Start the Open WebUI server and open http://localhost:3000
-docker-compose -f docker-compose-open-webui.yml up -d
-
-# Stop the container WITHOUT removing it and restart it again
-docker-compose -f docker-compose-open-webui.yml stop
-docker-compose -f docker-compose-open-webui.yml start
-
-# Stop the container and REMOVE it; then, restart it again
-docker-compose -f docker-compose-open-webui.yml down
-docker-compose -f docker-compose-open-webui.yml up -d
-```
-
-Open WebUI has many more capabilities which require a guide on its own:
-
-- Web search
-- Use OpenAI API with the secret
-- Image generation
-- RAGs
-- etc.
 
 ### Importing Models: Download from Hugging Face and Build Model
 
@@ -247,16 +189,15 @@ That means we can remove the original ``GGUF` to save space.
 Example builds:
 
 ```bash
+# Create/build models using their Modelfile
+# The created model is stored in ~/.ollama, so we can erase the GGUF
 ollama create "Starling-LM-7B-beta-Q6_K" -f Starling-LM-7B-beta-Q6_K.modelfile
-
 ollama create "granite-3b-code-instruct" -f granite-3b-code-instruct-GGUF.modelfile
-
 ollama create "mistrallite.Q4_K_M" -f mistrallite.Q4_K_M.modelfile
-
 ollama create "mistral-7b-instruct-v0.2.Q2_K" -f mistral-7b-instruct-v0.2.Q2_K.modelfile
-
 ollama create "latxa-7b-v1-q8_0" -f latxa-7b-v1-q8_0.modelfile
 
+# Show all available local models
 ollama list
 ```
 
@@ -268,32 +209,230 @@ After the models have been created or downloaded, if they appear listed, we can 
 ollama run model_name:tag
 ```
 
-This will start
+This will start:
 
-- A
-- B
+- An **interactive CLI** where we can chat with the model using the Terminal.
+- An **Ollama service**, reachable at `http://localhost:11434/`; we should also get an icon in the task bar. This service is a server which with we can interact using API calls or a Python library. To check that service is running open in the browser at `http://localhost:11434/`: we should get the message `Ollama is running`. The Ollama service is working even if we close the interactive CLI. If we quit/kill it, we can start it again either
+  - running any `ollama run model_name:tag` again
+  - or running `ollama serve` (in this case, at least for me, the taskbar icon dosn't appear).
 
 Example run calls:
 
 ```bash
+# List all available models
 ollama list
 
+# Run any local model
 ollama run mistral-7b-instruct-v0.2.Q2_K:latest
-
 ollama run granite-3b-code-instruct:latest
-
 ollama run latxa-7b-v1-q8_0:latest
+
+# /bye
+# This closes the CLI session, but the service is still up at http://localhost:11434/
 ```
 
-In the interactive 
+The **interactive CLI** also allows for many options:
 
-For the API
+- Spacial commands start with `/`; check commands with `/?`, stop CLI with `/bye`
+- Multiline inputs start with `"""`:
+  ```
+  >>> """Hello,
+  ... world!
+  ... """
+  I'm a basic program that prints the famous "Hello, world!" message to the console.
+  ```
+- Multimodal models:
+  ```
+  >>> What's in this image? /Users/jmorgan/Desktop/smile.png
+  The image features a yellow smiley face, which is likely the central focus of the picture.
+  ```
+- and much more...
+
+![Ollama CLI](../assets/ollama_cli.png)
+
+For the API, check the following two sections:
+
+- [API](#api)
+- [Python Library](#python-library)
+
+## User Interface: Open WebUI
+
+[Open WebUI](https://docs.openwebui.com/) allows a web UI similar to the one provided by OpenAI, but running locally. We can use the local `ollama` models with it!
+
+![Open WebUI with Ollama](../assets/open_webui_ollama.png)
+
+We need to have Ollama installed and its service up and running.
+
+The installation of Open WebUI is basically (pulling) a docker image, which is run as follows:
+
+```bash
+# (Pull image and) Run Open WebUI
+docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main
+# Open Browser in http://localhost:3000/
+# Sign up for the first time: credentials locally stored, for RBAC!
+# WARNING: if we remove the container, we need to sign up again!
+# Select Ollama model and start chatting
+
+# Is it still running?
+docker ps
+
+# Stop it, WITHOUT removing it
+# Stop + Restart is necessary if we add a new modell to our local Ollama library
+docker stop <container_name_or_id>
+
+# Restart it; refresh http://localhost:3000/
+docker ps -a
+docker start <container_name_or_id>
+
+# If we want to stop and remove everything
+docker stop open-webui
+docker rm open-webui
+docker volume rm open-webui
+
+docker network ls
+docker network rm <network_name> # 03_ollama_default
+
+# If we want to remove the image
+docker images # list images
+docker rmi ghcr.io/open-webui/open-webui:main
+```
+
+I have created a docker-compose YAML [`docker-compose-open-webui.yml`](docker-compose-open-webui.yml) for a more comfortable usage:
+
+```bash
+# Start the Open WebUI server and open http://localhost:3000
+docker-compose -f docker-compose-open-webui.yml up -d
+
+# Stop the container WITHOUT removing it and restart it again
+docker-compose -f docker-compose-open-webui.yml stop
+docker-compose -f docker-compose-open-webui.yml start
+
+# Stop the container and REMOVE it; then, restart it again
+docker-compose -f docker-compose-open-webui.yml down
+docker-compose -f docker-compose-open-webui.yml up -d
+```
+
+Open WebUI has many more capabilities which require a guide on its own:
+
+- Web search
+- Use OpenAI API with the secret
+- Image generation
+- RAGs
+- etc.
 
 ## API
 
+The API is served under `http://localhost:11434` and it can be started via:
+
+- Starting the Ollama app in the OS, which will put an icon in the taskbar.
+- `ollama run model_name:tag`: with this call we start the CLI of a model and the API server (for any model); after closing the model CLI, the server is still up. Additionally, we should get an icon in the taskbar.
+- `ollama serve`: with this call we start the API service, too, but I get no taskbar icon.
+
+If the Ollama service is up at `http://localhost:11434`, we should get the message `Ollama is running` if we browse that URL.
+
+With the API server up and running, we can send many `curl` requests to it!
+
+One simple example:
+
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3",
+  "prompt": "Why is the sky blue?",
+  "stream": false
+}'
+```
+
+If `stream` is set to `false`, the response will be a JSON object:
+
+```json
+{
+  "model": "llama3",
+  "created_at": "2023-08-04T19:22:45.499127Z",
+  "response": "The sky is blue because it is the color of the sky.",
+  "done": true,
+  "context": [1, 2, 3],
+  "total_duration": 5043500667,
+  "load_duration": 5025959,
+  "prompt_eval_count": 26,
+  "prompt_eval_duration": 325953000,
+  "eval_count": 290,
+  "eval_duration": 4709213000
+}
+```
+
+More examples: [https://github.com/ollama/ollama/blob/main/docs/api.md](https://github.com/ollama/ollama/blob/main/docs/api.md)
 
 ## Python Library
 
+See the notebook [`ollama_tests.ipynb`](./ollama_tests.ipynb).
+
+Python API/Library Setup:
+
+```bash
+# First, install Ollama with the installer: https://ollama.com/download
+# Then, start the server:
+# - either start the Ollama app in the OS
+# - or pull and run a model in the CLI
+# - or execute `ollama serve` in the CLI
+# Finally, install the Python library in your environment and use it
+pip install ollama
+```
+
+More examples: [https://github.com/ollama/ollama-python](https://github.com/ollama/ollama-python).
+
+```python
+import ollama
+
+# List all local models
+ollama.list()
+
+# Show Modelfile information
+ollama.show('mistral-7b-instruct-v0.2.Q2_K:latest')
+
+# Non-Streamed Chat: The entire answer is provided at once.
+response = ollama.chat(model='mistral-7b-instruct-v0.2.Q2_K:latest', messages=[
+  {
+    'role': 'user',
+    'content': 'Why is the sky blue?',
+  },
+])
+print(response['message']['content'])
+# The sky appears ...
+
+# Streamed Chat: Answer words are generated one by one
+stream = ollama.chat(
+    model='mistral-7b-instruct-v0.2.Q2_K:latest',
+    messages=[{'role': 'user', 'content': 'Why is the sky blue?'}],
+    stream=True,
+)
+
+for chunk in stream:
+  print(chunk['message']['content'], end='', flush=True)
+# The sky appears ...
+
+# Generate, not chat
+res = ollama.generate(model='mistral-7b-instruct-v0.2.Q2_K:latest', prompt='Why is the sky blue?')
+print(res['response'])
+# The sky appears ...
+
+# Experimental usage via OpenAI library
+from openai import OpenAI
+
+client = OpenAI(
+    base_url='http://localhost:11434/v1/',
+    api_key='ollama', # required but ignored
+)
+
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            'role': 'user',
+            'content': 'Say this is a test',
+        }
+    ],
+    model='mistral-7b-instruct-v0.2.Q2_K:latest',
+)
+```
 
 ## More on Modelfiles
 
@@ -321,9 +460,7 @@ PARAMETER stop "<|assistant|>"
 
 ![Ollama Model Parameters](../assets/ollama_params.png)
 
-Other `Modelfile` examples I have found:
-
-`Starling-LM-7B-beta-GGUF`: 
+Other `Modelfile` example - `Starling-LM-7B-beta-GGUF`: 
 
 ```Dockerfile
 FROM "./Starling-LM-7B-beta-Q6_K.gguf"
@@ -335,14 +472,26 @@ TEMPLATE """
 <|im_start|>user
 <|im_end|>
 <|im_start|>assistant
-"""
 ```
 
 ## Quantization and Model Types
 
 See [`../05_model_logbook/README.md`](../05_model_logbook/README.md).
 
-## Links
+## Continue VSCode Plugin
+
+[Continue](https://www.continue.dev/) is a VSCode plugin with which we can have our own *Github Copilot* using:
+
+- Local LLMs via Ollama service
+- Remote LLMs via their APIs, e.g., OpenAI
+
+It's usage is very simple:
+
+- Install extension
+- Select type of LLMs: Ollama, OpenAI, etc.
+- Use menu icon to open chat, etc.
+
+## Links and Sources
 
 - [HuggingFace CLI Guide](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli).
 - [GGUF Format](https://huggingface.co/docs/hub/gguf)
@@ -350,3 +499,6 @@ See [`../05_model_logbook/README.md`](../05_model_logbook/README.md).
 - [Ollama Modelfile](https://github.com/ollama/ollama/blob/main/docs/modelfile.md)
 - [Cursor: Github Copilot Alternative](https://www.cursor.com/)
 - [Open WebUI](https://github.com/open-webui/open-webui)
+- [How to Use Ollama: Hands-On With Local LLMs and Building a Chatbot](https://hackernoon.com/how-to-use-ollama-hands-on-with-local-llms-and-building-a-chatbot)
+- [Running models with Ollama step-by-step](https://medium.com/@gabrielrodewald/running-models-with-ollama-step-by-step-60b6f6125807)
+- [Using Ollama in your IDE with Continue](https://medium.com/@omargohan/using-ollama-in-your-ide-with-continue-e8cefeeee033)
