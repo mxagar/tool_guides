@@ -1,11 +1,16 @@
 # Hugging Face: A Guide
 
-This mini-project compiles information on the usage of Hugging Face, as well as examples and material from the listed tutorials.
+This guide compiles information on the usage of Hugging Face, as well as examples and material from the listed tutorials.
+It is divided in two parts:
+
+- Part 1: Introduction and quick start composed after following some short tutorials.
+- Part 2: My notes on the [Hugging Face Bootcamp by JM Portilla, Udemy](https://www.udemy.com/course/complete-hugging-face-bootcamp)
 
 Source material:
 
 - [Getting Started With Hugging Face in 15 Minutes | Transformers, Pipeline, Tokenizer, Models](https://www.youtube.com/watch?v=QEaBAZQCtwE)
 - [HuggingFace Crash Course - Sentiment Analysis, Model Hub, Fine Tuning](https://www.youtube.com/watch?v=GSt00_-0ncQ)
+- [Hugging Face Bootcamp by JM Portilla, Udemy](https://www.udemy.com/course/complete-hugging-face-bootcamp)
 - [An Introduction to Using Transformers and Hugging Face](https://www.datacamp.com/tutorial/an-introduction-to-using-transformers-and-hugging-face)
 - [Hugging Face Transformers](https://huggingface.co/docs/transformers/index)
 - [Hugging Face NLP Course](https://huggingface.co/learn/nlp-course/chapter1/1)
@@ -15,7 +20,7 @@ Source material:
 Table of contents:
 
 - [Hugging Face: A Guide](#hugging-face-a-guide)
-  - [1. Introduction and Quick Start](#1-introduction-and-quick-start)
+  - [Part 1: Introduction and Quick Start](#part-1-introduction-and-quick-start)
     - [Setup](#setup)
     - [Pipeline](#pipeline)
     - [Tokenizer and Models](#tokenizer-and-models)
@@ -26,9 +31,10 @@ Table of contents:
       - [Training with the Pytorch Trainer](#training-with-the-pytorch-trainer)
       - [Training in Native Pytorch](#training-in-native-pytorch)
     - [Finetuning Pre-Trained Models with Custom Datasets - Example with IMDB](#finetuning-pre-trained-models-with-custom-datasets---example-with-imdb)
+  - [Part 2: Hugging Face Course by Portilla](#part-2-hugging-face-course-by-portilla)
 
 
-## 1. Introduction and Quick Start
+## Part 1: Introduction and Quick Start
 
 See the notebook [`hugging_face_intro.ipynb`](hugging_face_intro.ipynb).
 
@@ -627,3 +633,9 @@ for epoch in range(3):
 
 model.eval()
 ```
+
+## Part 2: Hugging Face Course by Portilla
+
+This part is completely contained in [`udemy_hugging_face/`](./udemy_hugging_face/).
+
+It consists of my notes on the [Hugging Face Bootcamp by JM Portilla, Udemy](https://www.udemy.com/course/complete-hugging-face-bootcamp).
