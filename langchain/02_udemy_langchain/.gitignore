@@ -3,3 +3,5 @@ logs
 .env
 data/faiss_index
 data/thefuzz-master
+*.pkl
+*.bin
