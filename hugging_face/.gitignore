@@ -5,3 +5,5 @@ mlruns
 aclImdb_v1.tar.gz
 aclImdb
 logs
+wandb
+Slides
