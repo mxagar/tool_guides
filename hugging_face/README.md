@@ -93,6 +93,7 @@ Notes:
 
 - When a model is used for the first time, it needs to be downloaded.
 - Always use the `model` and `revision` for reproducibility!
+- Models and data are downloaded to `~/.cache/huggingface`; if we request a model it is not locally available, it will be downloaded!
 
 ```python
 from transformers import pipeline

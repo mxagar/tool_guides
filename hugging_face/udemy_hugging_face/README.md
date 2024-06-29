@@ -21,10 +21,10 @@ Table of contents:
 
 ## 1. Introduction to Hugging Face
 
-Folder: []().  
-Notebooks:
-- A
-- B
+Folder: [`00-Setup-HF/`](./00-Setup-HF/).  
+Notebook: [`00-HF-Setup.ipynb`](./00-Setup-HF/00-HF-Setup.ipynb).
+
+
 
 ## 2. NLP with Transformers
 
