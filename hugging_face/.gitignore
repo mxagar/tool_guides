@@ -7,3 +7,4 @@ aclImdb
 logs
 wandb
 Slides
+.env
