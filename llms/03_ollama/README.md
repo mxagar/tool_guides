@@ -502,3 +502,4 @@ It's usage is very simple:
 - [How to Use Ollama: Hands-On With Local LLMs and Building a Chatbot](https://hackernoon.com/how-to-use-ollama-hands-on-with-local-llms-and-building-a-chatbot)
 - [Running models with Ollama step-by-step](https://medium.com/@gabrielrodewald/running-models-with-ollama-step-by-step-60b6f6125807)
 - [Using Ollama in your IDE with Continue](https://medium.com/@omargohan/using-ollama-in-your-ide-with-continue-e8cefeeee033)
+- [A Streamlit App to convert your files into Vector Stores and chat with them with LLMs](https://github.com/ml-score/ollama)
