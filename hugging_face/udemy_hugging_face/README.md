@@ -15,12 +15,16 @@ Table of contents:
   - [1. Introduction to Hugging Face](#1-introduction-to-hugging-face)
     - [Install Packages](#install-packages)
     - [Account Setup and Model Repository](#account-setup-and-model-repository)
+    - [Login from Notebooks](#login-from-notebooks)
     - [Understanding Models and Spaces](#understanding-models-and-spaces)
     - [Datasets](#datasets)
     - [Compute Services with GPUs](#compute-services-with-gpus)
     - [Cache Directories](#cache-directories)
   - [2. NLP with Transformers](#2-nlp-with-transformers)
     - [Pipelines](#pipelines)
+    - [Large Language Models (LLMs)](#large-language-models-llms)
+    - [Tokenization and Probablities](#tokenization-and-probablities)
+    - [Text Generation](#text-generation)
   - [3. Image Models: Diffusers](#3-image-models-diffusers)
   - [4. Video Models](#4-video-models)
   - [5. Audio Models](#5-audio-models)
@@ -135,6 +139,8 @@ git remote set-url origin https://mxagar:hf_xxx@huggingface.co/mxagar/test-model
 ```
 
 Then, we can work as always using git workflows.
+
+### Login from Notebooks
 
 If we are using remote hosted notebook (e.g., Google Colab or AWS SageMaker Studio Lab), we can use `notebook_login()` to log in to Hugging Face:
 
@@ -289,9 +295,195 @@ There are many `pipelines`, and the list is continuously being extended; in fact
 
 [Hugging Face Pipelines](https://huggingface.co/docs/transformers/en/main_classes/pipelines).
 
-```python
+Additionally, if we run `help(pipeline)` we ge a list of all tasks or pipelines:
 
+- `"audio-classification"`: will return a [`AudioClassificationPipeline`].
+- `"automatic-speech-recognition"`: will return a [`AutomaticSpeechRecognitionPipeline`].
+- `"conversational"`: will return a [`ConversationalPipeline`].
+- `"depth-estimation"`: will return a [`DepthEstimationPipeline`].
+- `"document-question-answering"`: will return a [`DocumentQuestionAnsweringPipeline`].
+- `"feature-extraction"`: will return a [`FeatureExtractionPipeline`].
+- `"fill-mask"`: will return a [`FillMaskPipeline`]:.
+- `"image-classification"`: will return a [`ImageClassificationPipeline`].
+- `"image-feature-extraction"`: will return an [`ImageFeatureExtractionPipeline`].
+- `"image-segmentation"`: will return a [`ImageSegmentationPipeline`].
+- `"image-to-image"`: will return a [`ImageToImagePipeline`].
+- `"image-to-text"`: will return a [`ImageToTextPipeline`].
+- `"mask-generation"`: will return a [`MaskGenerationPipeline`].
+- `"object-detection"`: will return a [`ObjectDetectionPipeline`].
+- `"question-answering"`: will return a [`QuestionAnsweringPipeline`].
+- `"summarization"`: will return a [`SummarizationPipeline`].
+- `"table-question-answering"`: will return a [`TableQuestionAnsweringPipeline`].
+- `"text2text-generation"`: will return a [`Text2TextGenerationPipeline`].
+- `"text-classification"` (alias `"sentiment-analysis"` available): will return a
+  [`TextClassificationPipeline`].
+- `"text-generation"`: will return a [`TextGenerationPipeline`]:.
+- `"text-to-audio"` (alias `"text-to-speech"` available): will return a [`TextToAudioPipeline`]:.
+- `"token-classification"` (alias `"ner"` available): will return a [`TokenClassificationPipeline`].
+- `"translation"`: will return a [`TranslationPipeline`].
+- `"translation_xx_to_yy"`: will return a [`TranslationPipeline`].
+- `"video-classification"`: will return a [`VideoClassificationPipeline`].
+- `"visual-question-answering"`: will return a [`VisualQuestionAnsweringPipeline`].
+- `"zero-shot-classification"`: will return a [`ZeroShotClassificationPipeline`].
+- `"zero-shot-image-classification"`: will return a [`ZeroShotImageClassificationPipeline`].
+- `"zero-shot-audio-classification"`: will return a [`ZeroShotAudioClassificationPipeline`].
+- `"zero-shot-object-detection"`: will return a [`ZeroShotObjectDetectionPipeline`].
+
+Code summary of the following notebooks:
+
+- [`00-HF-Basics.ipynb`](./01-Transformers/00-HF-Basics.ipynb)
+- [`01-Pipelines-for-NLP-Tasks.ipynb`](./01-Transformers/01-Pipelines-for-NLP-Tasks.ipynb)
+
+
+```python
+from datasets import load_dataset
+import transformers
+from transformers import pipeline
+
+# Get a list of all pipelines: task
+help(pipeline)
+
+# We can find and view the datasets in HF:
+# https://huggingface.co/datasets/cornell-movie-review-data/rotten_tomatoes/viewer
+# We can specify the cache_dir, otherwise it defaults to ~/.cache/huggingface
+reviews = load_dataset('rotten_tomatoes',cache_dir='rotten_tomatoes_data')
+
+# datasets.dataset_dict.DatasetDict
+# It is a dictionary which contains the splits,
+# which are of type Dataset
+# reviews['train'], reviews['test'], reviews['validation'] -> Dataset
+type(reviews)
+
+# Export a Dataset split to pandas
+# Then, we can grab the columns 'text' and 'label' from the pandas df
+reviews['train'].to_pandas()
+
+# If no model is passed, the default model for the task is used
+# sentiment-analysis = text-classification
+classifier = pipeline('sentiment-analysis')
+
+result = classifier("This movie was great!")
+result
+# [{'label': 'POSITIVE', 'score': 0.9998677968978882}]
+
+def label(review):
+    label = classifier(review)[0]['label']
+    if label == 'POSITIVE':
+        return 1
+    else:
+        return 0
+
+label("This movie was so bad, I would have walked out if I wasn't on a plane! lol")
+# 0
+
+test_df = reviews['test'].to_pandas()
+test_df['predicted_label'] = test_df['text'].apply(label)
+
+# This would be our accuracy
+sum(test_df['label']==test_df['predicted_label'])/1066
+
+### -- Saving and Loading
+
+# We can sace the model to file/folder:
+# my_local_text_classification/
+#   config.json
+#   special_tokens_map.json
+#   tokenizer.json
+#   model.safetensors
+#   tokenizer_config.json
+#   vocab.txt
+classifier.save_pretrained('my_local_text_classification/')
+
+# Load the pipeline from the saved directory
+classifier = pipeline(task="text-classification", model='my_local_text_classification/', tokenizer='my_local_text_classification/')
+
+# Now we can use the pipeline for inference
+result = classifier("I love this movie!")
+print(result)
+# [{'label': 'POSITIVE', 'score': 0.9971315860748291}]
+
+### -- Specific Models
+
+# Instead of using the default model, we can take specific ones
+# Example: a model for financial news classification
+# https://huggingface.co/ProsusAI/finbert
+# Each model has also a default task associated
+# Usually sentiment-analysis = text-classification
+pipe = pipeline(model="ProsusAI/finbert")
+tweets = ['Gonna buy AAPL, its about to surge up!',
+          'Gotta sell AAPL, its gonna plummet!']
+pipe(tweets)
+#[{'label': 'positive', 'score': 0.5234110355377197},
+# {'label': 'neutral', 'score': 0.5528594255447388}]
+
+### -- NER: Name Entity Recognition
+
+# Name Entity Recognition (WARNING: large model)
+# We can tag parts of speech: 
+ner_tag_pipe = pipeline('ner')
+
+result = ner_tag_pipe("After working at Tesla I started to study Nikola Tesla a lot more, especially at university in the USA.")
+
+# Tesla: Organization
+# Nicola Tesla: Person
+# USA: Location
+result
+
+### -- Question Answering
+
+# Another task is QA: this is similar to a chatbot,
+# but we pass a context + question and get one answer
+# Default QA model:
+# https://huggingface.co/distilbert/distilbert-base-cased-distilled-squad
+qa_bot = pipeline('question-answering')
+
+text = """
+D-Day, marked on June 6, 1944, stands as one of the most significant military operations in history, 
+initiating the Allied invasion of Nazi-occupied Europe during World War II. Known as Operation Overlord, 
+this massive amphibious assault involved nearly 160,000 Allied troops landing on the beaches of Normandy, 
+France, across five sectors: Utah, Omaha, Gold, Juno, and Sword. Supported by over 5,000 ships and 13,000 
+aircraft, the operation was preceded by extensive aerial and naval bombardment and an airborne assault. 
+The invasion set the stage for the liberation of Western Europe from Nazi control, despite the heavy 
+casualties and formidable German defenses. This day not only demonstrated the logistical prowess 
+and courage of the Allied forces but also marked a turning point in the war, leading to the eventual 
+defeat of Nazi Germany.
+"""
+
+question = "What were the five beach sectors on D-Day?"
+
+result = qa_bot(question=question,context=text)
+# {'score': 0.9430820345878601,
+#  'start': 345,
+#  'end': 379,
+#  'answer': 'Utah, Omaha, Gold, Juno, and Sword'}
+
+### -- Transalation
+
+# Language translation: we can get a generic translation pipeline 'translation'
+# or a specific one 'translation_xx_to_yy'
+# Default model:
+# https://huggingface.co/google-t5/t5-base
+translate = pipeline('translation_en_to_fr')
+result = translate("Hello, my name is Mikel. What is your name?")
+# [{'translation_text': 'Hola, me llamo Mikel. ¿Cómo te llamas?'}]
+
+# For other language pairs, we need to specify other specific models
+translate = pipeline('translation_en_to_es', model='Helsinki-NLP/opus-mt-en-es')
+result = translate("Hello, my name is Mikel. What is your name?")
+# [{'translation_text': 'Hola, me llamo Mikel. ¿Cómo te llamas?'}]
+
+# We can also load the generic translation pipeline
+# and specify the source and target languages when translating
+translator = pipeline('translation', model='Helsinki-NLP/opus-mt-en-es')
+result = translator("Hello, how are you?", src_lang='en', tgt_lang='es')
+# [{'translation_text': 'Hola, ¿cómo estás?'}]
 ```
+
+### Large Language Models (LLMs)
+
+### Tokenization and Probablities
+
+### Text Generation
 
 ## 3. Image Models: Diffusers
 
