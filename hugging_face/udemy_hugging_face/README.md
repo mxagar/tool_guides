@@ -14,7 +14,11 @@ Table of contents:
 - [Hugging Face Bootcamp Notes](#hugging-face-bootcamp-notes)
   - [1. Introduction to Hugging Face](#1-introduction-to-hugging-face)
     - [Install Packages](#install-packages)
-    - [Account Setup](#account-setup)
+    - [Account Setup and Model Repository](#account-setup-and-model-repository)
+    - [Understanding Models and Spaces](#understanding-models-and-spaces)
+    - [Datasets](#datasets)
+    - [Compute Services with GPUs](#compute-services-with-gpus)
+    - [Cache Directories](#cache-directories)
   - [2. NLP with Transformers](#2-nlp-with-transformers)
   - [3. Image Models: Diffusers](#3-image-models-diffusers)
   - [4. Video Models](#4-video-models)
@@ -22,9 +26,6 @@ Table of contents:
   - [6. Gradio for User Interfaces](#6-gradio-for-user-interfaces)
 
 ## 1. Introduction to Hugging Face
-
-Folder: [`00-Setup-HF/`](./00-Setup-HF/).  
-Notebook: [`00-HF-Setup.ipynb`](./00-Setup-HF/00-HF-Setup.ipynb).
 
 Hugging Face has:
 
@@ -62,11 +63,11 @@ conda activate ds
 # https://github.com/pytorch/vision#installation
 python -m pip install torch==1.13+cu117 torchvision==0.14+cu117 torchaudio torchtext==0.14 --index-url https://download.pytorch.org/whl/cu117
 
-# Install the transformers library
-pip install transformers datasets accelerate evaluate
+# Install the transformers libraries & Co.
+pip install transformers diffusers datasets evaluate accelerate
 
 # For CPU support only:
-pip install 'transformers[torch]' datasets accelerate evaluate
+pip install 'transformers[torch]' diffusers datasets accelerate evaluate
 
 # If you want to install the HuggingFace Hub conection
 # This is only necessary if we need programmatic access,
@@ -74,7 +75,19 @@ pip install 'transformers[torch]' datasets accelerate evaluate
 pip install huggingface_hub
 ```
 
-### Account Setup
+However, most of the examples in this guide were carried out in online services with GPUs, such as
+
+- Google Colab
+- AWS SageMaker Studio Lab
+
+Note: since the libraries are benig updated so frequently, we often need to upgrade or even downgrade (because compatility is broken) the library versions. AWS SageMaker Studio Lab allows setting our own environments, but Google Colab requires us to do that manually.
+
+```bash
+!pip uninstall transformers -y
+pip install transformers==4.41.0
+```
+
+### Account Setup and Model Repository
 
 To create a model:
 
@@ -122,6 +135,116 @@ git remote set-url origin https://mxagar:hf_xxx@huggingface.co/mxagar/test-model
 
 Then, we can work as always using git workflows.
 
+If we are using remote hosted notebook (e.g., Google Colab or AWS SageMaker Studio Lab), we can use `notebook_login()` to log in to Hugging Face:
+
+```python
+from huggingface_hub import notebook_login
+notebook_login()
+# A box is shown where we can paste our HF token
+```
+
+### Understanding Models and Spaces
+
+If we click on **Models**, we're going to see popular available models; we can also sort them by different criteria.
+Most popular (treding):
+
+- [meta-llama/Meta-Llama-3-8B](https://huggingface.co/meta-llama/Meta-Llama-3-8B/tree/main)
+- [meta-llama/Meta-Llama-3-8B-Instruct](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct)
+
+Most downloaded:
+
+- [MIT/ast-finetuned-audioset-10-10-0.4593](https://huggingface.co/MIT/ast-finetuned-audioset-10-10-0.4593/tree/main): Audio classification
+- [sentence-transformers/all-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2/tree/main)
+- [openai/clip-vit-large-patch14](https://huggingface.co/openai/clip-vit-large-patch14/tree/main): Zero-shot image classification; image-text similary scores, etc.
+- [facebook/fasttext-language-identification](https://huggingface.co/facebook/fasttext-language-identification/tree/main): Text classification; language can be identified and texts classified.
+- [google-bert/bert-base-uncased](https://huggingface.co/google-bert/bert-base-uncased/tree/main)
+- [distilbert/distilbert-base-uncased](https://huggingface.co/distilbert/distilbert-base-uncased/tree/main): distllied version of BERT.
+- [openai/whisper-small](https://huggingface.co/openai/whisper-small/tree/main): Automatic Speech Recognition (ASR).
+- [openai-community/gpt2](https://huggingface.co/openai-community/gpt2/tree/main)
+- [microsoft/trocr-base-handwritten](https://huggingface.co/microsoft/trocr-base-handwritten/tree/main)
+- ...
+
+We can also select the type of method/use-case we'd like and explore available models (e.g., *text-to-3d*).
+
+![Models](./assets/models.png)
+
+Further info available:
+
+- Model card
+- Weights
+- Code
+- Paper links
+- Discussions
+- etc.
+
+Also we can
+
+- train a model on AWS SageMaker
+- deploy it to different providers: AWS, Azure, Google, etc.
+- or use it the HF packages `transformers` (text data) or `diffusers` (image data).
+
+![Deploy](./assets/deploy.png)
+
+If we publish our model to HF Models, we can attach it to a **Space**, which is a compute service that runs the model! These spaces can be used to try the models; however, not all models have spaces attached and spaces of popular models might be overloaded, so they take a very long time to produce an output. Use it extensively!
+
+### Datasets
+
+HF hosts also datasets; we need to distinguish two things regarding datasets:
+
+- The datasets hosted at HF
+- The Python packaged `datasets` from HF, used to access and process those datasets
+
+We should explore the hosted datasets, filtered by most downloaded for each task/use-case.
+We can:
+
+- use the viewer to explare tha dataset,
+- see the Python code snippet to get the dataset in the `Use this dataset` button of a dataset card, e.g.:
+
+  ```python
+  from datasets import load_dataset
+
+  # Usually, we pass as argument the repo name
+  ds = load_dataset("ylecun/mnist")
+  ```
+
+  ![MNIST Dataset](./assets/mnist.png)
+
+### Compute Services with GPUs
+
+Free-tier services:
+
+- Google Colab: [https://colab.research.google.com/](https://colab.research.google.com/)
+- Amazon SageMaker Studio Lab: [https://studiolab.sagemaker.aws/](https://studiolab.sagemaker.aws/)
+
+If we are using remote hosted notebook (e.g., Google Colab or AWS SageMaker Studio Lab), we can use `notebook_login()` to log in to Hugging Face:
+
+```python
+from huggingface_hub import notebook_login
+notebook_login()
+# A box is shown where we can paste our HF token
+```
+
+### Cache Directories
+
+Anything downloaded from HF is stored by default here:
+
+```bash
+# Unix
+~/.cache/huggingface/ 
+# Windows
+C:\Users\<YourUsername>\.cache\huggingface\ 
+```
+
+But we can modify the directory by custommizing the option `cache_dir`.
+
+To get information of the cache direcory:
+
+```python
+from huggingface_hub import scan_cache_dir
+
+hf_cache_info = scan_cache_dir()
+print(hf_cache_info)
+```
 
 ## 2. NLP with Transformers
 
