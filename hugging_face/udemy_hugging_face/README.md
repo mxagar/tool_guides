@@ -481,6 +481,20 @@ result = translator("Hello, how are you?", src_lang='en', tgt_lang='es')
 
 ### Large Language Models (LLMs)
 
+LLMs are the underlying models that run an NLP `pipeline`.
+
+- Tokenization; words are divided into tokens. GPT2 has a vocabulary size of 50k tokens.
+- Encoding: tokens are converted to embedding vectors.
+- Transformer model, decoder: we pass the sequence of embedding vectors and the transformer outputs the most likely next vector.
+- The most likely vector is converted to a token; the token is output as the next word. Note that we sample from a distribution of most likely tokens, we don't have to take always the most likely one! Thus, the output is not deterministic! We can control that with several variables:
+  - **Temperature**: it affects the sampling
+    - High temperature: `~ 1.0`: more creative results.
+    - Low temperature: `~ 0.0`: less creative results.
+  - **Tok K**: the size of the sampling as cut off
+    - If `tok_k = 3` we only consider the 3 most likely tokens to perform the sampling.
+  - **Top P**: cummulative probability as cut off
+    - If `top_p = 0.97` the tokens that sum up to `0.97` are considered, teh rest ignored
+
 ### Tokenization and Probablities
 
 ### Text Generation
