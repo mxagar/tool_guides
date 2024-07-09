@@ -20,6 +20,7 @@ Table of contents:
     - [Compute Services with GPUs](#compute-services-with-gpus)
     - [Cache Directories](#cache-directories)
   - [2. NLP with Transformers](#2-nlp-with-transformers)
+    - [Pipelines](#pipelines)
   - [3. Image Models: Diffusers](#3-image-models-diffusers)
   - [4. Video Models](#4-video-models)
   - [5. Audio Models](#5-audio-models)
@@ -213,8 +214,8 @@ We can:
 
 Free-tier services:
 
-- Google Colab: [https://colab.research.google.com/](https://colab.research.google.com/)
-- Amazon SageMaker Studio Lab: [https://studiolab.sagemaker.aws/](https://studiolab.sagemaker.aws/)
+- Google Colab: [https://colab.research.google.com/](https://colab.research.google.com/); for a quick guide, see [`Google_Colab_Notes.md`](https://github.com/mxagar/computer_vision_udacity/blob/main/02_Cloud_Computing/Google_Colab_Notes.md).
+- Amazon SageMaker Studio Lab: [https://studiolab.sagemaker.aws/](https://studiolab.sagemaker.aws/); for a quick guide, see [`AWS_SageMaker_StudioLab_Notes.md`](https://github.com/mxagar/computer_vision_udacity/blob/main/02_Cloud_Computing/AWS_SageMaker_StudioLab_Notes.md).
 
 If we are using remote hosted notebook (e.g., Google Colab or AWS SageMaker Studio Lab), we can use `notebook_login()` to log in to Hugging Face:
 
@@ -223,6 +224,8 @@ from huggingface_hub import notebook_login
 notebook_login()
 # A box is shown where we can paste our HF token
 ```
+
+If we want to access to a notebook in a 
 
 ### Cache Directories
 
@@ -248,10 +251,47 @@ print(hf_cache_info)
 
 ## 2. NLP with Transformers
 
-Folder: []().  
+Folder: [`01-Transformers/`](./01-Transformers/).  
 Notebooks:
-- A
-- B
+- [`00-HF-Basics.ipynb`](./01-Transformers/00-HF-Basics.ipynb)
+- [`01-Pipelines-for-NLP-Tasks.ipynb`](./01-Transformers/01-Pipelines-for-NLP-Tasks.ipynb)
+- [`02-LLMs.ipynb`](./01-Transformers/02-LLMs.ipynb)
+
+### Pipelines
+
+The `transformers` library is used for NLP tasks. Usually, we input natural language text and thanks to pipelines it is used for several tasks:
+
+- Sentiment analysis
+- Text classification
+- etc.
+
+The module `pipeline` is the basic usage interface for the `transformers` library.
+We can go to to Hugging Face, select models for a given task (e.g., text classification) and specify them to `pipeline`. Then, the input text will be automatically processed generating the expected task output.
+
+We get the code snippet required to use a model when we click on `Use this model` on the web UI; example for text classification usng `distillbert`:
+
+![Models Usage](./assets/models_usage.png)
+
+```python
+# Use a pipeline as a high-level helper
+from transformers import pipeline
+
+pipe = pipeline("text-classification", model="distilbert/distilbert-base-uncased-finetuned-sst-2-english")
+
+# Load model directly
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+tokenizer = AutoTokenizer.from_pretrained("distilbert/distilbert-base-uncased-finetuned-sst-2-english")
+model = AutoModelForSequenceClassification.from_pretrained("distilbert/distilbert-base-uncased-finetuned-sst-2-english")
+```
+
+There are many `pipelines`, and the list is continuously being extended; in fact, that's one of the main reasons why there are so many updates in the `transformers` library. The following page contains a list of all pipelines as well as their details:
+
+[Hugging Face Pipelines](https://huggingface.co/docs/transformers/en/main_classes/pipelines).
+
+```python
+
+```
 
 ## 3. Image Models: Diffusers
 
