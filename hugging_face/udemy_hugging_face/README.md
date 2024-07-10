@@ -23,8 +23,7 @@ Table of contents:
   - [2. NLP with Transformers](#2-nlp-with-transformers)
     - [Pipelines](#pipelines)
     - [Large Language Models (LLMs)](#large-language-models-llms)
-    - [Tokenization and Probablities](#tokenization-and-probablities)
-    - [Text Generation](#text-generation)
+    - [Tokenization, Probablities and Text Generation](#tokenization-probablities-and-text-generation)
   - [3. Image Models: Diffusers](#3-image-models-diffusers)
   - [4. Video Models](#4-video-models)
   - [5. Audio Models](#5-audio-models)
@@ -91,6 +90,11 @@ Note: since the libraries are benig updated so frequently, we often need to upgr
 !pip uninstall transformers -y
 pip install transformers==4.41.0
 ```
+
+In order to open a notebook from the present repository in Google Colab:
+
+    https://colab.research.google.com/github/<usename>/<path>
+
 
 ### Account Setup and Model Repository
 
@@ -481,12 +485,12 @@ result = translator("Hello, how are you?", src_lang='en', tgt_lang='es')
 
 ### Large Language Models (LLMs)
 
-LLMs are the underlying models that run an NLP `pipeline`.
+LLMs are the underlying models that run an NLP `pipeline`. A LLM has the following components or steps, from the users' perspective:
 
-- Tokenization; words are divided into tokens. GPT2 has a vocabulary size of 50k tokens.
-- Encoding: tokens are converted to embedding vectors.
-- Transformer model, decoder: we pass the sequence of embedding vectors and the transformer outputs the most likely next vector.
-- The most likely vector is converted to a token; the token is output as the next word. Note that we sample from a distribution of most likely tokens, we don't have to take always the most likely one! Thus, the output is not deterministic! We can control that with several variables:
+- **Tokenizer**: words are divided into tokens. For instance, GPT2 has a vocabulary size of 50k tokens.
+- **Encoder**: tokens are converted to embedding vectors.
+- **Transformer model, decoder**: we pass the sequence of embedding vectors and the transformer outputs the most likely next vector.
+- **Selection**: the most likely vector is converted to a token; the token is output as the next word. Note that we sample from a distribution of most likely tokens, we don't have to take always the most likely one! Thus, the output is not deterministic! We can control that with several variables:
   - **Temperature**: it affects the sampling
     - High temperature: `~ 1.0`: more creative results.
     - Low temperature: `~ 0.0`: less creative results.
@@ -495,9 +499,10 @@ LLMs are the underlying models that run an NLP `pipeline`.
   - **Top P**: cummulative probability as cut off
     - If `top_p = 0.97` the tokens that sum up to `0.97` are considered, teh rest ignored
 
-### Tokenization and Probablities
+### Tokenization, Probablities and Text Generation
 
-### Text Generation
+Notebook: [`02-LLMs.ipynb`](./01-Transformers/02-LLMs.ipynb).
+
 
 ## 3. Image Models: Diffusers
 
