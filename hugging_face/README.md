@@ -17,6 +17,11 @@ Source material:
 - [Fine-tune a pretrained model](https://huggingface.co/docs/transformers/training)
 - [Fine-tuning with custom datasets](https://huggingface.co/transformers/v3.2.0/custom_datasets.html)
 
+See also:
+
+- My notes on LangChain: [mxagar/tool_guides/langchain](https://github.com/mxagar/tool_guides/tree/master/langchain)
+- My notes on the [Udacity Generative AI Nanodegree](https://www.udacity.com/course/generative-ai--nd608): [mxagar/generative_ai_udacity](https://github.com/mxagar/generative_ai_udacity)
+
 Table of contents:
 
 - [Hugging Face: A Guide](#hugging-face-a-guide)
