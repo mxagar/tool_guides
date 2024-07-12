@@ -25,6 +25,9 @@ Table of contents:
     - [Large Language Models (LLMs)](#large-language-models-llms)
     - [Tokenization, Probablities and Text Generation](#tokenization-probablities-and-text-generation)
   - [3. Image Models: Diffusers](#3-image-models-diffusers)
+    - [Basic Image Processing](#basic-image-processing)
+    - [Image Generation: Text-to-Image and Diffusion Models](#image-generation-text-to-image-and-diffusion-models)
+    - [Diffusion Models with Python](#diffusion-models-with-python)
   - [4. Video Models](#4-video-models)
   - [5. Audio Models](#5-audio-models)
   - [6. Gradio for User Interfaces](#6-gradio-for-user-interfaces)
@@ -487,7 +490,7 @@ result = translator("Hello, how are you?", src_lang='en', tgt_lang='es')
 
 LLMs are the underlying models that run an NLP `pipeline`. A LLM has the following components or steps, from the users' perspective:
 
-- **Tokenizer**: words are divided into tokens. For instance, GPT2 has a vocabulary size of 50k tokens.
+- **Tokenizer**: words are divided into tokens. Modern tokenization splits words into parts, aka *sub-word tokenization*. Different models use different tokenizers (GPT2 uses Byte-level BPE). Tokens are expressed as ids `[0,N]`, being `N+1` the vocabulary size. For instance, GPT2 has a vocabulary size of 50k tokens.
 - **Encoder**: tokens are converted to embedding vectors.
 - **Transformer model, decoder**: we pass the sequence of embedding vectors and the transformer outputs the most likely next vector.
 - **Selection**: the most likely vector is converted to a token; the token is output as the next word. Note that we sample from a distribution of most likely tokens, we don't have to take always the most likely one! Thus, the output is not deterministic! We can control that with several variables:
@@ -503,13 +506,269 @@ LLMs are the underlying models that run an NLP `pipeline`. A LLM has the followi
 
 Notebook: [`02-LLMs.ipynb`](./01-Transformers/02-LLMs.ipynb).
 
+```python
+import transformers
+import torch
+
+# The tokenizers are abstracted by AutoTokenizer
+from transformers import AutoTokenizer
+# Similarly as with the AutoTokenizer 
+# we can use the AutoModelForCausalLM (AutoModelFor* + TAB)
+# to load the generative LLM we want.
+# Note that the model and the tokenized must match,
+# which is achieved with the model string "gpt2" we pass.
+# The class AutoModelForCausalLM is a generic model class that 
+# will be instantiated as one of the model classes of the library 
+# (with a causal language modeling head).
+# Using the Auto* classes for GPT2
+# we really load GPT2Tokenizer and GPT2LMHeadModel
+from transformers import AutoModelForCausalLM
+
+# Load the GPT-2 tokenizer: 
+# we pass the model name and its associated toknizer is loaded
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+
+# return_tensors="pt": PyTorch tensors
+# ids: we go from words to uids; then, we'll convert the uids into vectors
+input_ids = tokenizer("Preposterous, I'm flabbergasted!", return_tensors="pt").input_ids
+print(input_ids)
+# Output: tensor([[1026,  373,  257, 3223,  290, 6388,   88]])
+
+# Decode the tokens back into text
+for t in input_ids[0]:
+    print(t, "\t:", tokenizer.decode(t))
+# tensor(37534) 	: Prep
+# tensor(6197) 	: oster
+# tensor(516) 	: ous
+# tensor(11) 	: ,
+# ...
+
+# Generative LLM: GPT2
+gpt2 = AutoModelForCausalLM.from_pretrained("gpt2")
+# We can get all the config and interfaces of the model
+help(gpt2)
+
+outputs = gpt2(input_ids)
+outputs.logits.shape
+# torch.Size([1, 4, 50257])
+# 1: number of batches
+# 4: sequence length, i.e., number of tokens in "I skip across the"
+# 50257: vocabulary sized
+# logits: raw outputs from the model, we can convert them to ps
+# IMPORTANT: the length of the output sequence is the same as the input length, but:
+# - the first output tensor/token is the 2nd in the input sequence
+# - the last output tensor/token is the NEW token!
+
+final_logits = gpt2(input_ids).logits[0, -1] # The last set of logits
+final_logits.argmax() # tensor(1627)
+tokenizer.decode(final_logits.argmax()) # We decode the most probable NEW token
+# 'line'
+
+# We can also check the top 10 NEW tokens
+top10_logits = torch.topk(final_logits, 10)
+for index in top10_logits.indices:
+    print(tokenizer.decode(index))
+    # line
+    # street
+    # river
+    # ...
+
+top10 = torch.topk(final_logits.softmax(dim=0), 10)
+# Here, we see the associated probabilities - very low
+for value, index in zip(top10.values, top10.indices):
+    print(f"{tokenizer.decode(index):<10} {value.item():.1%}")
+    # line      3.6%
+    # street    2.7%
+    # river     2.2%
+    # ...
+
+# We have a generate() interface which wraps the LLM,
+# abstracts away the details of making multiple forward passes (to get successive next words)
+# and adds additional functonalities, such as:
+# - max_new_tokens
+# - repetition_penalty: decrease re-use of words
+# - do_sample: sample, don't select likeliest
+# - temperature: randomness of sampling
+# - top_k: number of top k in sampling
+# - top_p: cumulative p in sampling
+# - bad_words_ids: avoid offensive words
+# - num_beams: don't pick likeliest, but consider several branches (beam search)
+# ...
+# We can use different strategies for generation:
+# - Greedy decoding: pick likeliest word; default
+# - Beam search: keeps track of multiple hypotheses during generation, choosing the most likely overall sequence
+output_ids = gpt2.generate(input_ids, max_new_tokens=20, repetition_penalty=1.5)
+# Then, we decode the output ids to obtain tokens
+decoded_text = tokenizer.decode(output_ids[0])
+
+print("Input IDs:", input_ids[0])
+print("Output IDs:", output_ids)
+print(f"Generated text: {decoded_text}") # # We have a generate() interface which wraps the LLM,
+# abstracts away the details of making multiple forward passes (to get successive next words)
+# and adds additional functonalities, such as:
+# - max_new_tokens
+# - repetition_penalty: decrease re-use of words
+# - do_sample: sample, don't select likeliest
+# - temperature: randomness of sampling
+# - top_k: number of top k in sampling
+# - top_p: cumulative p in sampling
+# - bad_words_ids: avoid offensive words
+# - num_beams: don't pick likeliest, but consider several branches (beam search)
+# ...
+# We can use different strategies for generation:
+# - Greedy decoding: pick likeliest word; default
+# - Beam search: keeps track of multiple hypotheses during generation, choosing the most likely overall sequence
+output_ids = gpt2.generate(input_ids, max_new_tokens=20, repetition_penalty=1.5)
+# Then, we decode the output ids to obtain tokens
+decoded_text = tokenizer.decode(output_ids[0])
+
+print("Input IDs:", input_ids[0])
+print("Output IDs:", output_ids)
+print(f"Generated text: {decoded_text}")
+# I skip across the line to a place where I can see it.
+# 
+# The next time you're in town,
+
+from transformers import set_seed
+set_seed(70)
+sampling_output = gpt2.generate(
+    input_ids,
+    num_beams=5,
+    do_sample=True,
+    temperature=0.4,
+    repetition_penalty=1.2,
+    max_length=40,
+    top_k=10,
+)
+print(tokenizer.decode(sampling_output[0], skip_special_tokens=True))
+```
 
 ## 3. Image Models: Diffusers
 
-Folder: []().  
+Folder: [`02-Diffusers/`](./02-Diffusers/).  
 Notebooks:
-- A
-- B
+- [`00-Understanding-Image-Data.ipynb`](./02-Diffusers/00-Understanding-Image-Data.ipynb)
+- [`01-Understanding-Diffusion-Models.ipynb`](./02-Diffusers/01-Understanding-Diffusion-Models.ipynb)
+- [`02-Diffusers/02-AutoPipelines-Diffusers.ipynb`](./02-Diffusers/02-AutoPipelines-Diffusers.ipynb)
+
+Images are regresented as hypermatrices of pixels (`W x H x C`), where each pixel contains a value in `[0,255]` and `C` often `{R,G,B}`.
+
+![Image Representation](./assets/image_representation.png)
+
+### Basic Image Processing
+
+Notebook: [`00-Understanding-Image-Data.ipynb`](./02-Diffusers/00-Understanding-Image-Data.ipynb).
+
+The `diffusers` library uses the default image processing library Pillow from Python. Another handy library is OpenCV.
+
+```bash
+pip install pillow
+pip install opencv-python
+# Often, cloud platforms require the headless library
+pip install opencv-python-headless
+```
+
+Some basic commands for managing images:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+import cv2
+
+### -- PIL
+
+# Load the image
+pic = Image.open('puppy.png')
+# Check the type of the image
+type(pic) # PIL.PngImagePlugin.PngImageFile
+
+# Convert image to NumPy array
+pic_arr = np.asarray(pic)
+pic_arr.shape # (1024, 1024, 4)
+plt.imshow(pic_arr) # Display
+
+# Copy the array
+pic_red = pic_arr.copy()
+
+# Zero out the green and blue channels
+pic_red[:, :, 1] = 0  # Green
+pic_red[:, :, 2] = 0  # Blue
+# Display the modified image: Red
+plt.imshow(pic_red)
+
+### -- OpenCV
+
+# Load the image
+img = cv2.imread('puppy.png')
+# Convert BGR to RGB: OpenCV opens images as BGR
+img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+# Display
+plt.imshow(img_rgb)
+
+# Load image in grayscale
+img_gray = cv2.imread('puppy.png', cv2.IMREAD_GRAYSCALE)
+plt.imshow(img_gray, cmap='gray')
+
+# Resize image
+img_resized = cv2.resize(img_rgb, (1300, 275))
+plt.imshow(img_resized)
+
+# Resize by ratio
+new_img = cv2.resize(img_rgb, (0, 0), fx=0.5, fy=0.5)
+plt.imshow(new_img)
+```
+
+See also:
+
+- [mxagar/computer_vision_udacity](https://github.com/mxagar/computer_vision_udacity)
+- [`CVND_Introduction.md`](https://github.com/mxagar/computer_vision_udacity/blob/main/01_Intro_Computer_Vision/CVND_Introduction.md)
+- [`Catalog_CV_Functions.md`](https://github.com/mxagar/computer_vision_udacity/blob/main/Catalog_CV_Functions.md)
+
+### Image Generation: Text-to-Image and Diffusion Models
+
+These are some important papers/works:
+
+| Attribute             | CLIP                                                                 | DALL-E                                                               | Stable Diffusion                                                     |
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|
+| Task                  | Encoder model that creates embedding vectors for both images and text in the same embedding space | Generates images from textual descriptions; it uses CLIP in its pipeline: the model generates images that match the semantic meaning of the input text                           | Generates images through a process of iterative refinement starting from random noise; the model is equivalent to DALLE, because it generates images from text, so a similar pipeline is used behing the scenes |
+| Year                  | 2021                                                                 | 2021                                                                 | 2022                                                                 |
+| Paper                 | [https://arxiv.org/abs/2103.00020](https://arxiv.org/abs/2103.00020) | [https://arxiv.org/abs/2102.12092](https://arxiv.org/abs/2102.12092) | [https://arxiv.org/abs/2205.11487](https://arxiv.org/abs/2205.11487) |
+| Organization + Author | OpenAI, Alec Radford                                                 | OpenAI, Aditya Ramesh                                                 | CompVis, Robin Rombach                                               |
+| Type of model         | Transformer                                                          | Transformer                                                          | Diffusion                                                            |
+| Num. parameters       | 400 million                                                          | 12 billion                                                            | Unknown                                                              |
+| Weights + License     | Yes, MIT License                                                     | No                                                                   | Yes, CreativeML Open RAIL-M                                          |
+| API available         | Yes                                                                  | Yes                                                                  | Yes                                                                  |
+
+However, note that new versions are constantly appearing; e.g., Stable Diffusion 3 appeared in 2024, anf it is a Diffusion Transformer instead of a UNet, as previous versions.
+
+Image-to-Text generation models work in different stages:
+
+- Texts are embedded using an encoder model simila to CLIP, which produces and embedding space valid for both images and text.
+- Text embeddings are processed by a prior model which maps them to an image-only space; this works better than directly taking the CLIP embedding. That mapping occurs with some linear, normalization and attention layers.
+- Then, diffusion models are applied, as decoders, which expand the image embedding. Diffusion models reverse gradually hypothetical noise in an image.
+
+![Text-to-Image Process](./assets/text_to_image.png)
+
+Diffusion models: 
+
+- Diffusion models take an image embedding and a random noise vector and generate an image out of them.
+- The Diffusion model is trained to undo the steps of a fixed corruption process (adding Gaussian noise).
+- After the final step, the image is clear and visible.
+- The model starts with random noise and uses the image embedding to guide the denoising process, ensuring the generated image matches the desired features and structure represented by the embedding.
+- Noise removal (denoising) is applied iteratively during the image generation process, i.e., as we expand the image.
+- The image embedding remains the same throughout the entire denoising process.
+- Initial models used `512 x 512` resolution, but current models use `1024 x 1024`.
+
+![Denoising](./assets/denoising.gif)
+
+### Diffusion Models with Python
+
+Notebook: [`01-Understanding-Diffusion-Models.ipynb`](./02-Diffusers/01-Understanding-Diffusion-Models.ipynb).
+
+```python
+
+```
 
 ## 4. Video Models
 
