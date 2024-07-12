@@ -8,3 +8,4 @@ logs
 wandb
 Slides
 .env
+*.mp4
