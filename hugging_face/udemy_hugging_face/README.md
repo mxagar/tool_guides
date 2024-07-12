@@ -28,7 +28,9 @@ Table of contents:
     - [Basic Image Processing](#basic-image-processing)
     - [Image Generation: Text-to-Image and Diffusion Models](#image-generation-text-to-image-and-diffusion-models)
     - [Diffusion Models with Python](#diffusion-models-with-python)
+    - [Auto-Pipelines](#auto-pipelines)
   - [4. Video Models](#4-video-models)
+    - [Stable Video Diffusion](#stable-video-diffusion)
   - [5. Audio Models](#5-audio-models)
   - [6. Gradio for User Interfaces](#6-gradio-for-user-interfaces)
 
@@ -758,24 +760,265 @@ Diffusion models:
 - The model starts with random noise and uses the image embedding to guide the denoising process, ensuring the generated image matches the desired features and structure represented by the embedding.
 - Noise removal (denoising) is applied iteratively during the image generation process, i.e., as we expand the image.
 - The image embedding remains the same throughout the entire denoising process.
+- Unlike previous techniques like Variational Autoencoders (VAEs) or Generative Adversarial Networks (GANs), which generate images in a single pass, diffusion models create images through many steps. This iterative process allows the model to refine and correct its output gradually, leading to high-quality image generation.
 - Initial models used `512 x 512` resolution, but current models use `1024 x 1024`.
 
 ![Denoising](./assets/denoising.gif)
 
 ### Diffusion Models with Python
 
-Notebook: [`01-Understanding-Diffusion-Models.ipynb`](./02-Diffusers/01-Understanding-Diffusion-Models.ipynb).
+Notebook: [`01-Understanding-Diffusion-Models.ipynb`](./02-Diffusers/01-Understanding-Diffusion-Models.ipynb). The following contents are shown:
+
+- Difussion Pipeline: generate random celebrity images
+- Difussion Model & Scheduler: Manually generating random celebrity images
+
+We need a GPU for the notebook; I used a T4 in Google Colab.
+
+```python
+from PIL import Image
+import numpy as np
+import torch
+from tqdm.auto import tqdm
+
+### -- Difussion Pipeline: generate random celebrity images
+from diffusers import DDPMPipeline
+
+# DDPMPipeline = Denoising Diffusion Probabilistic Models
+# https://huggingface.co/docs/diffusers/v0.3.0/en/api/pipelines/ddpm
+# This is the base class which can contain diffusion models
+# and we can load them simply passing the model string to from_pretrained()
+# Usually, they have two components:
+# - model, unet: the UNet model which performs the denoising
+# - scheduler: which runs the unet in several steps
+# Here, both components are used behing the hood
+# but we can use them separately, as shown below.
+# However, usually we don't use them separately.
+ddpm = DDPMPipeline.from_pretrained("google/ddpm-celebahq-256").to("cuda")
+
+# We run the model using the schedulerin 30 steps
+image = ddpm(num_inference_steps=30).images[0]
+# Display
+image
+
+### -- Difussion Model & Scheduler: Manually generating random celebrity images
+from diffusers import DDPMScheduler, UNet2DModel
+
+# Instead of using DDPMPipeline,
+# we now will use th emodel and the scheduler separately
+scheduler = DDPMScheduler.from_pretrained("google/ddpm-celebahq-256")
+model = UNet2DModel.from_pretrained("google/ddpm-celebahq-256").to("cuda")
+ 
+# Create 50 evenly spaced timesteps
+scheduler.set_timesteps(50)
+
+
+# Get the sample size from the model configuration
+# This is the image size
+sample_size = model.config.sample_size
+
+# Create random noise with the same shape as the desired output
+noise = torch.randn((1, 3, sample_size, sample_size), device="cuda")
+
+# Denoising loop, written manually
+# Initialize the input to be the random noise we created
+input = noise
+
+# Loop over each timestep
+for t in scheduler.timesteps:
+    with torch.no_grad():  # No gradient calculation is needed
+        # Get the noisy residual from the model
+        # The Diffusion model predicts the noise overlaping the image
+        # UNet2DModel.forward() is run here
+        noisy_residual = model(input, t).sample
+    # Predict the image at the previous timestep
+    # The scheuler removed the predicted noise
+    previous_noisy_sample = scheduler.step(noisy_residual, t, input).prev_sample
+    # Update the input for the next iteration
+    input = previous_noisy_sample
+
+# Convert the denoised output to an image
+# Normalize the image data: values in [0,1], not [-1,1]
+image = (input / 2 + 0.5).clamp(0, 1).squeeze()
+# Change the shape and type for image conversion
+image = (image.permute(1, 2, 0) * 255).round().to(torch.uint8).cpu().numpy()
+# Create a PIL image
+image = Image.fromarray(image)
+# Display
+image
+
+### -- Text-to-Image: Prompt a caption and obtain an image, all steps manual
+from transformers import CLIPTextModel, CLIPTokenizer
+from diffusers import AutoencoderKL, UNet2DConditionModel, PNDMScheduler
+from diffusers import UniPCMultistepScheduler
+
+# Stable Diffusion v1.4 is used here
+# It consists of several models:
+# - A text encoder
+# - A UNet for denoising
+# - A VAE for expanding the denoised image
+vae = AutoencoderKL.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="vae", use_safetensors=True)
+tokenizer = CLIPTokenizer.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="tokenizer")
+text_encoder = CLIPTextModel.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="text_encoder", use_safetensors=True)
+unet = UNet2DConditionModel.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="unet", use_safetensors=True)
+
+# Instead of the default PNDMScheduler, let's use the UniPCMultistepScheduler
+scheduler = UniPCMultistepScheduler.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="scheduler")
+
+# Move Models to GPU
+torch_device = "cuda"
+vae.to(torch_device)
+text_encoder.to(torch_device)
+unet.to(torch_device)
+ 
+# Parameters: prompt, sizes, etc. 
+prompt = ["a photo of a red planet"]
+height = 512  # default height of Stable Diffusion
+width = 512  # default width of Stable Diffusion
+num_inference_steps = 25  # Number of denoising steps
+guidance_scale = 7.5  # Scale for classifier-free guidance
+
+# Seed generator to create the initial latent noise
+generator = torch.manual_seed(0)
+
+batch_size = len(prompt)
+
+text_input = tokenizer(
+    prompt,
+    padding="max_length",
+    max_length=tokenizer.model_max_length,
+    truncation=True,
+    return_tensors="pt"
+)
+
+with torch.no_grad():
+    text_embeddings = text_encoder(text_input.input_ids.to(torch_device))[0]
+
+# Tokenization of Unconditional Guidance
+# Tokenizing empty prompts for unconditional guidance
+# is a technique used in diffusion models,
+# particularly in text-to-image generation models like Stable Diffusion.
+# It involves providing the model with a set of inputs 
+# that do not contain any specific information or prompts.
+# This helps the model learn the underlying structure or distribution
+# of the data without being influenced by specific input text.
+max_length = text_input.input_ids.shape[-1]
+uncond_input = tokenizer(
+    [""] * batch_size,
+    padding="max_length",
+    max_length=max_length,
+    return_tensors="pt"
+)
+uncond_embeddings = text_encoder(uncond_input.input_ids.to(torch_device))[0]
+
+text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
+
+# Generate some initial random noise
+latents = torch.randn((batch_size, unet.config.in_channels, height // 8, width // 8), device=torch_device)
+latents = latents * scheduler.init_noise_sigma
+
+scheduler.set_timesteps(num_inference_steps)
+# Create the denoising loop to progressively transform 
+# the pure noise in latents to an image described by your prompt
+for t in tqdm(scheduler.timesteps):
+    latent_model_input = torch.cat([latents] * 2)
+    latent_model_input = scheduler.scale_model_input(latent_model_input, timestep=t)
+
+    with torch.no_grad():
+        noise_pred = unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
+
+    noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+    noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
+
+    latents = scheduler.step(noise_pred, t, latents).prev_sample
+
+# Use the VAE to decode the latent representation into an image
+latents = 1/ 0.18215 * latents
+with torch.no_grad():
+    image = vae.decode(latents).sample
+
+image = (image / 2 + 0.5).clamp(0, 1).squeeze()
+image = (image.permute(1, 2, 0) * 255).to(torch.uint8).cpu().numpy()
+image = Image.fromarray(image)
+# Display
+image
+
+```
+
+![Celibrity](./assets/celebrity.png)
+
+![Red Planet](./assets/red_planet.png)
+
+### Auto-Pipelines
+
+Notebook: [`02-AutoPipelines-Diffusers.ipynb`](./02-Diffusers/02-AutoPipelines-Diffusers.ipynb).  
+
+```python
+# We can browse HuggingFace looking for the right model
+# For instance:
+# https://huggingface.co/dreamlike-art/dreamlike-photoreal-2.0
+# The option "use this model" shows how to load that model and use it
+# but we can also try to load it with the generic AutoPipelineFor + TAB
+from diffusers import AutoPipelineForText2Image
+import torch
+
+# Load the pipeline
+# With AutoPipelineFor* we pass the model string
+pipe_txt2img = AutoPipelineForText2Image.from_pretrained(
+    "dreamlike-art/dreamlike-photoreal-2.0",
+    torch_dtype=torch.float16,
+    use_safetensors=True
+).to("cuda")
+
+# Define the prompt and generator
+prompt = "cinematic photo of Elmo as the president of the United States in front of the white house, 35mm photograph, film, professional, 4k, highly detailed"
+generator = torch.Generator(device="cuda").manual_seed(37)
+
+# Generate the image
+image = pipe_txt2img(prompt, generator=generator).images[0]
+# Display
+image
+```
+
+![Elmo President](./assets/elmo_president.png)
+
+## 4. Video Models
+
+Folder: [`03-Video-Models/`](./03-Video-Models/).  
+Notebooks:
+- [`00-Stable-Video-Diffusion.ipynb`](./03-Video-Models/00-Stable-Video-Diffusion.ipynb)
+- [`01-Image2VideoGen-XL.ipynb`](./03-Video-Models/01-Image2VideoGen-XL.ipynb)
+
+We can create videos, for instance, from
+
+- a prompt
+- a single image
+- or both a text and an image
+
+**Stable Video Diffusion** is one of the most important works to date in the field:
+
+- [Blog Post - Introducing Stable Video Diffusion](https://stability.ai/news/stable-video-diffusion-open-ai-video-model)
+- [Paper - Stable Video Diffusion: Scaling Latent Video Diffusion Models to Large Datasets](https://arxiv.org/abs/2311.15127)
+
+Stable Video Diffusion is/was trained as follows:
+
+- First, we have the **text-to-image pretraining**: a text-to-image diffusion model is trained, which will be able to generate images from text prompts. Stable Diffusion 2.0 is used here, which is trained with high resolution images.
+  - The Stable Video Diffusion models operates in the latent space, which reduces computational complexity.
+- Then, we perform the **video pretraining**, i.e., the text-to-image model is adapted by inserting temporal layers that handle sequences of frames. A video is at the end of the day a sequence of coherent image frames. 
+  - The Large Video Dataset (LVD) is used, which consists of 580 million annotated low resolution video clips.
+  - The model learns video dynamics, motion, temporal coherence.
+  - Temporal convolutions are used, as well as attention layers, which enable changing only relevant pixels at a time.
+- Finally, we have the **high-quality video fine-tuning**: since the video pretraning is/was with low-quality videos, now we train it with a smaller set of high-quality videos. The final model is able to output high-resolution videos.
+  - Human curation is important here; optical flow analysis and OCR are used, among others, to filter videos before curation (we want videos with movement and fewer text).
+
+These models are very memory-intensive, so we need GPUs and they need to be configured properly.
+
+### Stable Video Diffusion
+
+Notebook: [`00-Stable-Video-Diffusion.ipynb`](./03-Video-Models/00-Stable-Video-Diffusion.ipynb). Stable Video Diffusion is used; we pass an image to it and obtain a video of around 4 seconds.
 
 ```python
 
 ```
-
-## 4. Video Models
-
-Folder: []().  
-Notebooks:
-- A
-- B
 
 ## 5. Audio Models
 
