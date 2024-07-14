@@ -30,8 +30,10 @@ Table of contents:
     - [Diffusion Models with Python](#diffusion-models-with-python)
     - [Auto-Pipelines](#auto-pipelines)
   - [4. Video Models](#4-video-models)
-    - [Stable Video Diffusion](#stable-video-diffusion)
+    - [Stable Video Diffusion: Image-to-Video](#stable-video-diffusion-image-to-video)
+    - [I2VGenXL: Image-and-Text-to-Video](#i2vgenxl-image-and-text-to-video)
   - [5. Audio Models](#5-audio-models)
+    - [Understanding Audio Data](#understanding-audio-data)
   - [6. Gradio for User Interfaces](#6-gradio-for-user-interfaces)
 
 ## 1. Introduction to Hugging Face
@@ -82,6 +84,9 @@ pip install 'transformers[torch]' diffusers datasets accelerate evaluate
 # This is only necessary if we need programmatic access,
 # for which there is also a CLI tool
 pip install huggingface_hub
+
+# Audio analysis
+pip install librosa
 ```
 
 However, most of the examples in this guide were carried out in online services with GPUs, such as
@@ -92,14 +97,24 @@ However, most of the examples in this guide were carried out in online services 
 Note: since the libraries are benig updated so frequently, we often need to upgrade or even downgrade (because compatility is broken) the library versions. AWS SageMaker Studio Lab allows setting our own environments, but Google Colab requires us to do that manually.
 
 ```bash
+# Install desired version
 !pip uninstall transformers -y
-pip install transformers==4.41.0
+!pip install transformers==4.41.0
+
+# Install any version if missing
+!pip install transformers diffusers torch torchvision
 ```
 
 In order to open a notebook from the present repository in Google Colab:
 
     https://colab.research.google.com/github/<usename>/<path>
 
+Finally, bear in mind that sometimes models are very large and we occupy the complete GPU memory (specially with video models). We can clear the memory by removig unused models with the following lines:
+
+```python
+import torch
+torch.cuda.empty_cache()
+```
 
 ### Account Setup and Model Repository
 
@@ -1012,20 +1027,155 @@ Stable Video Diffusion is/was trained as follows:
 
 These models are very memory-intensive, so we need GPUs and they need to be configured properly.
 
-### Stable Video Diffusion
+### Stable Video Diffusion: Image-to-Video
 
 Notebook: [`00-Stable-Video-Diffusion.ipynb`](./03-Video-Models/00-Stable-Video-Diffusion.ipynb). Stable Video Diffusion is used; we pass an image to it and obtain a video of around 4 seconds.
+
+```python
+import torch
+import diffusers
+import transformers
+import cv2
+from diffusers import StableVideoDiffusionPipeline
+from diffusers.utils import load_image, export_to_video
+
+# Model in complete Pipeline
+# https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt
+# We feed an image and get a short video (4s, approx.)
+pipe = StableVideoDiffusionPipeline.from_pretrained(
+    'stabilityai/stable-video-diffusion-img2vid-xt',
+    torch_dtype=torch.float16, # This reduces from 32 to 16B, less memory
+    variant='fp16' # This goes with the previous line, it's a variante of the model
+)
+pipe.enable_model_cpu_offload()
+
+# We load the image; this is the conditioning image
+image = load_image("nasa-U2uKrI4lci8-unsplash.png")
+
+# If the size is not 1024 x 576
+# We would need to:
+# 1) crop to the same ratio, manually, 
+# 2) resize to (1024, 576): image.resize((1024,576))
+image.size # (1024, 576)
+
+# Reproducible seed
+generator = torch.manual_seed(42)
+
+# This takes around 5 minutes on a T4
+# Sometimes we get Out of Memory errors, depending on the GPUs.
+# One solution is to downgrade the model from 32 to 16B
+# That's done in the Pipeline instantiation
+# frames is a list of PIL.Images!
+frames = pipe(
+    image,
+    decode_chunk_size=8,
+    generator=generator
+).frames[0] # The frames are in the first elemet of the pipeline.frames
+
+# Frames are exported to a video
+export_to_video(frames,'generated.mp4',fps=7)
+
+type(frames[0]) # PIL.Image.Image
+
+# Display frame
+frames[1]
+```
+
+### I2VGenXL: Image-and-Text-to-Video
+
+Notebook: [`01-Image2VideoGen-XL.ipynb`](./03-Video-Models/01-Image2VideoGen-XL.ipynb). This models is similar to the previous one, because we pass an image to it and obtain a short video, but we can guide the video witha text prompt.
+
+Paper: [I2VGen-XL: High-Quality Image-to-Video Synthesis via Cascaded Diffusion Models (2023)](https://arxiv.org/abs/2311.04145).
+
+```python
+import torch
+from diffusers import I2VGenXLPipeline
+from diffusers.utils import load_image, export_to_gif, export_to_video  
+
+# Empty GPU RAM before anything
+torch.cuda.empty_cache()
+
+# Load the model pipeline
+# https://huggingface.co/docs/diffusers/en/api/pipelines/i2vgenxl
+# https://arxiv.org/abs/2311.04145
+repo_id = "ali-vilab/i2vgen-xl" 
+pipeline = I2VGenXLPipeline.from_pretrained(repo_id, torch_dtype=torch.float16, variant="fp16")
+pipeline.enable_model_cpu_offload()
+
+image_url = "astro_moon.png"
+image = load_image(image_url).convert("RGB")
+prompt = "astronaut jumping straight up"
+
+generator = torch.manual_seed(8888)
+# This takes about 12 minutes in a T4
+frames = pipeline(
+    prompt=prompt,
+    image=image,
+    generator=generator
+).frames[0] # The frames are in the first elemet of the pipeline.frames
+
+len(frames) # Only 16 frames
+
+# Convert list of PIL.Images to GIF
+print(export_to_gif(frames))
+
+# Convert list of PIL.Images to mp4
+export_to_video(frames,'astro_jump.mp4',fps=8)
+```
+
+## 5. Audio Models
+
+Folder: [`04-Audio-Models/`](./04-Audio-Models/).  
+Notebooks:
+- [`00-Audio-Data.ipynb`](./04-Audio-Models/00-Audio-Data.ipynb)
+- [`01-Audio-Classification.ipynb`](./04-Audio-Models/01-Audio-Classification.ipynb)
+- [`02-Audio-Transcription.ipynb`](./04-Audio-Models/02-Audio-Transcription.ipynb)
+- [`03-Audio-Generation.ipynb`](./04-Audio-Models/03-Audio-Generation.ipynb)
+
+### Understanding Audio Data
+
+Sound waves are matter vibration which cause increased/decreased pressure in an area over time:
+
+![Audio Waves](./assets/audio_waves.png)
+
+We need to select a **sampling rate** to measure (`Hz = 1 /s`); in audio, this is done typically in `{16 kHz, 44.1 kHz, 192 kHz}`, depending on the quality `{normal (voice), high (music), super-high}`. The sampling rate is important because the input data needs to be sampled at the same frequency at which the model was trained in.
+
+The pressure level caused by a wave is the **amplitude** of the wave, measure in `dB`; this is the perceived **loudness**. Some details about the amplitude and `dB`:
+
+- Human hearing is logarithmic, as `dB`; thus the interpretation of the amplitude in `dB` makes sense.
+- In the physical world: `0 dB` = quietest sound; larger values = larger sounds.
+- For digital audio: `0 dB` = loudest possible amplitude!
+  - every `-6 dB` is around a halving of amplitude,
+  - below `-60 dB` generally inaudible.
+
+A digital audio sample records the amplitude of the audio wave at a specific point in time. That amplitude can be recorded with different precission, determined by the **bit depth**, similarly as in the images (i.e., pixels usually have 3 channels of 8 bits = 256 levels). Higher bit depths lead to more accurate sound representations.
+
+- 16-bit audio: 65,536 possible amplitude values
+- 24-bit audio: 16 million.
+- Higher bit-depths reduce quantization noise.
+
+Waves have **frequency** components, i.e., they can be decomposed to simple sinusoidal base waves each with an amplitude and an oscillation frequency.
+
+- Low frequencies are associated to grave pitches.
+- High frequencies are associated to high pitches.
+
+Note that according to the Nyquist-Shannon equation, the sampling rate must be twice as much as the highest frequency we would like to measure.
+
+We can visualize audio with
+
+- Waveforms: Amplitude over Time (2D)
+  ![Waveform](./assets/waveform.png)
+- Frequency spectrums: Amplitude over Frequency (2D)
+  ![Frequuency spectrum](./assets/frequency_spectrum.png)
+- Spectrograms: Amplitude values for each Time and Frequency point (3D)
+  ![Spectrogram](./assets/spectrogram.png)
+
+Notebook: [`00-Audio-Data.ipynb`](./04-Audio-Models/00-Audio-Data.ipynb). Audio data is loaded and the three aforementioned plots are carried out using [librosa](https://librosa.org/doc/latest/index.html).
 
 ```python
 
 ```
 
-## 5. Audio Models
-
-Folder: []().  
-Notebooks:
-- A
-- B
 
 ## 6. Gradio for User Interfaces
 
