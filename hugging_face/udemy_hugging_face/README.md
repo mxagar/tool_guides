@@ -1755,10 +1755,10 @@ audio_seg = AudioSegment(
 audio_seg.export("tts_example.wav", format="mp3")
 ```
 
-
 ## 6. Gradio for User Interfaces
 
-Folder: [`05-Gradio/`](./05-Gradio/).  
+I have moved this section to [mxagar/tool_guides/gradio](https://github.com/mxagar/tool_guides/tree/master/gradio).
+
 Notebooks:
 - [`01-Gradio-Introduction.ipynb`](./05-Gradio/01-Gradio-Introduction.ipynb)
 - [`02-Layout.ipynb`](./05-Gradio/02-Layout.ipynb)
