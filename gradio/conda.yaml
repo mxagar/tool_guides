@@ -1,0 +1,31 @@
+name: hf
+channels:
+  - conda-forge
+  - defaults
+  - pytorch
+dependencies:
+  - python=3.10
+  - requests
+  - pip
+  - jupyterlab
+  - pytorch
+  - scikit-learn
+  - scipy
+  - numpy
+  - pandas
+  - matplotlib
+  - pip:
+      - huggingface_hub
+      - librosa
+      - opencv-python
+      - transformers
+      - diffusers
+      - datasets
+      - evaluate
+      - accelerate
+      - torch
+      - torchvision
+      - torchaudio
+      - pyannote.audio
+      - pydub
+      - pytest
