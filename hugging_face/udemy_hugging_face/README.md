@@ -34,6 +34,9 @@ Table of contents:
     - [I2VGenXL: Image-and-Text-to-Video](#i2vgenxl-image-and-text-to-video)
   - [5. Audio Models](#5-audio-models)
     - [Understanding Audio Data](#understanding-audio-data)
+    - [Audio Feature Extraction and Classification](#audio-feature-extraction-and-classification)
+    - [Audio Transcription](#audio-transcription)
+    - [Audio Generation](#audio-generation)
   - [6. Gradio for User Interfaces](#6-gradio-for-user-interfaces)
 
 ## 1. Introduction to Hugging Face
@@ -87,6 +90,10 @@ pip install huggingface_hub
 
 # Audio analysis
 pip install librosa
+
+# Audio ML
+pip install pyannote.audio
+pip install pydub
 ```
 
 However, most of the examples in this guide were carried out in online services with GPUs, such as
@@ -114,6 +121,13 @@ Finally, bear in mind that sometimes models are very large and we occupy the com
 ```python
 import torch
 torch.cuda.empty_cache()
+```
+
+Relatedly, to move HF structures to the GPU, if available:
+
+```python
+import torch
+pipeline.to(torch.device("cuda"))
 ```
 
 ### Account Setup and Model Repository
@@ -172,6 +186,16 @@ If we are using remote hosted notebook (e.g., Google Colab or AWS SageMaker Stud
 from huggingface_hub import notebook_login
 notebook_login()
 # A box is shown where we can paste our HF token
+```
+
+Alternatively, we can create a `.env` file which contains our `HUGGING_FACE_TOKEN` and load and use it in the notebook:
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+hf_token = os.getenv("HUGGING_FACE_TOKEN")
 ```
 
 ### Understanding Models and Spaces
@@ -1170,17 +1194,577 @@ We can visualize audio with
 - Spectrograms: Amplitude values for each Time and Frequency point (3D)
   ![Spectrogram](./assets/spectrogram.png)
 
-Notebook: [`00-Audio-Data.ipynb`](./04-Audio-Models/00-Audio-Data.ipynb). Audio data is loaded and the three aforementioned plots are carried out using [librosa](https://librosa.org/doc/latest/index.html).
+Notebook: [`00-Audio-Data.ipynb`](./04-Audio-Models/00-Audio-Data.ipynb). Audio data is loaded (13 seconds of Vivaldi's Winter: [`example.mp3`](./04-Audio-Models/example.mp3)) and the three aforementioned plots are carried out using [librosa](https://librosa.org/doc/latest/index.html).
 
 ```python
+!pip install librosa
 
+import librosa
+import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import Audio
+
+# Load the audio file
+audio_path = 'example.mp3'
+# y: NumPy array containing the audio time series
+# sr: sample rate of the audio file
+y, sr = librosa.load(
+    audio_path,
+    sr=None # we leave the actual sampling rate
+    #sr=8000 # we can force one
+)
+
+print(sr) # 48000 Hz
+
+# How many seconds of audio do we have?
+len(y) / sr # 13.12 sec
+
+# Play the loaded audio
+Audio(data=y, rate=sr)
+
+# Waveform Plot
+plt.figure(figsize=(14, 5),dpi=150)
+plt.plot(y)
+plt.title('Waveform of example.mp3')
+plt.xlabel('Sample')
+plt.ylabel('Amplitude')
+plt.show()
+
+# Frecuency Spectrum: Discrete Fourier Transform (DFT)
+# https://en.wikipedia.org/wiki/Discrete_Fourier_transform
+
+# We take a small sample of 3 seconds
+three_seconds = sr*3
+dft_input = y[:three_seconds]
+
+# Calculate the DFT
+window = np.hanning(len(dft_input))
+windowed_input = dft_input * window
+dft = np.fft.rfft(windowed_input)
+
+# Get the amplitude spectrum in decibels
+amplitude = np.abs(dft)
+amplitude_db = librosa.amplitude_to_db(amplitude, ref=np.max)
+
+# Get the frequency bins
+frequency = librosa.fft_frequencies(sr=sr, n_fft=len(dft_input))
+
+plt.figure(dpi=250).set_figwidth(12)
+plt.plot(frequency, amplitude_db)
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Amplitude (dB)")
+plt.xscale("log")
+
+# Spectrogram
+# Compute the Short-Time Fourier Transform (STFT)
+D = librosa.stft(y)
+
+# Convert the amplitude to dB scale
+D_dB = librosa.amplitude_to_db(np.abs(D), ref=np.max)
+
+# Plot the STFT
+plt.figure(figsize=(14, 5),dpi=150)
+librosa.display.specshow(D_dB, sr=sr, x_axis='time', y_axis='log')
+plt.colorbar(format='%+2.0f dB')
+plt.title('STFT Magnitude')
+plt.show()
+
+# Mel Spectrogram: A specialized spectrogram used in speech processing and ML
+# Human ear is more sensitive to lower frequencies, diminishcing sensistivity
+# logarithmically for higher frequencies. Mel captures that phenomenon.
+# To compute the Mel spectrogram STFT is applied 
+# to segments and processed with a mel filterbank.
+# Very used with human talking audios.
+S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+S_dB = librosa.power_to_db(S, ref=np.max)
+
+plt.figure().set_figwidth(12)
+librosa.display.specshow(S_dB, x_axis="time", y_axis="mel", sr=sr, fmax=8000)
+plt.colorbar()
+```
+
+### Audio Feature Extraction and Classification
+
+Examples of classification:
+
+- Emotion in human talk
+- Type of ambient sound: traffic, nature, etc.
+- Music genre
+- English accent
+- Bird sounds
+
+There are many audio models in Hugging Face, we should take time to explore them; we can also perform feature extraction and apply our models on the features.
+
+In classification tasks, often the [AudioSet](https://research.google.com/audioset/) dataset and class-list are from Google/YouTube used. AudioSet consists of an expanding ontology of 632 audio event classes and a collection of 2,084,320 human-labeled 10-second sound clips drawn from YouTube videos.
+
+Sometimes a subset of 527 most common classes is taken.
+The original ontology has high level groups which are then refined:
+
+- **Human sounds**
+  - Speech
+  - Laughter
+  - Crying, sobbing
+  - Shout
+  - Whispering
+  - ...
+- **Animal sounds**
+  - Dog
+  - Cat
+  - Bird
+  - Rooster
+  - Insect
+  - ...
+- **Natural sounds**
+  - Wind
+  - Rain
+  - Thunder
+  - Fire
+  - Waterfall
+  - ...
+- **Musical instruments**
+  - Piano
+  - Guitar
+  - Violin
+  - Drums
+  - Flute
+  - ...
+- **Environmental sounds**
+  - Car
+  - Motorcycle
+  - Train
+  - Aircraft
+  - Siren
+- **Machine sounds**
+  - Engine
+  - Tools
+  - Machinery
+  - ...
+- **Music genres and instruments**
+  - Rock music
+  - Pop music
+  - Jazz
+  - Classical music
+  - ...
+
+To get more information about AudioSet:
+
+```python
+import json
+import requests
+import pandas as pd
+
+# URL to the ontology file
+ontology_url = "https://raw.githubusercontent.com/audioset/ontology/master/ontology.json"
+
+# Load the ontology
+response = requests.get(ontology_url)
+ontology = json.loads(response.text)
+
+# Count the number of classes
+num_classes = len(ontology)
+print(f"Number of classes in AudioSet: {num_classes}") # 632
+
+# URL to the SUBSET AudioSet class labels (527 classes)
+subset_labels_url = "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
+
+# Load the class labels
+subset_labels_df = pd.read_csv(subset_labels_url)
+num_classes = subset_labels_df.shape[0]
+print(f"Number of classes in the subset: {num_classes}") # 527
+
+# Display some top-level classes and their sub-classes
+num = 5
+for category in ontology[:num]:  # Display the first num=5 top-level classes
+    print(f"Class: {category['name']}")
+    if 'child_ids' in category:
+        for child_id in category['child_ids'][:num]:  # Display the first 5 sub-classes
+            child = next((c for c in ontology if c['id'] == child_id), None)
+            if child:
+                print(f"  Sub-class: {child['name']}")
+    print()
+
+
+```
+
+Notebook: [`01-Audio-Classification.ipynb`](./04-Audio-Models/01-Audio-Classification.ipynb). In this notebook, the AudioSet dataset classes are used. In the notebook, two main examples are shown:
+
+- Audio file feature extraction with an Audio Transformer
+- Audio file classification with the associated Audio Transformer model
+- Audio file classification with the same model but using a pipeline
+
+```python
+!pip install librosa
+
+import librosa
+import torch, transformers, torchaudio
+# Sometimes we need a specific combination of library versions...
+print(torch.__version__) # 2.3.0+cu121
+print(torchaudio.__version__) # 2.3.0+cu121
+print(transformers.__version__) # 4.41.2
+
+### -- Feature Extraction
+
+# We perform the classification in 2 separate steps to show the capabilities/flexibility
+# for other use cases
+from transformers import AutoFeatureExtractor, ASTForAudioClassification
+
+# Audio Spectrogram Transformer (AST) model fine-tuned on AudioSet
+# The Audio Spectrogram Transformer is equivalent to ViT, but applied on audio.
+# Audio is first turned into an image (as a spectrogram), 
+# after which a Vision Transformer is applied. 
+# The model gets state-of-the-art results on several audio classification benchmarks.
+# https://arxiv.org/abs/2104.01778
+# https://huggingface.co/MIT/ast-finetuned-audioset-10-10-0.4593
+feature_extractor = AutoFeatureExtractor.from_pretrained("MIT/ast-finetuned-audioset-10-10-0.4593")
+
+audio_path = 'example.mp3'
+y, sr = librosa.load(audio_path, sr=None)
+print(sr) # 48000
+# Recall that the sampling rate at which the model was trained is important
+# Most models are trained for 16 kHz sr
+# If our audio files are not in that frequency, they need to be converted
+# but HF pipelines do that automatically.
+
+len(y) # 630031
+# We'll downsample from 48 kHz - (/3) -> 16 kHz
+len(y)/3 # 210010
+
+# Get feature vector
+# y is in 48 kHz, but it will be downsampled to 16 kHz automatically
+# If we don't set return_tensors="pt", we get a dict with a numpy array
+# If we want to play around with the feature vectors, we can use the numpy arrays,
+# but if we want to perform the classification, we need the Pytorch tensors: "pt"
+# If we don't pass sampling_rate, the input sampling rate will be adjusted
+# to the model sr.
+# Important arguments:
+# - num_mel_bins (int, *optional*, defaults to 128): Number of Mel-frequency bins.
+# - max_length (int, *optional*, defaults to 1024): Max length to which to pad/truncate the extracted features.
+result = feature_extractor(y,return_tensors="pt")
+
+result
+# {'input_values': tensor([[[ 0.0770, ..., -1.2776]]])}
+
+# 210010 steps will be truncated here to 1024 if default args are used
+result['input_values'].shape # torch.Size([1, 1024, 128]): num_mel_bins, max_length
+
+### -- Classification
+
+# Load model
+model = ASTForAudioClassification.from_pretrained("MIT/ast-finetuned-audioset-10-10-0.4593")
+
+# Check class labels: dictionary with ids & class names
+# 0: 'Speech'
+# 1: 'Male speech, man speaking',
+# 2: 'Female speech, woman speaking',
+# ...
+model.config.id2label
+
+# Forward pass
+prediction_logits = model(result['input_values']).logits
+
+# One raw logit output per each class
+prediction_logits.shape # torch.Size([1, 527])
+
+# Select max value -> predicted class
+predicted_class_ids = torch.argmax(prediction_logits, dim=-1).item()
+
+predicted_label = model.config.id2label[predicted_class_ids] # Music
+
+### -- Pipeline
+
+# Instead of performing manually the feature extraction + inference,
+# we can use a pipeline as a high-level helper
+from transformers import pipeline
+
+pipe = pipeline("audio-classification", model="MIT/ast-finetuned-audioset-10-10-0.4593")
+
+# We can check that it's the same model as before
+pipe.model
+
+# We run the pipeline and we obtain the top n classes
+pipe('example.mp3')
+
+len(pipe.model.config.id2label) # 527
+```
+
+### Audio Transcription
+
+Audio transcription consists in transforming speech audio files into text. It can have several sub-tasks or related use-cases, such as:
+
+- Transcription: speech-to-text of a single person.
+- Diarization: detecting different speakers in a conversation.
+  - Also, after detection, speaker identification.
+- Language identification.
+- Paralinguistic analysis:
+  - Prosody Analysis: Analyzing the rhythm, stress, and intonation of speech.
+  - Speaker Age and Gender Identification: Estimating the age and gender of the speaker.
+- Speech-to-Speech Translation.
+- Automatic Punctuation.
+- Semantic Understanding:
+  - Intent Recognition: Understanding the speaker's intent or purpose behind the spoken words.
+  - Contextual Understanding: Analyzing the context of the conversation to extract meaningful information.
+- Voice Activity Detection (VAD): Identifying and segmenting periods of speech and non-speech within an audio recording.
+
+This section focuses on the **transcription of a conversation** with time-stamped output, for which we'll need two different models:
+
+- A diarization model: we'll cluster the audio features inito different speakers
+- And a transcription model: speech-to-text
+
+The workflow is shown in this diagram:
+
+[Audio Transcription Workflow](./assets/audio_transcription_workflow.png)
+
+Note that audio models can consume many resources, as video models.
+
+Notebook: [`02-Audio-Transcription.ipynb`](./04-Audio-Models/02-Audio-Transcription.ipynb).
+
+We are going to use the [`pyannote.audio`](https://github.com/pyannote/pyannote-audio), wich is an audio diarization toolkit based in Pytorch. The models are also available in HF but they are gated models, so we need to accept their conditions on the website before starting to use them (even though they are MIT licensed):
+
+    https://huggingface.co/pyannote/speaker-diarization-3.1
+    https://huggingface.co/pyannote/segmentation-3.0
+
+Another library used for manipulating audio in Python is [`pydub`](https://github.com/jiaaro/pydub). Similar to `librosa`.
+
+```python
+!pip install librosa
+!pip install pyannote.audio
+!pip install pydub
+
+import librosa
+from IPython.display import Audio
+
+# Interview to Carl Sagan
+audio_path = 'interview.mp3'
+y, sr = librosa.load(audio_path, sr=None)
+
+# Play the loaded audio
+Audio(data=y, rate=sr)
+
+# We need to accept the conditions of two gated models on the web UI
+# and then log in from the notebook
+# https://huggingface.co/pyannote/speaker-diarization-3.1
+# https://huggingface.co/pyannote/segmentation-3.0
+# Additionally, pyannote.audio needs to be installed
+from huggingface_hub import notebook_login
+notebook_login()
+
+### -- Diarization
+
+from pyannote.audio import Pipeline
+
+# We need to accept the conditions of two gated models on the web UI
+# and then log in from the notebook
+# https://huggingface.co/pyannote/speaker-diarization-3.1
+# https://huggingface.co/pyannote/segmentation-3.0
+# Additionally, pyannote.audio needs to be installed
+diarization_pipeline = Pipeline.from_pretrained(
+    "pyannote/speaker-diarization-3.1", # even though that's pyannote.audio, we pass the HF model string
+    use_auth_token=True # use notebook_login() beforehand
+)
+
+# Run diarization
+# This will take a very long time on less powerful computers!
+# On Google Colab T4: 271 sec (for 87 sec of audio: approx 3x the duration)
+# The hook repots the progress
+from pyannote.audio.pipelines.utils.hook import ProgressHook
+with ProgressHook() as hook:
+    diarization = diarization_pipeline("interview.mp3", hook=hook)
+
+# Plot diarization
+diarization
+
+diarization.chart()
+
+diarization.discretize()
+
+# Print the result, formated
+# We can see we have many small segments with a label speaker associated to them
+# But in reality, many small segments with the same speaker occur successively
+# Thus, when we perform the transcription, we wan to join all of them
+for turn, _, speaker in diarization.itertracks(yield_label=True):
+    print(f"start={turn.start:.1f}s stop={turn.end:.1f}s speaker_{speaker}")
+    # start=0.0s stop=0.8s speaker_SPEAKER_01
+    # start=1.4s stop=5.2s speaker_SPEAKER_01
+    # ...
+
+# Function to combine total start and stop speaking times
+def consolidate_speaker_segments(diarization):
+    consolidated_segments = []
+    current_speaker = None
+    segment_start = None
+    
+    # We have many small segments with a label speaker associated to them
+    # But in reality, many small segments with the same speaker occur successively
+    # Thus, when we perform the transcription, we wan to join all of them
+    # These larger chunks are the consolidated_segments
+    for turn, _, speaker in diarization.itertracks(yield_label=True):
+        if speaker != current_speaker:
+            if current_speaker is not None:
+                consolidated_segments.append((current_speaker, segment_start, turn.start))
+            current_speaker = speaker
+            segment_start = turn.start
+        segment_end = turn.end
+    
+    if current_speaker is not None:
+        consolidated_segments.append((current_speaker, segment_start, segment_end))
+    
+    return consolidated_segments
+
+# Example usage with the provided diarization object:
+segments = consolidate_speaker_segments(diarization)
+
+# Now, all small successive segments that belong to the same speaker
+# are consolidated
+segments
+# [('SPEAKER_01', 0.03096875, 30.43971875),
+#  ('SPEAKER_00', 30.43971875, 46.555343750000006),
+#  ('SPEAKER_01', 46.555343750000006, 86.31284375)]
+
+for speaker, start, end in segments:
+    print(f"speaker_{speaker} start={start:.1f}s stop={end:.1f}s")
+
+from pydub import AudioSegment
+import os
+
+# We split the audio file into large speaker segments
+def split_audio_segments(
+        audio_file, # The audio file
+        segments,  # List with large segment tupples (speaker, start, end)
+        output_dir='segmented_audio' # Output of the large audio segments
+    ):
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Load the audio file
+    audio = AudioSegment.from_file(audio_file)
+
+    # Iterate over the segments and export each one
+    for idx, (speaker, start, end) in enumerate(segments):
+        # Calculate start and end in milliseconds
+        start_ms = start * 1000
+        end_ms = end * 1000
+
+        # Extract the segment: PyDub allows to use slicing!
+        segment = audio[start_ms:end_ms]
+
+        # Create the output file name
+        speaker_label = speaker.split('_')[-1]  # Get speaker identifier
+        output_file = os.path.join(output_dir, f"{idx:02d}_SPEAKER{speaker_label}_START{start:.0f}_STOP{end:.0f}.mp3")
+
+        # Export the segment
+        segment.export(output_file, format="mp3")
+        print(f"Exported {output_file}")
+
+split_audio_segments('interview.mp3',segments)
+# Now, we have 3 sperate MP3s
+# Exported segmented_audio/00_SPEAKER01_START0_STOP30.mp3
+# Exported segmented_audio/01_SPEAKER00_START30_STOP47.mp3
+# Exported segmented_audio/02_SPEAKER01_START47_STOP86.mp3
+
+### -- Transcription
+
+# Use a pipeline as a high-level helper
+from transformers import pipeline
+
+# Transcription model; default model:
+# https://huggingface.co/facebook/wav2vec2-base-960h
+# Note that the model works also with the raw unsegmented model
+# but we don't know who's talking!
+pipe = pipeline("automatic-speech-recognition")
+
+import os
+import re
+
+def process_segmented_files(directory='segmented_audio'):
+    # Ensure the directory exists
+    if not os.path.exists(directory):
+        raise FileNotFoundError(f"Directory '{directory}' does not exist.")
+    
+    # List all files in the directory
+    files = os.listdir(directory)
+
+    # Process each file
+    # We use the filename to derive the speaker from it
+    for file in files:
+        file_path = os.path.join(directory, file)
+        if os.path.isfile(file_path):
+            text = pipe(file_path)['text']
+            num,speaker,time_start,time_stop = file.split('_')
+            time_stop = time_stop.replace(".mp3",'')
+            print(f"{speaker}-- {time_start}sec {time_stop}sec:\n{text}")
+            print('\n\n')
+
+# Transcription of all 3 audio segments
+# takes 22 secs on a Google Colab T4: 87/22 -> approx. 4
+# Clearly, diarization seems to be the bottleneck
+process_segmented_files()
+# SPEAKER00-- START30sec STOP47sec:
+# YOU MAKE THE ARGUMENT...
+# SPEAKER01-- START0sec STOP30sec:
+# MOST OF US WOULD BE SURPRISED TO HEAR THAT...
+# SPEAKER01-- START47sec STOP86sec:
+# WELL FIRST OFF AS YOU SUGGEST...
+```
+
+### Audio Generation
+
+Audio generation has many specialized use-cases:
+
+- **Generate speech from text**: this example is tried in this section.
+- Generate music.
+- etc.
+
+Notebook: [`03-Audio-Generation.ipynb`](./04-Audio-Models/03-Audio-Generation.ipynb).
+
+```python
+!pip install pydub
+
+import transformers
+from transformers import pipeline
+
+# Default model:
+# https://huggingface.co/suno/bark-small
+pipe = pipeline("text-to-speech")
+
+# Run text-to-speech
+# This required 63 sec on Google Colab with a T4
+text = "Hello, how are you today?"
+output = pipe(text)
+
+type(output) # dict
+# The output dict has an 'audio' array and a 'sampling_rate'
+output
+
+from IPython.display import Audio
+
+# Play the loaded audio
+Audio(data=output['audio'],
+      rate=output['sampling_rate'])
+
+# Save the audio using pydub
+from pydub import AudioSegment
+
+# We pass the numpy array and export it
+audio_seg = AudioSegment(
+    output['audio'].tobytes(),
+    frame_rate=output['sampling_rate'],
+    sample_width=output['audio'].dtype.itemsize,
+    channels=1 # Mono / Stereo
+)
+
+audio_seg.export("tts_example.wav", format="mp3")
 ```
 
 
 ## 6. Gradio for User Interfaces
 
-Folder: []().  
+Folder: [`05-Gradio/`](./05-Gradio/).  
 Notebooks:
-- A
-- B
+- [`01-Gradio-Introduction.ipynb`](./05-Gradio/01-Gradio-Introduction.ipynb)
+- [`02-Layout.ipynb`](./05-Gradio/02-Layout.ipynb)
+- [`03-Interactions.ipynb`](./05-Gradio/03-Interactions.ipynb)
+- [`04-Image-ML-Integration.ipynb`](./05-Gradio/04-Image-ML-Integration.ipynb)
+- [`05-Text-ML-Integration.ipynb`](./05-Gradio/05-Text-ML-Integration.ipynb)
+- [`06-Modals-Errors.ipynb`](./05-Gradio/06-Modals-Errors.ipynb)
+- [`07-Styling-and-Themes.ipynb`](./05-Gradio/07-Styling-and-Themes.ipynb)
 
