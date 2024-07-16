@@ -15,6 +15,7 @@ dependencies:
   - pandas
   - matplotlib
   - pip:
+      - accelerate
       - huggingface_hub
       - librosa
       - opencv-python
@@ -22,7 +23,7 @@ dependencies:
       - diffusers
       - datasets
       - evaluate
-      - accelerate
+      - gradio
       - torch
       - torchvision
       - torchaudio
