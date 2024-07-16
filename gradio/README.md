@@ -4,7 +4,7 @@
 
 > is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere!
 
-It is owned and extensively used by [HuggingFace](https://huggingface.co/) and it is quite similar to [Streamlit](https://streamlit.io/) &mdash; check my guide on Streamlit here: [](https://github.com/mxagar/streamlit_guide).
+It is owned and extensively used by [HuggingFace](https://huggingface.co/) and it is quite similar to [Streamlit](https://streamlit.io/) &mdash; check my guide on Streamlit here: [https://github.com/mxagar/streamlit_guide](https://github.com/mxagar/streamlit_guide). However, Gradio is more focused on the usual Machine Learning workflow, where we have a model that can be configured and outputs a result given an input.
 
 This current guide contains my notes on the basic functionalities of [Gradio](https://www.gradio.app/). I created the notes after following the [Hugging Face Bootcamp by JM Portilla, Udemy](https://www.udemy.com/course/complete-hugging-face-bootcamp). I have further notes on more ML/model-related topics referrng to Haggig Face at [mxagar/tool_guides/hugging_face](https://github.com/mxagar/tool_guides/tree/master/hugging_face).
 
@@ -26,6 +26,10 @@ Table of contents:
     - [Accordion](#accordion)
     - [Grouping and Dimensions](#grouping-and-dimensions)
     - [Nesting and CSS](#nesting-and-css)
+  - [Component Interactions](#component-interactions)
+    - [More Complex Programs](#more-complex-programs)
+    - [Object-Oriented Programming Style](#object-oriented-programming-style)
+  - [Example: Machine Learning Image Classification](#example-machine-learning-image-classification)
 
 ## Setup
 
@@ -353,3 +357,176 @@ demo.launch() # http://127.0.0.1:7860
 ```
 
 ![Nesting and CSS](./assets/nesting_css.png)
+
+## Component Interactions
+
+Recall that we automatically achieve interactions with `gr.Interface`, for which we need:
+
+- inputs
+- outputs
+- and a function that converts inputs to outputs.
+
+When `gr.Interface` is instantiated, a `Submit` button is added and clicking on it causes the intereaction to occur.
+
+In general, interactions between components can be triggered by
+
+- events that are *catched* (e.g., **clicking** a button)
+- or **changes** that are *listened* (e.g., slider); however, better to use events to prevent unnecessarily calling expensive processing functions.
+
+```python
+def multiply(x, y):
+    return x*y
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        slider1 = gr.Slider()
+        slider2 = gr.Slider()
+    with gr.Row():
+        result = gr.Text() # result is an output of the function!
+        # It seems it takes the value in the widget
+        # but in reality we write it here because
+        # it's the output of function that processes the input from the sliders!
+
+    # This is our interaction: when the sliders change, the result will update
+    # We pass: inputs, outputs and the function
+    # Also, we can be listening to multiple changes!
+    slider1.change(fn=multiply, inputs=[slider1, slider2], outputs=result)
+    slider2.change(fn=multiply, inputs=[slider1, slider2], outputs=result)
+
+demo.launch() # http://127.0.0.1:7860
+```
+
+![Slider Interaction: Change](./assets/slider_interaction.png)
+
+```python
+def multiply(x, y):
+    return x*y
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        slider1 = gr.Slider()
+        slider2 = gr.Slider()
+    with gr.Row():
+        button = gr.Button("Multiply")
+    with gr.Row():
+        result = gr.Text() # result is an output of the function!
+        # It seems it takes the value in the widget
+        # but in reality we write it here because
+        # it's the output of function that processes the input from the sliders!
+
+    # Better to use clicks as triggers of interactions
+    # because that way the user controls when the fn function is called
+    # which can be very expensive (e.g., inference with a model)
+    button.click(fn=multiply, inputs=[slider1, slider2], outputs=[result])
+    # Of course, we can have multiple buttons calling different functions!
+
+demo.launch() # http://127.0.0.1:7860
+```
+
+![Slider Interaction: Click](./assets/click_interaction.png)
+
+
+```python
+# We can easily have multiple functions, inputs, outputs, etc.
+def multiply(x, y):
+    return x*y
+
+def addition(x, y):
+    return x+y
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        slider1 = gr.Slider()
+        slider2 = gr.Slider()
+    with gr.Row():
+        button_multiply = gr.Button("Multiply")
+        button_addition = gr.Button("Addition")
+
+    with gr.Row():
+        result = gr.Text() # result is an output of the function!
+        # It seems it takes the value in the widget
+        # but in reality we write it here because
+        # it's the output of function that processes the input from the sliders!
+
+    button_multiply.click(fn=multiply, inputs=[slider1, slider2], outputs=[result])
+    button_addition.click(fn=addition, inputs=[slider1, slider2], outputs=[result])
+
+demo.launch() # http://127.0.0.1:7860
+```
+
+![Multiple Events](./assets/multiple_events.png)
+
+### More Complex Programs
+
+```python
+def create_result_string(i1, i2):
+    return f"{i1} is the squared value and {i2} is the square root!"
+
+def square_root_input(input_value):
+    return input_value ** 0.5
+
+def square_input(input_value):
+    return input_value**2
+
+def main(input_value):
+    # Call function 2 on input 1
+    input_value_squared = square_input(input_value)
+    input_value_root = square_root_input(input_value)
+    return create_result_string(input_value_squared, input_value_root)
+    
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        slider1 = gr.Slider()
+    with gr.Row():a
+        button = gr.Button("Start program!")
+
+    with gr.Row():
+        result = gr.Label() # result is an output!
+
+    button.click(fn=main, inputs=[slider1], outputs=[result])
+
+demo.launch()
+```
+
+![Multiple Functions](./assets/several_functions.png)
+
+### Object-Oriented Programming Style
+
+```python
+class Calculator:
+    def __init__(self):
+        pass
+    
+    @staticmethod
+    def multiply(x, y):
+        return x*y
+    
+    @staticmethod
+    def addition(x, y):
+        return x+y
+
+calc = Calculator()
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        slider1 = gr.Slider()
+        slider2 = gr.Slider()
+    with gr.Row():
+        button_multiply = gr.Button("Multiply")
+        button_addition = gr.Button("Addition")
+
+    with gr.Row():
+        result = gr.Text()
+
+    button_multiply.click(fn=calc.multiply, inputs=[slider1, slider2], outputs=[result])
+    button_addition.click(fn=calc.addition, inputs=[slider1, slider2], outputs=[result])
+
+demo.launch()
+```
+
+![OOP](./assets/oop.png)
+
+## Example: Machine Learning Image Classification
+
+
