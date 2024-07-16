@@ -1,0 +1,6 @@
+.DS_Store
+.vscode
+.env
+__pycache__
+.ipynb_checkpoints
+flagged
