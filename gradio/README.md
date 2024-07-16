@@ -19,7 +19,13 @@ Table of contents:
   - [Setup](#setup)
   - [Introduction](#introduction)
   - [Gradio Components](#gradio-components)
-  - [Layouts and Multiple Components](#layouts-and-multiple-components)
+  - [Multiple Components and Layouts](#multiple-components-and-layouts)
+    - [Basic Layout](#basic-layout)
+    - [Compositions and Alignment of Components](#compositions-and-alignment-of-components)
+    - [Tabs](#tabs)
+    - [Accordion](#accordion)
+    - [Grouping and Dimensions](#grouping-and-dimensions)
+    - [Nesting and CSS](#nesting-and-css)
 
 ## Setup
 
@@ -76,6 +82,7 @@ Some of the most common components are:
 > - **Dropdown**
 > - **Label**: Displays text output. Commonly used to show the result from classification models.
 > - **JSON**: Handle JSON data. Ideal for displaying raw model outputs or more complex data structures.
+> - **Button**
 
 ```python
 import gradio as gr
@@ -196,17 +203,153 @@ Some output snapshots:
 
 ![Gradio Image Component](./assets/gradio_image.png)
 
-## Layouts and Multiple Components
+## Multiple Components and Layouts
 
-It is possible to display more than one component or widget. We can achieve that with layouts that consist of blocks and rows:
+It is possible to display more than one component or widget. We can achieve that with layouts that consist of blocks, rows and columns:
 
-- We generate a layout.
-- Then we add a block.
-- Each block can have several rows.
-- We can add components to rows. The components in a row are equally sized/spaced.
-- The users don't see the blocks and rows, but only the components nicely outlayed!
+- The basis object is a **Block** (`gr.Blocks()`).
+- Each block can have several **Rows** (`gr.Row()`).
+- We can add components to the rows. The components in a row are equally sized/spaced by default, but we can assign to them specific page width fractions. Basically, a row aligns components horizontally.
+- We can also add **Columns** (`gr.Column()`) to the rows and components to the columns, with which we can have more flexibility. The columns align components vertically.
+- Rows and columns are the scaffolding; we can also leave them empty, which is traduced as empty space in the GUI.
+- The users don't see the blocks, rows and/or columns, but only the components nicely outlayed!
+- In addition to the mentioned Blocks, Rows and Columns, we also have:
+  - `gr.Tab()`: create multiple tabs.
+  - `gr.Accordion()`: enables to show/hide content.
+  - `gr.Group()`: removes all space between elements.
 
 ![Layouts: Blocks, Rows, Components](./assets/layouts.png)
 
+Altogether, gradio provides the following layout blocks:
 
+- [Row](https://www.gradio.app/docs/gradio/row)
+- [Column](https://www.gradio.app/docs/gradio/column)
+- [Tab](https://www.gradio.app/docs/gradio/tab)
+- [Group](https://www.gradio.app/docs/gradio/group)
+- [Accordion](https://www.gradio.app/docs/gradio/accordion)
 
+Notebook: [`02-Layout.ipynb`](./notebooks/02-Layout.ipynb).
+
+### Basic Layout
+
+```python
+import numpy as np
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        text1 = gr.Text(value="Hello")
+        text2 = gr.Text(value="World")
+
+demo.launch() # http://127.0.0.1:7860
+```
+
+Note that we don't get a `Submit` button as when we use `gr.Interface.launch()`.
+
+![Text Layout](./assets/layout_text.png)
+
+### Compositions and Alignment of Components
+
+```python
+import numpy as np
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        # Ratio 2:1 can be defined with scale
+        with gr.Column(scale=2):
+            text1 = gr.Text()
+            text2 = gr.Text()
+        with gr.Column(scale=1):
+            btn1 = gr.Image()
+    with gr.Row():
+        with gr.Column(scale=2):
+            text1 = gr.Text()
+            text2 = gr.Text()
+
+demo.launch() # http://127.0.0.1:7860
+```
+
+![Layout Composition](./assets/layout_composition.png)
+
+### Tabs
+
+Tabs are overlaid pages. We can click on them to select which one to visualize.
+
+```python
+with gr.Blocks() as demo:
+    with gr.Tab("Tab1"):
+        gr.Button("Some Button in Tab 1")
+    with gr.Tab("Tab2"):
+        with gr.Row():
+            gr.Button("Some Button in Tab 2")
+            gr.Image()
+
+demo.launch() # http://127.0.0.1:7860
+```
+
+![Tabs](./assets/layout_tabs.png)
+
+### Accordion
+
+Accordion allows to hide/show content: it is a small arrow which expands the content.
+
+```python
+with gr.Blocks() as demo:
+    gr.Label("Load Image")
+    # Accordion allows to hide/show content
+    # open=False means that content is hidden by default
+    # It is a small arrow upon which you can click to show/hide content
+    with gr.Accordion("Load Image", open=False):
+        gr.Image()
+
+demo.launch()
+```
+
+### Grouping and Dimensions
+
+Groups pack components together and remove space and padding between them.
+
+```python
+with gr.Blocks() as demo:
+    with gr.Group():
+        gr.Button("Some Button")
+        gr.Button("Some Button2")
+        gr.Image()
+    gr.Image() # http://127.0.0.1:7860
+
+demo.launch()
+```
+
+![Grouping](./assets/group.png)
+
+Also, the size of some components can be modified; note, however, that the components size is automatically adjusted depending on the window size.
+
+```python
+with gr.Blocks() as demo:
+    with gr.Group():
+        gr.Image(height="150px", width="20px")
+demo.launch()
+```
+
+### Nesting and CSS
+
+We can add a CSS template as a string to perform more complex nestings.
+
+```python
+with gr.Blocks(css=css) as demo:
+    with gr.Row():
+        text1 = gr.Text(label="Text 1")
+        text2 = gr.Text(label="Text 2")
+        image1 = gr.Image(label = "Image1")
+    with gr.Row():
+        with gr.Column():
+            label1 = gr.Label(label="These labels are")
+            label2 = gr.Label(label="below each other")
+        with gr.Column():
+            label3 = gr.Label(label="Note this new column")
+
+demo.launch() # http://127.0.0.1:7860
+```
+
+![Nesting and CSS](./assets/nesting_css.png)
