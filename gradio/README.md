@@ -618,8 +618,137 @@ demo.launch()
 
 ## Errors, Warnings, Info
 
-TBD.
+We can show error or similar banners using 
+
+- `gr.Error()`: it is used with `raise` and it stops the execution.
+- `gr.Warning()`: it is used WITHOUT `raise` and it DOES NOT stop the execution.
+- `gr.Info()`: it is used WITHOUT `raise` and it DOES NOT stop the execution.
+
+```python
+import gradio as gr
+def number_validation(number):
+    return number % 2 == 0
+
+def add(number1, number2):
+    # IMPORTANT: We run gr.Warning() without raising any error!
+    # That way, the execution is not stopped
+    if not number_validation(number1):
+        gr.Warning("Number 1 is not even!")
+        # gr.Info("Number 1 is not even!") # Another option/alternative to Warning
+    # Here we raise an error, so the execution is stopped
+    if not number_validation(number2):
+        raise gr.Error("Number 2 is not even!")
+
+    return number1 + number2
+
+
+iface = gr.Interface(fn=add, inputs=[gr.Number(), gr.Number()], outputs=gr.Number())    
+iface.launch()
+```
+
+![Error](./assets/error.png)
 
 ## Styling Themes
 
-TBD.
+We can control the theme of the GUI via `gr.themes`.
+
+```python
+import gradio as gr
+
+# Themes that ware available:
+# https://www.gradio.app/guides/theming-guide
+# - gr.themes.Base()
+# - gr.themes.Default()
+# - gr.themes.Glass()
+# - gr.themes.Monochrome()
+# - gr.themes.Soft()
+help(gr.themes)
+
+def greet(name):
+    return f"Hello, {name}!"
+
+# Here we pass a theme object to the theme parameter
+# We can do the same in gr.Blocks(theme=gr.themes.Glass())
+demo = gr.Interface(
+    fn=greet,
+    inputs="text",
+    outputs="text",
+    theme=gr.themes.Glass()  # Load the default theme
+)
+
+# Launch the interface
+demo.launch()
+```
+
+![Glass Theme](./assets/theme_glass.png)
+
+Similarly, we can create a new theme based on a default/standard one and interactively modifying its features. Then, we obtain the necessary code clicking on "View Code".
+
+```python
+import gradio as gr
+
+# We can also use the theme builder to create a custom theme
+# We test different features
+# Then we click on "View Code" and copy the features in code
+# https://www.gradio.app/guides/theming-guide#using-the-theme-builder
+gr.themes.builder()
+
+# These features are copied from the theme builder
+# "View Code"
+theme = gr.themes.Base(
+    primary_hue="gray",
+    secondary_hue="gray",
+    neutral_hue="green",
+    text_size="lg",
+    spacing_size="lg",
+    radius_size="sm",
+)
+
+
+demo = gr.Interface(
+    fn=greet,
+    inputs="text",
+    outputs="text",
+    theme=theme  # Load the default theme
+)
+
+# Launch the interface
+demo.launch()
+```
+
+![Theme Builder](./assets/theme_builder.png)
+
+It is possible to download themes, too: [Gradio Themes Gallery](https://huggingface.co/spaces/gradio/theme-gallery).
+
+```python
+# We can also download themes from the theme gallery!
+# https://huggingface.co/spaces/gradio/theme-gallery
+theme = gr.Theme.from_hub("gstaff/xkcd")
+
+demo = gr.Interface(
+    fn=greet,
+    inputs="text",
+    outputs="text",
+    theme=theme  # Load downloaded theme
+)
+
+# Launch the interface
+demo.launch()
+```
+
+Similarly, as explained beforehand, we can add CSS styling to the themes:
+
+```python
+css = """
+.gradio-container {background-color: Black}
+#error_id {background-color: Red}
+.textbox_class textarea {font-size: 48px}
+"""
+
+with gr.Blocks(css=css) as demo:
+    box1 = gr.Text(value="Good Job", elem_classes="textbox_class")
+    box2 = gr.Text(value="Failure", elem_id="error_id")
+    box3 = gr.Text(value="Failure", elem_id="error_id", elem_classes="textbox_class")
+
+demo.launch()
+```
