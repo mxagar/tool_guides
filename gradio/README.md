@@ -29,7 +29,10 @@ Table of contents:
   - [Component Interactions](#component-interactions)
     - [More Complex Programs](#more-complex-programs)
     - [Object-Oriented Programming Style](#object-oriented-programming-style)
-  - [Example: Machine Learning Image Classification](#example-machine-learning-image-classification)
+  - [Example: Machine Learning Image Classification App](#example-machine-learning-image-classification-app)
+  - [Pipeline Integration and Running at HuggingFace](#pipeline-integration-and-running-at-huggingface)
+  - [Errors, Warnings, Info](#errors-warnings-info)
+  - [Styling Themes](#styling-themes)
 
 ## Setup
 
@@ -486,7 +489,7 @@ with gr.Blocks() as demo:
 
     button.click(fn=main, inputs=[slider1], outputs=[result])
 
-demo.launch()
+demo.launch() # http://127.0.0.1:7860
 ```
 
 ![Multiple Functions](./assets/several_functions.png)
@@ -522,11 +525,101 @@ with gr.Blocks() as demo:
     button_multiply.click(fn=calc.multiply, inputs=[slider1, slider2], outputs=[result])
     button_addition.click(fn=calc.addition, inputs=[slider1, slider2], outputs=[result])
 
-demo.launch()
+demo.launch() # http://127.0.0.1:7860
 ```
 
 ![OOP](./assets/oop.png)
 
-## Example: Machine Learning Image Classification
+## Example: Machine Learning Image Classification App
 
+In this example a ResNet18 model is used in a GUI created with Gradio.
 
+Notebook: [`05-Text-ML-Integration.ipynb`](./notebooks/05-Text-ML-Integration.ipynb).
+
+```python
+from PIL import Image
+import numpy as np
+import gradio as gr
+
+# These lines of code can be obtained from the official HF model page
+# https://huggingface.co/microsoft/resnet-18
+# Click on "Use this model" and also check the section "How to use"
+from transformers import AutoImageProcessor, AutoModelForImageClassification
+
+image_processor = AutoImageProcessor.from_pretrained("microsoft/resnet-18")
+model = AutoModelForImageClassification.from_pretrained("microsoft/resnet-18")
+
+# As always with Gradio, we create a function
+def classify_image(image):
+    # Apply the transformations to the image
+    image = image_processor(image, return_tensors="pt")["pixel_values"]
+    # Predict the class with the highest probability
+    prediction = model(image).logits
+    # Convert class index to label: ImageNet-1k
+    return model.config.id2label[prediction.argmax().item()]
+
+iface = gr.Interface(
+    fn=classify_image,
+    inputs=gr.Image(),
+    outputs=gr.Label(), # predicted label returned by fn
+    title="Real-time Image Classifier",
+    description="Upload an image to classify it into one of 1000 classes",
+    live=True
+)
+iface.launch() # http://127.0.0.1:7860
+```
+
+![Image Classification App](./assets/image_classification_app.png)
+
+## Pipeline Integration and Running at HuggingFace
+
+Using a `pipeline` is straightforward: we just call it inside a function. However, Gradio offers also the possibility of using `gr.load()`, which runs a pipeline at HuggingFace!
+
+Notebook: [`05-Text-ML-Integration.ipynb`](./notebooks/05-Text-ML-Integration.ipynb).
+
+```python
+import gradio as gr
+
+# Run the model locally
+from transformers import pipeline
+
+# Load the sentiment analysis pipeline
+sentiment_analysis = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+
+def predict_sentiment(text):
+    result = sentiment_analysis(text)
+    return result[0]["label"], result[0]["score"]
+
+iface = gr.Interface(
+    fn=predict_sentiment,
+    inputs=gr.Textbox(lines=2, placeholder="Type a sentence here..."),
+    outputs=[gr.Label(label="Sentiment"), gr.Text(label="Score")],
+    title="Sentiment Analysis",
+    description="Enter a sentence to analyze its sentiment. The model can predict positive or negative sentiments."
+)
+iface.launch()
+
+```
+
+![Sentiment Analysis](./assets/sentiment_analysis.png)
+
+The equivalent demo using `gr.load()` so that we get the same wen GUI but the model/pipeline is running at HuggingFace:
+
+```python
+# Access the model within the hugging face ecosystem
+demo = gr.load(
+  "distilbert-base-uncased-finetuned-sst-2-english",
+  src="models" # we need to specify models or a space
+)
+demo.launch()
+```
+
+![Sentiment Analysis with Load](./assets/sentiment_analysis_load.png)
+
+## Errors, Warnings, Info
+
+TBD.
+
+## Styling Themes
+
+TBD.
