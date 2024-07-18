@@ -37,7 +37,6 @@ Table of contents:
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
-
 ## 1. Introduction
 
 ## 2. Models
