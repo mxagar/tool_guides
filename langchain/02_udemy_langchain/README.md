@@ -33,8 +33,10 @@ Table of contents:
   - [1. Introduction](#1-introduction)
     - [Setup](#setup)
     - [OpenAI](#openai)
+    - [Documentation](#documentation)
   - [2. Models](#2-models)
     - [Large Language Models (LLMs)](#large-language-models-llms)
+    - [Prompt Templates](#prompt-templates)
   - [3. Data Connections](#3-data-connections)
   - [4. Chains](#4-chains)
   - [5. Memory](#5-memory)
@@ -46,7 +48,25 @@ LangChain is not only a Python library, but also a package for other languages, 
 
 [https://python.langchain.com/](https://python.langchain.com/)
 
-The functionalities of the library are organized in **Modules** (Python) or **Components** (general).
+The functionalities of the library are organized in **Modules** (Python) or **Components** (general). However, the Python documentation seems to use the word **Components**, which are:
+
+> - Chat models
+> - LLMs
+> - Messages
+> - Prompt templates
+> - Example selectors
+> - Output parsers
+> - Chat history
+> - Documents
+> - Document loaders
+> - Text splitters
+> - Embedding models
+> - Vector stores
+> - Retrievers
+> - Tools
+> - Toolkits
+> - Agents
+> - Callbacks
 
 This guide is built to reach the ultimate goals of dealing with **Agents**. However, that's the last section; beforehand, other more basic modules are shown:
 
@@ -74,7 +94,7 @@ conda env update --name llms --file conda.yaml --prune
 Additionally, we'll need to set up OpenAI and HuggingFace accounts:
 
 - Get the access tokens from both and save them in `.env`: `OPENAI_API_KEY, HUGGINGFACEHUB_API_TOKEN`
-- Set a payment method in the OpenAI account; and make sure what the pricing is! 
+- Set a payment method in the OpenAI account and fill in the balance if we choose the pay-as-you-go option; and make sure what the pricing of our queries is!
 
 If everything is setup correctly, we'll need to load the API keys from `.env`:
 
@@ -120,7 +140,18 @@ print(response.choices[0].text)
 # Salut, comment vas-tu ?
 ```
 
-**IMPORTANT NOTE: There seem to be some deprecations / API updates in the OpenAI library.**
+### Documentation
+
+Important links:
+
+- [Conceptual Guide](https://python.langchain.com/v0.2/docs/concepts/): where the packages, components and techniques are explained.
+- [Integrations](https://python.langchain.com/v0.2/docs/integrations/platforms/): where bindings are listed.
+- [API Reference](https://api.python.langchain.com/en/latest/langchain_api_reference.html).
+
+:warning: **IMPORTANT NOTES:
+
+- There seem to be some deprecations / API updates in the OpenAI library.
+- This guide is very focused on OpenAI; however, we can instead use Google models by checking the examples in the [Integrations](https://python.langchain.com/v0.2/docs/integrations/platforms/) page.
 
 ## 2. Models
 
@@ -138,8 +169,147 @@ Contents:
 
 ### Large Language Models (LLMs)
 
-Notebook: [`00-Models-IO/00-Large-Language-Models.ipynb`](./00-Models-IO/00-Large-Language-Models.ipynb).
+Notebook: [`00-Models-IO/00-Large-Language-Models.ipynb`](./00-Models-IO/00-Large-Language-Models.ipynb):
 
+- LLM and Chat models: common calls, parameters
+- Caching
+
+```python
+### -- LLMs
+# !pip install langchain-openai
+from langchain_openai import OpenAI, ChatOpenAI
+# The OpenAI refers to the LLM, which is often an instruct model and returns raw text
+# while ChatOpenAI refers to the Chatbot, which is often a conversation model and uses 3 distinct objects
+# - SystemMessage: General system tone, personality
+# - HumanMessage: Human request/reply
+# - AIMessage: AI's response
+
+llm = OpenAI(openai_api_key=openai_token) # default model: gpt-3.5-turbo-instruct
+chat = ChatOpenAI(openai_api_key=openai_token) # default model: gpt-3.5-turbo
+
+# We can use both the LLM and the Chat, but the reponse structure is different
+# The tendency is to move towards Chats
+print(llm.invoke('Here is a fun fact about Pluto:')) # Raw text: Pluto was discovered on February 18...
+print(chat.invoke('Here is a fun fact about Pluto:')) # AIMessage object: {content: 'response', response_metadata: '', ...}
+
+# Generate needs to be always a list
+result = llm.generate(
+    ['Here is a fun fact about Pluto:',
+     'Here is a fun fact about Mars:']
+)
+
+# We can also use generate with a Chat model
+result_chat = chat.generate(
+    ['Here is a fun fact about Pluto:',
+     'Here is a fun fact about Mars:']
+)
+
+# We get back a LLMResult object, both for llm and chat
+type(result) # langchain_core.outputs.llm_result.LLMResult
+
+# Schema of LLMResult
+result.schema()
+
+# The results are in the property generations
+for g in result.generations:
+    print(g[0].text)
+    # Pluto was...
+    # Mars has...
+
+# Here we can see the metadata related to the operation
+result.llm_output
+# {'token_usage': {'total_tokens': 63, 'completion_tokens': 47, 'prompt_tokens': 16},
+#  'model_name': 'gpt-3.5-turbo-instruct'}
+
+### -- Chats and Parameters
+
+# ChatOpenAI refers to the Chatbot, which is often a conversation model and uses 3 distinct objects
+# - SystemMessage: General system tone, personality
+# - HumanMessage: Human request/reply
+# - AIMessage: AI's response
+# The trend is towards using Chat models, not LLMs
+from langchain_openai import ChatOpenAI
+
+chat = ChatOpenAI(openai_api_key=openai_token)
+
+from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
+
+# The correst way of interacting with chat in OpenAI
+# is to use the correct Message object: HumanMessage, SystemMessage
+result = chat.invoke([HumanMessage(content="Can you tell me a fact about Earth?")])
+
+type(result) # langchain_core.messages.ai.AIMessage
+print(result.content) # Sure! One interesting...
+
+# We can alter the personality or role of the chat with SystemMessage
+result = chat.invoke(
+    [
+        SystemMessage(content='You are a very rude teenager who only wants to party and not answer questions'),
+        HumanMessage(content='Can you tell me a fact about Earth?')
+    ]
+)
+
+print(result.content) # Ugh, I don't know, like, why do you care? ...
+
+# Generate needs to receive a list
+# We can pass different message objects, though: SystemMessage, HumanMessage
+# And each item can be a list, i.e., a chat history!
+result = chat.generate(
+    [[SystemMessage(content='You are a University Professor'),
+      HumanMessage(content='Can you tell me a fact about Earth?')
+      ]]
+)
+
+result.generations[0][0].text # Certainly! A fascinating fact...
+
+# Extra params and arguments
+# - temperature: creativity
+# - presence_penalty: penalize token repetition
+# - max_tokens: maximum number of tokens
+result = chat.invoke(
+    [HumanMessage(content='Can you tell me a fact about Earth?')],
+    temperature=2, # default: 0.7, 2 is very high, so it will hallucinate rubbish
+    presence_penalty=1,
+    max_tokens=100
+)
+
+### -- Caching
+
+# Caching is helpful when we're doing the same query several times:
+# we incur in new costs, but the answer should be the same!
+# The solution is to cache them, i.e., save the results.
+# We can cache in memory, or we could also use a SQLite DB for that
+# https://python.langchain.com/v0.1/docs/modules/model_io/chat/chat_model_caching/#sqlite-cache
+import langchain
+from langchain_openai.chat_models import ChatOpenAI
+
+llm = ChatOpenAI(openai_api_key=openai_token)
+
+# !pip install langchain-community
+from langchain.cache import InMemoryCache, SQLiteCache
+langchain.llm_cache = InMemoryCache()
+
+# The first time, it is not yet in cache, so it should take longer
+llm.invoke("Tell me a fact about Mars")
+# You will notice this reply is instant!
+llm.invoke('Tell me a fact about Mars')
+
+```
+
+### Prompt Templates
+
+Notebook: [`00-Models-IO/01-Prompt-Templates.ipynb`](./00-Models-IO/01-Prompt-Templates.ipynb):
+
+- A
+- B
+
+```python
+
+```
 
 
 
