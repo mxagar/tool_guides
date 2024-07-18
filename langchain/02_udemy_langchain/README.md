@@ -304,10 +304,96 @@ llm.invoke('Tell me a fact about Mars')
 
 Notebook: [`00-Models-IO/01-Prompt-Templates.ipynb`](./00-Models-IO/01-Prompt-Templates.ipynb):
 
-- A
-- B
+We can use prompt templates to define parametrized messages/instructions for the chatbot. These are an alternative to using f-string literals.
 
 ```python
+### -- LLM Models
+
+from langchain import PromptTemplate
+
+# Instead of using f-string literals (add formating them),
+# we can create prompt temaplates
+# An example prompt with multiple input variables (but we can have no or one input)
+multiple_input_prompt = PromptTemplate(
+    input_variables=["topic", "level"], 
+    template="Tell me a fact about {topic} for a student {level} level."
+)
+multiple_input_prompt.format(topic='Mars',level='8th Grade')
+# 'Tell me a fact about Mars for a student 8th Grade level.'
+
+### -- Chat Models
+
+from langchain_openai import ChatOpenAI
+
+chat = ChatOpenAI(openai_api_key=api_key)
+
+# For chat type models, we need specific prmpt template classes
+from langchain.prompts import (
+    ChatPromptTemplate,
+    PromptTemplate,
+    SystemMessagePromptTemplate,
+    AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
+
+# We can automatically create a prompt from a string
+system_template = "You are an AI recipe assistant that specializes in {dietary_preference} dishes that can be prepared in {cooking_time}."
+system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
+# input_variables is automatically extracted from the template
+system_message_prompt.input_variables # ['cooking_time', 'dietary_preference']
+
+human_template = "{recipe_request}"
+human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+human_message_prompt.input_variables # human_message_prompt.input_variables
+
+# Now, we can create a chat prompt template from the system and human message prompts
+chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
+chat_prompt.input_variables
+
+# Get a chat completion from the formatted messages
+prompt = chat_prompt.format_prompt(cooking_time="15 min", dietary_preference="Vegan", recipe_request="Quick Snack").to_messages()
+# [SystemMessage(...), HumanMessage(...)]
+
+result = chat.invoke(prompt)
+print(result.content)
+# How about making a simple and delicious Avocado Toast? Here's a quick recipe for you: ...
+
+### -- Exercise / Example
+
+from langchain_openai.chat_models import ChatOpenAI
+from langchain.prompts import (
+    ChatPromptTemplate,
+    PromptTemplate,
+    SystemMessagePromptTemplate,
+    AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+
+def travel_idea(interest,budget):
+    '''
+    INPUTS:
+        interest: A str interest or hobby (e.g. fishing)
+        budget: A str budget (e.g. $10,000)
+    '''
+    # PART ONE: SYSTEM
+    system_template="You are an AI Travel Agent that helps people plan trips about {interest} on a budget of {budget}"
+    system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
+    # PART TWO: HUMAN REQUEST
+    human_template="{travel_help_request}"
+    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+    # PART THREE: COMPILE TO CHAT
+    chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
+    # PART FOUR: INSERT VARIABLES
+    request = chat_prompt.format_prompt(interest=interest, budget=budget, travel_help_request="Please give me an example travel itinerary").to_messages()
+    # PART FIVE: CHAT REQUEST
+    chat = ChatOpenAI(openai_api_key=api_key)
+    result = chat.invoke(request)
+    return result.content
 
 ```
 
