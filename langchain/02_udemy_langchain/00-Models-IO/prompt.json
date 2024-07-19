@@ -3,6 +3,7 @@
     "input_variables": [
         "question"
     ],
+    "optional_variables": [],
     "input_types": {},
     "output_parser": null,
     "partial_variables": {},

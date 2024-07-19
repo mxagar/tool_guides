@@ -34,11 +34,12 @@ Table of contents:
     - [Setup](#setup)
     - [OpenAI](#openai)
     - [Documentation](#documentation)
-  - [2. Models](#2-models)
-    - [Large Language Models (LLMs)](#large-language-models-llms)
+  - [2. Model IO](#2-model-io)
+    - [Large Language Models (LLMs) and Chatbots](#large-language-models-llms-and-chatbots)
     - [Prompt Templates](#prompt-templates)
     - [Few Shot Prompt Templates](#few-shot-prompt-templates)
     - [Parsing Outputs](#parsing-outputs)
+    - [Serialization of Prompts: Saving and Loading](#serialization-of-prompts-saving-and-loading)
   - [3. Data Connections](#3-data-connections)
   - [4. Chains](#4-chains)
   - [5. Memory](#5-memory)
@@ -155,21 +156,19 @@ Important links:
 - There seem to be some deprecations / API updates in the OpenAI library.
 - This guide is very focused on OpenAI; however, we can instead use Google models by checking the examples in the [Integrations](https://python.langchain.com/v0.2/docs/integrations/platforms/) page.
 
-## 2. Models
+## 2. Model IO
 
 With the Model IO module, we can easily interchange the underlying models; we can even benchmark them before choosing one.
 
 Contents:
 
-- LLMs
+- LLMs and Chatbots
 - Prompt Templates
-- Prompts and Model Exercise
 - Few Shot Prompt Templates
 - Parsing Outputs
-- Serialization - Saving and Loading Prompts
-- Models IO Exercise Project
+- Serialization: Saving and Loading Prompts
 
-### Large Language Models (LLMs)
+### Large Language Models (LLMs) and Chatbots
 
 Notebook: [`00-Models-IO/00-Large-Language-Models.ipynb`](./00-Models-IO/00-Large-Language-Models.ipynb):
 
@@ -561,7 +560,58 @@ input_prompt = prompt.format_prompt(query=query)
 output = model.invoke(input_prompt.to_string()) # Sometimes lowering the temperature helps
 # Parse
 parser.parse(output.content) # A Scientist object is returned!
+```
 
+### Serialization of Prompts: Saving and Loading
+
+Notebook: [`00-Models-IO/06-Serialization-Saving-Prompts.ipynb`](./00-Models-IO/06-Serialization-Saving-Prompts.ipynb).
+
+We save prompt templates as JSON files and load them later.
+
+```python
+import os
+from langchain.prompts import (
+    PromptTemplate,
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate
+)
+from langchain import PromptTemplate
+
+from langchain_openai import OpenAI
+model = OpenAI(openai_api_key=api_key)
+
+
+# We can save a prompt template to a JSON with .save()
+template = "Question: {question}\n\nAnswer: Let's think step by step."
+prompt = PromptTemplate(template=template, input_variables=["question"])
+prompt.save("prompt.json")
+
+# All prompts are loaded through the `load_prompt` function.
+from langchain.prompts import load_prompt
+loaded_prompt = load_prompt('prompt.json')
+loaded_prompt # PromptTemplate(input_variables=['question'],
+
+```
+
+The JSON file [`prompt.json`](./00-Models-IO/prompt.json):
+
+```json
+{
+    "name": null,
+    "input_variables": [
+        "question"
+    ],
+    "optional_variables": [],
+    "input_types": {},
+    "output_parser": null,
+    "partial_variables": {},
+    "metadata": null,
+    "tags": null,
+    "template": "Question: {question}\n\nAnswer: Let's think step by step.",
+    "template_format": "f-string",
+    "validate_template": false,
+    "_type": "prompt"
+}
 ```
 
 ## 3. Data Connections
