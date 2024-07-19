@@ -15,6 +15,7 @@ dependencies:
   - pip:
       - accelerate
       - autopep8
+      - beautifulsoup4
       - bert-score
       - datasets
       - diffusers
@@ -25,9 +26,11 @@ dependencies:
       - langchain[all]
       - langchain-openai
       - langchain-community
+      - lxml
       - ollama
       - openai
       - pydantic
+      - pypdf
       - pytest
       - python-dotenv
       - safetensors
@@ -41,3 +44,4 @@ dependencies:
       - transformers
       - transformers[torch]
       - wheel
+      - wikipedia
