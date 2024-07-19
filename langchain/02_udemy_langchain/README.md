@@ -38,6 +38,7 @@ Table of contents:
     - [Large Language Models (LLMs)](#large-language-models-llms)
     - [Prompt Templates](#prompt-templates)
     - [Few Shot Prompt Templates](#few-shot-prompt-templates)
+    - [Parsing Outputs](#parsing-outputs)
   - [3. Data Connections](#3-data-connections)
   - [4. Chains](#4-chains)
   - [5. Memory](#5-memory)
@@ -402,7 +403,7 @@ def travel_idea(interest,budget):
 
 Notebook: [`00-Models-IO/04-Few-Shot-Prompt-Templates.ipynb`](./00-Models-IO/04-Few-Shot-Prompt-Templates.ipynb).
 
-Few-show prompting means giving some examples to the chatbot in the prompt. There are prompt templates for that.
+Few-show prompting means giving some examples to the chatbot in the prompt. There is a way of achieveing that with the presented tools.
 
 ```python
 from langchain_openai.chat_models import ChatOpenAI
@@ -445,6 +446,123 @@ result = chat.invoke(request)
 print(result.content) # The person giving the property, who owns it completely, is transferring and...
 ```
 
+### Parsing Outputs
+
+Notebook: [`00-Models-IO/05-Parsing-Output.ipynb`](./00-Models-IO/05-Parsing-Output.ipynb).
+
+Sometimes we want to structure the output from the chat in a certain way, e.g., convert it into a JSON, a datetime object, etc. We have tools to achieve that. Some format parsers:
+
+- JSON
+- XML
+- CSV: CommaSeparatedListOutputParser
+- YAML
+- PandasDataFrame
+- Enum
+- Pydantic
+- Datetime
+- ...
+
+Sometimes the output parsers don't work because the model outputs some more text. We can fix that with several methods:
+
+- System prompt: we explicitly highlight the format.
+- We can use `OutputFixingParser`, which re-requests to the model to reformat the answer.
+
+Also, regarding the `Pydantic` parser/format, check the [OpenAI Function Calling](https://platform.openai.com/docs/guides/function-calling):
+
+> In an API call, you can describe functions and have the model intelligently choose to output a JSON object containing arguments to call one or many functions. The Chat Completions API does not call the function; instead, the model generates JSON that you can use to call the function in your code. Example: `extract_data(name: string, birthday: string)`.
+
+```python
+from langchain.prompts import (
+    PromptTemplate, 
+    SystemMessagePromptTemplate,
+    ChatPromptTemplate, 
+    HumanMessagePromptTemplate
+)
+from langchain_openai import ChatOpenAI
+
+model = ChatOpenAI(openai_api_key=api_key)
+
+### -- List Parsing
+
+# List Parsing: we want to have a list as an output
+# We can browse all the parsers with TAB 
+# https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/
+# - JSON
+# - XML
+# - CSV: CommaSeparatedListOutputParser
+# - YAML
+# - PandasDataFrame
+# - Enum
+# - Pydantic
+# - Datetime
+# - ...
+from langchain.output_parsers import CommaSeparatedListOutputParser
+output_parser = CommaSeparatedListOutputParser()
+
+# The instructions are really a string 
+format_instructions = output_parser.get_format_instructions()
+print(format_instructions) # Your response should be a list of comma separated values, eg: `foo, bar, baz` or `foo,bar,baz`
+
+# However, the parser has also the method parse() which parses a correctly formatted string
+reply = "one, two, three"
+output_parser.parse("one, two, three") # ['one', 'two', 'three']
+
+# The prompt is a string with two placeholders: {request} and {format_instructions}
+human_template = '{request}\n{format_instructions}' # \n new line is a good idea
+human_prompt = HumanMessagePromptTemplate.from_template(human_template)
+
+# Now, we can create a chat prompt
+chat_prompt = ChatPromptTemplate.from_messages([human_prompt])
+chat_prompt.format_prompt(request="give me 5 characteristics of dogs",
+                   format_instructions = output_parser.get_format_instructions())
+
+# Note: the request needs to line up with the instructions!
+request = chat_prompt.format_prompt(
+    request="give me 5 characteristics of dogs",
+    format_instructions = output_parser.get_format_instructions()).to_messages()
+
+result = model.invoke(request)
+
+# We get back a string but it should follow the instructions
+result.content # 'Loyal, playful, protective, social, obedient'
+
+# Convert to desired output
+output_parser.parse(result.content) # ['Loyal', 'friendly', 'playful', 'protective', 'intelligent']
+
+### -- Pydantic Objects
+
+from langchain.output_parsers import PydanticOutputParser
+from pydantic import BaseModel, Field
+
+# First, we define the Pydantic class
+# We want to get objects that line up with these fields
+class Scientist(BaseModel):
+    name: str = Field(description="Name of a Scientist")
+    discoveries: list = Field(description="Python list of discoveries")
+
+# This is our NL query
+query = 'Name a famous scientist and a list of their discoveries' 
+
+# Pydantic parser
+parser = PydanticOutputParser(pydantic_object=Scientist)
+
+print(parser.get_format_instructions()) # The output should be formatted as a JSON instance...
+
+# Prompt template
+prompt = PromptTemplate(
+    template="Answer the user query.\n{format_instructions}\n{query}\n",
+    input_variables=["query"],
+    partial_variables={"format_instructions": parser.get_format_instructions()},
+)
+
+# We modify the template with the query
+input_prompt = prompt.format_prompt(query=query)
+# Run the model
+output = model.invoke(input_prompt.to_string()) # Sometimes lowering the temperature helps
+# Parse
+parser.parse(output.content) # A Scientist object is returned!
+
+```
 
 ## 3. Data Connections
 
