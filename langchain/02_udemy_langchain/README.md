@@ -754,6 +754,57 @@ answer_question_about("Claude Shannon", "When was he born?", model)
 
 ### Document Transformers
 
+Document transformers split document strings into chunks so that they can be processed later on. Keep in mind these chunks and usually encoded into vector embeddings and the length of the sequences fed to the encoder models has often a limit.
+
+Notebook: [`01-Data-Connections/04-Document-Transformers.ipynb`](./01-Data-Connections/04-Document-Transformers.ipynb).
+
+```python
+# https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.CharacterTextSplitter.html
+from langchain.text_splitter import CharacterTextSplitter
+# We can use the CharacterTextSplitter to split the text into smaller chunks
+# - based on separator characters (e.g., new line) or the number of characters in each chunk 
+# - based on the number of tokens in each chunk
+
+with open('some_data/FDR_State_of_Union_1944.txt') as file:
+    speech_text = file.read()
+
+# Characters: 21995
+len(speech_text)
+
+# Words: 3750
+len(speech_text.split())
+
+### -- Split by character
+
+# We can separate upon a particular character: \n\n, ##, etc.
+text_splitter = CharacterTextSplitter(
+    separator="\n\n", # default
+    chunk_size=1000 # 1000 is default value
+)
+# The text is split into chunks when separator=\n\n is found or every chunk_size=1000 characters
+# However, if the characters between the separators are much less than chunk_size, the separators are ignored.
+# In fact, I think chunk_size preceeds?
+
+texts = text_splitter.create_documents([speech_text])
+print(type(texts)) # list
+print(type(texts[0])) # Document
+print(len(texts[0].page_content.split())) # 152 words
+print('\n')
+print(texts[0].page_content) # complete chunk text
+
+### -- Split by Token
+
+# Now chunk size is a hard length based on tokens
+text_splitter = CharacterTextSplitter.from_tiktoken_encoder(chunk_size=500)
+
+texts = text_splitter.split_text(speech_text)
+
+# In contrast to the previous CharacterTextSplitter,
+# if we use tiktoken the output is a text string!
+type(texts[0]) # str
+
+print(len(texts[0].split())) # 411 words ~ 500 tokens
+```
 
 
 ### Text Embedding
