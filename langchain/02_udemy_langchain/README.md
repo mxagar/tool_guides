@@ -41,6 +41,11 @@ Table of contents:
     - [Parsing Outputs](#parsing-outputs)
     - [Serialization of Prompts: Saving and Loading](#serialization-of-prompts-saving-and-loading)
   - [3. Data Connections](#3-data-connections)
+    - [Document Loading](#document-loading)
+    - [Document Transformers](#document-transformers)
+    - [Text Embedding](#text-embedding)
+    - [Vector Stores](#vector-stores)
+    - [Queries and Retrievers](#queries-and-retrievers)
   - [4. Chains](#4-chains)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
@@ -615,6 +620,153 @@ The JSON file [`prompt.json`](./00-Models-IO/prompt.json):
 ```
 
 ## 3. Data Connections
+
+Contents:
+
+- Document Loading and Integrations
+- Document Transformers
+- Text Embedding
+- Vector Stores
+- Queries and Retrievers
+
+### Document Loading
+
+There are many [Document Loaders](https://python.langchain.com/v0.2/docs/integrations/document_loaders/) available in LangChain: CSV, PDF, Word, TXT, HTML, etc. We need to manually install the dependencies of each of them.
+
+Similarly, we have many [Integrations](https://python.langchain.com/v0.2/docs/integrations/platforms/): AWS S3, ElasticSearch, MongoDB, IBM, Pinecone, Wikipedia,s etc. Each integration is different and we should look at the documentation. In some cases, the integrations might be broken, because the providers have changed something and LangChain has not updated the interfaces yet.
+
+Usually, any document format (CSV, HTML, PDF, etc.) is loaded as a `Document` object.
+
+Notebooks: 
+
+- [`01-Data-Connections/00-Document-Loaders.ipynb`](./01-Data-Connections/00-Document-Loaders.ipynb): CSV, HTML, PDF
+- [`01-Data-Connections/01-Document-Integration-Loader.ipynb`](./01-Data-Connections/01-Document-Integration-Loader.ipynb): Hacker News integration and example
+- [`01-Data-Connections/03-Document-Loading-Exercise-Solution.ipynb`](./01-Data-Connections/03-Document-Loading-Exercise-Solution.ipynb): Wikipedia integration and example
+
+```python
+### -- CSV
+from langchain.document_loaders import CSVLoader
+
+# Lazy loader: not loaded until .load() is called
+loader = CSVLoader('some_data/penguins.csv')
+
+# Now occurs the loading
+data = loader.load()
+
+type(data) # List of Document objects
+# We work with Document objects, which are essentially dictionaries with some extra methods
+# No matter the format, the data is always returned as a list of Document objects
+
+# Document 0
+data[0]
+
+# Print metadata and the content of the first document
+print(data[0].metadata) # {'source': 'some_data/penguins.csv', 'row': 0}
+print(data[0].page_content)
+# species: Adelie
+# island: Torgersen
+# ...
+
+### -- HTML
+
+from langchain.document_loaders import BSHTMLLoader
+
+loader = BSHTMLLoader('some_data/some_website.html')
+data = loader.load()
+
+### -- PDF
+
+# PDFs in particular, might lead to reading errors, e.g., 
+# wrong formatting, images replaed by placeholders, etc.
+# We can always use the PyPDF2 library to extract the text from a PDF file
+# and the load the text as a Document
+from langchain.document_loaders import PyPDFLoader
+
+loader = PyPDFLoader('some_data/SomeReport.pdf')
+pages = loader.load_and_split()
+
+pages[0]
+print(pages[0].page_content)
+
+### -- Integrations - Example: Hacker News
+
+from langchain.prompts import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain_openai.chat_models import ChatOpenAI
+
+model = ChatOpenAI(openai_api_key=api_key)
+
+human_prompt = HumanMessagePromptTemplate.from_template('Please give me a single sentence summary of the following:\n{document}')
+
+chat_prompt = ChatPromptTemplate.from_messages([human_prompt])
+
+result = model.invoke(chat_prompt.format_prompt(document=data[0].page_content).to_messages())
+
+result.content
+# 'Nicholast was a multi-talented individual with interests in jazz music, juggling, unicycling, and inventing various contraptions, whose papers are still relevant in fields such as information theory and artificial intelligence.'
+
+### -- Integrations - Example: Wikipedia
+
+# https://python.langchain.com/v0.2/docs/integrations/document_loaders/wikipedia/
+
+from langchain.prompts import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain_openai.chat_models import ChatOpenAI
+from langchain.document_loaders import WikipediaLoader
+
+
+def answer_question_about(person_name: str, question: str, model=None) -> str:
+    '''
+    Use the Wikipedia Document Loader to help answer questions about someone,
+    insert it as additional helpful context.
+    '''
+    # Get Wikipedia Article
+    docs = WikipediaLoader(query=person_name,load_max_docs=1)
+    context_text = docs.load()[0].page_content
+    
+    # Connect to OpenAI Model
+    if model is None:
+        #load_dotenv()
+        api_key = os.getenv("OPENAI_API_KEY")
+        model = ChatOpenAI(openai_api_key=api_key)
+    
+    # Ask Model Question
+    human_prompt = HumanMessagePromptTemplate.from_template('Answer this question\n{question}, here is some extra context:\n{document}')
+    
+    # Assemble chat prompt
+    chat_prompt = ChatPromptTemplate.from_messages([human_prompt])
+    
+    #result
+    result = model.invoke(chat_prompt.format_prompt(question=question,document=context_text).to_messages())
+    
+    print(result.content)
+
+model = ChatOpenAI(openai_api_key=api_key)
+answer_question_about("Claude Shannon", "When was he born?", model)
+
+```
+
+### Document Transformers
+
+
+
+### Text Embedding
+
+
+
+### Vector Stores
+
+
+
+### Queries and Retrievers
+
+
 
 ## 4. Chains
 
