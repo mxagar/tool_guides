@@ -37,6 +37,7 @@ Table of contents:
   - [2. Models](#2-models)
     - [Large Language Models (LLMs)](#large-language-models-llms)
     - [Prompt Templates](#prompt-templates)
+    - [Few Shot Prompt Templates](#few-shot-prompt-templates)
   - [3. Data Connections](#3-data-connections)
   - [4. Chains](#4-chains)
   - [5. Memory](#5-memory)
@@ -397,6 +398,52 @@ def travel_idea(interest,budget):
 
 ```
 
+### Few Shot Prompt Templates
+
+Notebook: [`00-Models-IO/04-Few-Shot-Prompt-Templates.ipynb`](./00-Models-IO/04-Few-Shot-Prompt-Templates.ipynb).
+
+Few-show prompting means giving some examples to the chatbot in the prompt. There are prompt templates for that.
+
+```python
+from langchain_openai.chat_models import ChatOpenAI
+from langchain import PromptTemplate, LLMChain
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
+
+# System prompt: we define the role and overall task
+template = "You are a helpful assistant that translates complex legal terms into plain and understandable terms."
+system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+
+# Noe we need example input and output to train the model, i.e., Human-AI pairs
+legal_text = "The provisions herein shall be severable, and if any provision or portion thereof is deemed invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions or portions thereof shall remain in full force and effect to the maximum extent permitted by law."
+example_input_one = HumanMessagePromptTemplate.from_template(legal_text)
+plain_text = "The rules in this agreement can be separated. If a court decides that one rule or part of it is not valid, illegal, or cannot be enforced, the other rules will still apply and be enforced as much as they can under the law."
+example_output_one = AIMessagePromptTemplate.from_template(plain_text)
+
+# Now, we define the real human prompt we're going to use, which is basically the legal text!
+human_template = "{legal_text}"
+human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+
+# Finally, the complete prompt is the list
+# system_message_prompt, example_input_one, example_output_one, human_message_prompt
+chat_prompt = ChatPromptTemplate.from_messages(
+    [system_message_prompt, example_input_one, example_output_one, human_message_prompt]
+)
+
+chat_prompt.input_variables # ['legal_text']
+
+# Now, we format the prompt with the variable
+some_example_text = "The grantor, being the fee simple owner of the real property herein described, conveys and warrants to the grantee, his heirs and assigns, all of the grantor's right, title, and interest in and to the said property, subject to all existing encumbrances, liens, and easements, as recorded in the official records of the county, and any applicable covenants, conditions, and restrictions affecting the property, in consideration of the sum of [purchase price] paid by the grantee."
+request = chat_prompt.format_prompt(legal_text=some_example_text).to_messages()
+
+result = chat.invoke(request)
+print(result.content) # The person giving the property, who owns it completely, is transferring and...
+```
 
 
 ## 3. Data Connections
