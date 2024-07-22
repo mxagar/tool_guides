@@ -17,6 +17,7 @@ dependencies:
       - autopep8
       - beautifulsoup4
       - bert-score
+      - chromadb
       - datasets
       - diffusers
       - evaluate
