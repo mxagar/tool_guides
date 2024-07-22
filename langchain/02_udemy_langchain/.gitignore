@@ -6,3 +6,4 @@ data/thefuzz-master
 *.pkl
 *.bin
 slides
+speech_embedding_db
