@@ -88,7 +88,7 @@ This guide is built to reach the ultimate goals of dealing with **Agents**. Howe
 
 ### Setup
 
-First, create a Python environment, e.e.g, with Conda:
+First, create a Python environment, e.g, with Conda:
 
 ```bash
 # Create environment + activate it
@@ -806,13 +806,132 @@ type(texts[0]) # str
 print(len(texts[0].split())) # 411 words ~ 500 tokens
 ```
 
-
 ### Text Embedding
 
+Text embeddings are vector representations of texts. Usually semantic embeddings are used, i.e., similar texts yield similar vectors, in such a way, that algebra operations are possible with the vectors.
 
+This guide uses [OpenAI Text Embeddings](https://python.langchain.com/v0.1/docs/integrations/text_embedding/openai/), but many more are possible.
+
+Embedding models are not compatible between each other.
+
+Notebook: [`01-Data-Connections/05-Text-Embedding.ipynb`](./01-Data-Connections/05-Text-Embedding.ipynb).
+
+```python
+import numpy as np
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain.document_loaders import CSVLoader
+
+# Embedding model
+# To use the OpenAI model, we need to have defined OPENAI_API_KEY as environment variable
+# https://platform.openai.com/docs/guides/embeddings
+# Default model: text-embedding-ada-002
+# Dimension: 1536
+embeddings = OpenAIEmbeddings()
+
+text = "Some normal text to send to OpenAI to be embedded into a N dimensional vector"
+embedded_text = embeddings.embed_query(text)
+
+# The returned vector is a list
+type(embedded_text) # list
+len(embedded_text) # 1536
+
+# We can convert the list into an array
+embedding_array = np.array(embedded_text)
+embedding_array.shape # (1536,)
+
+## -- Embedding a Document
+
+loader = CSVLoader('some_data/penguins.csv')
+# This loads a list of Document objects
+# Each Document is a row in the CSV
+data = loader.load()
+type(data) # list
+type(data[0]) # langchain_core.documents.base.Document
+
+# Unfortunately, we cannot pass a list of Documents
+# but we need to pass a list of strings, i.e., page_content
+embedded_docs = embeddings.embed_documents([text.page_content for text in data])
+
+len(embedded_docs) # 344 (rows)
+len(embedded_docs[0]) # Embedding dimension
+```
 
 ### Vector Stores
 
+We want to persist/store embedding vectors and be able to access them easily, even with similarity queries. We can do that with a **vector store**:
+
+- We can store large N-dimensional vectors.
+- We can index a vector and its text string.
+- Given a new query vector not in the DB, we can run similarity searches in the DB.
+- We can easily add/update/delete vectors.
+
+Popular vector stores:
+
+- [ChromaDB](https://www.trychroma.com/)
+- [FAISS (Meta): Facebook AI Similarity Search](https://github.com/facebookresearch/faiss)
+- [Elasticsearch with k-NN Plugin](https://www.elastic.co/guide/en/elasticsearch/reference/current/knn-search.html)
+- [Pinecone](https://www.pinecone.io/)
+- [Weaviate](https://weaviate.io/)
+- [ScaNN (Google)](https://github.com/google-research/google-research/tree/master/scann)
+- [Annoy (Spotify): Approximate Nearest Neighbors Oh Yeah](https://github.com/spotify/annoy)
+- [PGVector: Vector Plugin for Postgres](https://python.langchain.com/v0.2/docs/integrations/vectorstores/pgvector/)
+
+Here, we use **ChromaDB**.
+
+Notebook: [`01-Data-Connections/06-Vector-Store.ipynb`](./01-Data-Connections/06-Vector-Store.ipynb).
+
+```python
+from langchain_openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import Chroma
+from langchain.document_loaders import TextLoader
+
+# Load the document and split it into chunks
+loader = TextLoader("some_data/FDR_State_of_Union_1944.txt")
+documents = loader.load()
+
+# Split it into chunks
+text_splitter = CharacterTextSplitter.from_tiktoken_encoder(chunk_size=500)
+docs = text_splitter.split_documents(documents)
+
+# The variable OPENAI_API_KEY needs to bet set in the environment
+embedding_function = OpenAIEmbeddings()
+
+# Load it into Chroma; we pass:
+# - the documents
+# - the embedding function or Embeddings class/object
+# - the directory where the DB is persisted
+db = Chroma.from_documents(docs,
+                           embedding_function,
+                           persist_directory='./speech_embedding_db')
+# The persisted folder contains
+# - a SQLite database
+# - two parquet files with the embeddings and the texts
+# - index files
+
+# Here, we load a persisted DB, i.e.,
+# we CONNECT to persisted DB
+db_connection = Chroma(persist_directory='./speech_embedding_db',
+                       embedding_function=embedding_function)
+
+# Query the DB
+# WARNING: Do not use questions, but rather statements
+# because this is not a chat, but a similarity search
+# based on the cosine similarit of the embeddings
+new_doc = "What did FDR say about the cost of food law?"
+
+# We can do it with the string or the vector of the string
+# Default top k = 4
+# We get as result Document objects of the chunks
+# that were passed to the vector store
+docs = db_connection.similarity_search(new_doc)
+
+len(docs) # 4
+type(docs[0]) # langchain_core.documents.base.Document
+
+# Show the content of the first document
+print(docs[0].page_content) # A continuation ...
+```
 
 
 ### Queries and Retrievers
