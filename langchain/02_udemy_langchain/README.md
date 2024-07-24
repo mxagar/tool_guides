@@ -51,6 +51,7 @@ Table of contents:
   - [4. Chains](#4-chains)
     - [LLMChain](#llmchain)
     - [SimpleSequentialChain](#simplesequentialchain)
+    - [SequentialChain](#sequentialchain)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
@@ -1174,15 +1175,27 @@ print(answer) # First Amendment: Congress shall make no law respecting an establ
 
 Chains are a core feature of LangChain: they allow to pipe the output from one LLM call as the input for the next LLM call.
 
-There are many chains, e.g.:
+There are many chain classes, e.g.:
 
-- LLMChain
-- SimpleSequentialChain
-- SequentialChain
+- LLMChain (deprecated)
+- SimpleSequentialChain (deprecated)
+- SequentialChain (deprecated)
 - LLMRouterChain
 - TransformChain
 - MathChain
 - AdditionalChains
+
+However, according to the [official documentation](https://python.langchain.com/v0.1/docs/modules/chains/), these are being replaced by chains in the [LangChain Expression Language (LCEL)](https://python.langchain.com/v0.1/docs/expression_language/). For instance, as shown in the section [Get started](https://python.langchain.com/v0.1/docs/expression_language/get_started/), a simple chain could be created by concatenating objects with `|`:
+
+```python
+model = ChatOpenAI(model="gpt-4")
+prompt = ChatPromptTemplate.from_template("tell me a short joke about {topic}")
+output_parser = StrOutputParser()
+
+chain = prompt | model | output_parser
+
+chain.invoke({"topic": "ice cream"})
+```
 
 ### LLMChain
 
@@ -1190,7 +1203,9 @@ There are many chains, e.g.:
 
 > We can create a chain that takes user input, formats it with a `PromptTemplate`,  and then passes the formatted response to an LLM. We can build more complex chains by combining multiple chains together, or by combining chains with other components.
 
-Notation: `chain = prompt | llm`.
+In the new version, the class `LLMChain` is not instantiated, instead, the piping notation is used:
+
+    chain = prompt | llm
 
 Notebook: [`02-Chains/00-LLMChain.ipynb`](./02-Chains/00-LLMChain.ipynb).
 
@@ -1236,15 +1251,20 @@ In the following example, two basic chains are concatenated:
 
 Usually, the same LLM/chat model is used for each step, but we can actually use any different model in each chain step.
 
-In the versions of LangChain there is no difference in the notation when it comes to creating `SimpleSequentialChain`, compared to `LLMChain`:
+In the versions of LangChain there is no difference in the notation when it comes to creating `SimpleSequentialChain`, compared to `LLMChain`, and no `SimpleSequentialChain` class is instantiated, but the same piping notation as with `LLMChain` is used:
 
-        chain_1 = prompt_1 | llm_1
-        chain_2 = prompt_2 | llm_2
-        ...
-        chain_n = prompt_n | llm_n
-        full_sequential_chain = chain_1 | chain_2 | ... | chain_n
+    chain_1 = prompt_1 | llm_1
+    chain_2 = prompt_2 | llm_2
+    ...
+    chain_n = prompt_n | llm_n
+    full_sequential_chain = chain_1 | chain_2 | ... | chain_n
 
 The main limitation of `SimpleSequentialChain` is that **we have every step 1 input and 1 output.**
+
+If we want to access to the output of each step, we can do it as follows:
+
+    (chain_1 | chain_2).invoke(input)
+    ...
 
 Notebook: [`02-Chains/02-SequentialChain.ipynb`](./02-Chains/02-SequentialChain.ipynb).
 
@@ -1277,7 +1297,22 @@ full_chain = chain_one|chain_two
 
 result = full_chain.invoke("Data Science")
 print(result.content)
+
+# If we want to access to the intermmediate output/input results
+# of each step we need to invoke each chain separately
+result_1 = chain_one.invoke("Data Science")
+print(result_1.content)
+result_2 = chain_two.invoke(result_1.content)
+print(result_2.content)
 ```
+
+### SequentialChain
+
+The class `SequentialChain` is deprecated. The same style as in the previous section `SimpleSequentialChain` needs to be used.
+
+Notebook: [`02-Chains/02-SequentialChain.ipynb`](./02-Chains/02-SequentialChain.ipynb).
+
+
 
 ## 5. Memory
 
