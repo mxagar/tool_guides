@@ -49,6 +49,8 @@ Table of contents:
     - [Context Compression](#context-compression)
     - [Example: US Constitution Helper](#example-us-constitution-helper)
   - [4. Chains](#4-chains)
+    - [LLMChain](#llmchain)
+    - [SimpleSequentialChain](#simplesequentialchain)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
@@ -1086,7 +1088,6 @@ docs[0] # Document(page_content='The United States President
 compressed_docs = compression_retriever.invoke("When was this declassified?")compressed_docs[0].page_contents
 ```
 
-
 ### Example: US Constitution Helper
 
 Notebook: [`01-Data-Connections/11-Data-Connections-Exercise-Solution.ipynb`](./01-Data-Connections/11-Data-Connections-Exercise-Solution.ipynb).
@@ -1169,9 +1170,114 @@ answer = qa_bot.ask("What is the 1st Amendment?")
 print(answer) # First Amendment: Congress shall make no law respecting an establishment of religion...
 ```
 
-
-
 ## 4. Chains
+
+Chains are a core feature of LangChain: they allow to pipe the output from one LLM call as the input for the next LLM call.
+
+There are many chains, e.g.:
+
+- LLMChain
+- SimpleSequentialChain
+- SequentialChain
+- LLMRouterChain
+- TransformChain
+- MathChain
+- AdditionalChains
+
+### LLMChain
+
+`LLMChain` is a very simple chain in which a prompt and a LLM/chat are linked. It is the most basic chain.
+
+> We can create a chain that takes user input, formats it with a `PromptTemplate`,  and then passes the formatted response to an LLM. We can build more complex chains by combining multiple chains together, or by combining chains with other components.
+
+Notation: `chain = prompt | llm`.
+
+Notebook: [`02-Chains/00-LLMChain.ipynb`](./02-Chains/00-LLMChain.ipynb).
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+openai_token = os.getenv("OPENAI_API_KEY")
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+)
+
+human_message_prompt = HumanMessagePromptTemplate.from_template(
+    "Make up a funny company name for a company that produces {product}"
+)
+chat_prompt_template = ChatPromptTemplate.from_messages([human_message_prompt])
+
+chat = ChatOpenAI()
+
+# We can create a chain that takes user input, 
+# formats it with a PromptTemplate, 
+# and then passes the formatted response to an LLM. 
+# We can build more complex chains by combining multiple chains together, 
+# or by combining chains with other components.
+# This is how a simple LLMChain is created, we concatenate: prompt | chat
+chain = chat_prompt_template | chat
+
+print(chain.invoke(input="Computers").content) # Byte Me Technologies
+```
+
+### SimpleSequentialChain
+
+A `SimpleSequentialChain` is a sequential collection of `LLMChain` objects.
+
+In the following example, two basic chains are concatenated:
+
+- The first creates an outline for a blog post, the topic is given by the user.
+- The second writes the blog post with the outline.
+
+Usually, the same LLM/chat model is used for each step, but we can actually use any different model in each chain step.
+
+In the versions of LangChain there is no difference in the notation when it comes to creating `SimpleSequentialChain`, compared to `LLMChain`:
+
+        chain_1 = prompt_1 | llm_1
+        chain_2 = prompt_2 | llm_2
+        ...
+        chain_n = prompt_n | llm_n
+        full_sequential_chain = chain_1 | chain_2 | ... | chain_n
+
+The main limitation of `SimpleSequentialChain` is that **we have every step 1 input and 1 output.**
+
+Notebook: [`02-Chains/02-SequentialChain.ipynb`](./02-Chains/02-SequentialChain.ipynb).
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+openai_token = os.getenv("OPENAI_API_KEY")
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.chains import SimpleSequentialChain
+
+llm = ChatOpenAI()
+
+# The first chain creates an outline for a blog post, the topic is given by the user.
+template = "Give me a simple bullet point outline for a blog post on {topic}"
+first_prompt = ChatPromptTemplate.from_template(template)
+chain_one = first_prompt|llm
+
+# The second writes the blog post with the outline.
+template = "Write a blog post using this outline: {outline}"
+second_prompt = ChatPromptTemplate.from_template(template)
+chain_two = second_prompt|llm
+
+# SimpleSequentialChain: there is no difference in the new versions of LangChain
+# wrt. the LLMChain notation
+full_chain = chain_one|chain_two
+
+result = full_chain.invoke("Data Science")
+print(result.content)
+```
 
 ## 5. Memory
 
