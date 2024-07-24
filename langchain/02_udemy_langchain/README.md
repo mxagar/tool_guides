@@ -1038,7 +1038,50 @@ print(unique_docs[0].page_content) # The Church Committee (formally...
 
 ### Context Compression
 
+It is possible to compress/distill/summarize the retrieved results using an LLM. This often used more than the multi-query retrieval.
 
+Notebook: [`01-Data-Connections/09-Context-Compression.ipynb`](./01-Data-Connections/09-Context-Compression.ipynb).
+
+```python
+# Build a sample vectorDB
+from langchain.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+# We need to have OPENAI_API_KEY in the environment
+embedding_function = OpenAIEmbeddings()
+
+# Load/connect DB
+db_connection = Chroma(
+    persist_directory='./mk_ultra',
+    embedding_function=embedding_function
+)
+
+from langchain_openai import ChatOpenAI
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
+
+# We need an LLM chat
+llm = ChatOpenAI(temperature=0)
+# We create the compressor with the chat
+compressor = LLMChainExtractor.from_llm(llm)
+
+# The compression retriever consists of
+# - a base compressor (from an LLM/chat)
+# - a retriever (from a DB)
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor, 
+    base_retriever=db_connection.as_retriever()
+)
+
+# Similarity search in the DB
+docs = db_connection.similarity_search('When was this declassified?')
+
+docs[0] # Document(page_content='The United States President
+
+compressed_docs = compression_retriever.invoke("When was this declassified?")
+compressed_docs[0].page_contents
+
+```
 
 ## 4. Chains
 
