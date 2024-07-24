@@ -45,7 +45,8 @@ Table of contents:
     - [Document Transformers](#document-transformers)
     - [Text Embedding](#text-embedding)
     - [Vector Stores](#vector-stores)
-    - [Queries and Retrievers](#queries-and-retrievers)
+    - [Retrievers and Multi-Query Retrievers](#retrievers-and-multi-query-retrievers)
+    - [Context Compression](#context-compression)
   - [4. Chains](#4-chains)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
@@ -937,7 +938,105 @@ print(docs[0].metadata) # {'source': 'some_data/FDR_State_of_Union_1944.txt'}
 ```
 
 
-### Queries and Retrievers
+### Retrievers and Multi-Query Retrievers
+
+Vector stores are passed as retrievers to different modules when we use them.
+
+When we convert a vector store into a retriever, we get access to standardized retriever methods that can be used for querying and searching.
+
+Additionally, in some cases, the phrasing in our query is not optimal; we can use an LLM to generate multiple variations of it. That way, we rather focus on ideas and not in the exact phrasing. That is achieved with **MultiQueryRetrievers**. Note, however, that in a Multi-Query Retriever an LLM generates query variations, so we should decrease its temeprature if we want to have reproducible results.
+
+Notebooks: 
+
+- [`01-Data-Connections/07-Vector-Store-Retriever.ipynb`](./01-Data-Connections/07-Vector-Store-Retriever.ipynb).
+- [`01-Data-Connections/08-Multi-Query-Retriever.ipynb`](./01-Data-Connections/08-Multi-Query-Retriever.ipynb).
+
+```python
+from langchain.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+# Load vector store
+# We need to have OPENAI_API_KEY in the environment
+# The DB contains the Wikipedia page on the MKUltra project from the CIA
+embedding_function = OpenAIEmbeddings()
+db_connection = Chroma(
+    persist_directory='./mk_ultra',
+    embedding_function=embedding_function
+)
+
+# When we convert our vector store to a retriever,
+# we get access to standardized retriever methods
+# that can be used for querying and searching
+retriever = db_connection.as_retriever()
+
+search_kwargs = {
+    "score_threshold":0.8,
+    "k":4
+}
+
+# This gets the top 4 documents
+# that are most similar to the query "President"
+docs = retriever.invoke(
+    "President",
+    search_kwargs=search_kwargs
+)
+
+print(len(docs)) # 4
+docs[0].page_content # The United States President...
+```
+
+**This is the continuation of the previous notebook:**
+
+```python
+# We have db_connection already loaded in previous code block
+# db_connection = Chroma(...)
+# The DB contains the Wikipedia page on the MKUltra project from the CIA
+
+# For the MultiQueryRetriever we need to associated module
+# and a chat model
+from langchain_openai import ChatOpenAI
+from langchain.retrievers.multi_query import MultiQueryRetriever
+
+# Instance of a chat model
+# It is advisable to use temperature=0
+# in order to be able to replicate the results,
+# i.e., otherwise the query variations might differ
+# and lead to different results...
+llm = ChatOpenAI(temperature=0)
+
+# MultiQueryRetriever: we need a retriever and a chat model
+retriever_from_llm = MultiQueryRetriever.from_llm(
+    retriever=db_connection.as_retriever(),
+    llm=llm
+)
+
+# Set logging for the queries
+# to see which queries are formed
+import logging
+
+logging.basicConfig()
+logging.getLogger('langchain.retrievers.multi_query').setLevel(logging.INFO)
+
+# Initial query: This is the seed query which will be used to generate the queries
+question = "When was this declassified?"
+
+# This will return the most relevant documents
+# related to the query, NOT the multiple queries
+# However, since we activated the logging with level INFO
+# we see the different queries that are formed from our initial
+# question
+unique_docs = retriever_from_llm.invoke(input=question)
+# INFO:langchain.retrievers.multi_query:Generated queries: 
+# ['1. What is the date of the declassification of this information?', 
+# '2. Can you provide the specific time when this was declassified?', 
+# '3. Do you know the exact moment when this information became declassified?']
+
+len(unique_docs) # 5 (top 5 unique documents)
+
+print(unique_docs[0].page_content) # The Church Committee (formally...
+```
+
+### Context Compression
 
 
 
