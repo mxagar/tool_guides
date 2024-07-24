@@ -931,6 +931,9 @@ type(docs[0]) # langchain_core.documents.base.Document
 
 # Show the content of the first document
 print(docs[0].page_content) # A continuation ...
+
+# Important: for each chunk, we can get the original document
+print(docs[0].metadata) # {'source': 'some_data/FDR_State_of_Union_1944.txt'}
 ```
 
 
