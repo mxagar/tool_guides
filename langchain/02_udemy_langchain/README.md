@@ -47,6 +47,7 @@ Table of contents:
     - [Vector Stores](#vector-stores)
     - [Retrievers and Multi-Query Retrievers](#retrievers-and-multi-query-retrievers)
     - [Context Compression](#context-compression)
+    - [Example: US Constitution Helper](#example-us-constitution-helper)
   - [4. Chains](#4-chains)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
@@ -1078,10 +1079,97 @@ docs = db_connection.similarity_search('When was this declassified?')
 
 docs[0] # Document(page_content='The United States President
 
-compressed_docs = compression_retriever.invoke("When was this declassified?")
-compressed_docs[0].page_contents
-
+# Here, we use the compression retriever to summarize the document:
+# - Documents are retrieved according to the query
+# - Results are sent to the LLM to summarize
+# - The summarized results are presented
+compressed_docs = compression_retriever.invoke("When was this declassified?")compressed_docs[0].page_contents
 ```
+
+
+### Example: US Constitution Helper
+
+Notebook: [`01-Data-Connections/11-Data-Connections-Exercise-Solution.ipynb`](./01-Data-Connections/11-Data-Connections-Exercise-Solution.ipynb).
+
+The US Constitution is ingested/vectorized and we can ask questions to it.
+
+I refactored the proposed solution.
+
+```python
+from langchain.vectorstores import Chroma
+from langchain_openai import ChatOpenAI
+from langchain.document_loaders import TextLoader
+from langchain_openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor 
+from typing import List
+from langchain.schema import Document
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+openai_token = os.getenv("OPENAI_API_KEY")
+
+class QABot:
+    def __init__(self, persist_directory: str):
+        self.persist_directory = persist_directory
+        self.docs: List[Document] = []
+        self.db = None
+        self.llm = None
+        self.retriever = None
+
+    def load_text_file(self, file_path: str, chunk_size: int = 500) -> None:
+        # Load the text file into a Document object
+        loader = TextLoader(file_path)
+        documents = loader.load()
+
+        # Split the document into chunks
+        text_splitter = CharacterTextSplitter.from_tiktoken_encoder(chunk_size=chunk_size)
+        self.docs = text_splitter.split_documents(documents)
+        
+        # Embed the documents and create a persisted ChromaDB
+        embedding_function = OpenAIEmbeddings()
+        self.db = Chroma.from_documents(self.docs,
+                                        embedding_function,
+                                        persist_directory=self.persist_directory)
+        #self.db.persist()
+    
+    def _connect_llm(self) -> ChatOpenAI:
+        # Initialize and return the LLM chat model
+        self.llm = ChatOpenAI(temperature=0.0)
+        return self.llm
+
+    def _get_retriever(self) -> ContextualCompressionRetriever:
+        # Initialize the LLM compressor
+        if self.llm is None:
+            self._connect_llm()
+        compressor = LLMChainExtractor.from_llm(self.llm)
+
+        # Create and return the contextual compression retriever
+        self.retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=self.db.as_retriever())
+        return self.retriever
+
+    def ask(self, question: str) -> str:
+        # Ensure the LLM and retriever are loaded
+        if self.retriever is None:
+            self._get_retriever()
+
+        # Use the retriever to get the most relevant part of the documents
+        compressed_docs = self.retriever.invoke(question)
+        return compressed_docs[0].page_content if compressed_docs else "No relevant content found."
+
+# First, load the documents and create a specific chatbot
+qa_bot = QABot(persist_directory='./US_Constitution')
+qa_bot.load_text_file("some_data/US_Constitution.txt")
+
+# Then, ask questions to the chatbot
+answer = qa_bot.ask("What is the 1st Amendment?")
+print(answer) # First Amendment: Congress shall make no law respecting an establishment of religion...
+```
+
+
 
 ## 4. Chains
 
