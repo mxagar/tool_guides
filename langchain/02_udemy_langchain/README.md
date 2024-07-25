@@ -56,6 +56,7 @@ Table of contents:
     - [TransformChain](#transformchain)
     - [OpenAI Function Calling](#openai-function-calling)
     - [LLMMathChain](#llmmathchain)
+    - [Additional Chains: QAChains](#additional-chains-qachains)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
@@ -1560,6 +1561,72 @@ from langchain import LLMMathChain
 
 llm_math_model = LLMMathChain.from_llm(model)
 llm_math_model.invoke("What is 17 raised to the power of 11?") # 34271896307633
+```
+
+### Additional Chains: QAChains
+
+There are many chains: [Chains](https://python.langchain.com/v0.1/docs/modules/chains/).
+
+We could implement manually many applications (e.g., question-answering documents), but we have many chains that accomplish them:
+
+- [SQL DB chain](https://api.python.langchain.com/en/latest/chains/langchain.chains.sql_database.query.create_sql_query_chain.html#langchain.chains.sql_database.query.create_sql_query_chain)
+- [QA with sources chain](https://api.python.langchain.com/en/latest/chains/langchain.chains.openai_functions.qa_with_structure.create_qa_with_sources_chain.html#langchain.chains.openai_functions.qa_with_structure.create_qa_with_sources_chain)
+- ...
+
+Notebook: [`02-Chains/07-Additional-Chains.ipynb`](./02-Chains/07-Additional-Chains.ipynb).
+
+In the notebook QA chains are shown, with and without source reporting.
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+from langchain_openai import OpenAIEmbeddings
+#from langchain.vectorstores import Chroma
+from langchain_chroma import Chroma
+
+from langchain.chains.question_answering import load_qa_chain
+# The QA chain with sources is like the QA chain but
+# it returns some metadata related to the source documents
+# where the answer was found.
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+
+from langchain_openai import ChatOpenAI
+
+embedding_function = OpenAIEmbeddings()
+
+db_connection = Chroma(
+    persist_directory='../01-Data-Connections/US_Constitution/',
+    embedding_function=embedding_function
+)
+
+llm = ChatOpenAI(temperature=0)
+
+# chain_type: stuff = we will enter the context in to a prompt; that the usual type
+chain = load_qa_chain(llm,chain_type='stuff')
+
+question = "What is the 15th amendment?"
+
+# We first need to perform the similarity search and get the documents
+docs = db_connection.similarity_search(question)
+docs # [Document(), ...]
+
+# We insert the documents found in the similarity search and the question into the chain
+chain.invoke({"input_documents":docs,"question":question})["output_text"] # The 15th Amendment to the United States Constitution prohibits the denial or abridgment...
+
+# The QA chain with sources is like the QA chain but
+# it returns some metadata related to the source documents
+# where the answer was found.
+chain = load_qa_with_sources_chain(llm,chain_type='stuff')
+
+query = "What is the 14th amendment?"
+
+docs = db_connection.similarity_search(query)
+
+chain.invoke({"input_documents":docs,"question":query})["output_text"] # The 14th Amendment states that all persons...
 ```
 
 ## 5. Memory
