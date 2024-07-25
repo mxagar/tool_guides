@@ -27,6 +27,7 @@ dependencies:
       - langchain[all]
       - langchain-openai
       - langchain-community
+      - langchain-chroma
       - lxml
       - numexpr
       - ollama
