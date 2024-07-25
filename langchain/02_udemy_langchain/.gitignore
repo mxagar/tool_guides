@@ -7,3 +7,4 @@ data/thefuzz-master
 *.bin
 slides
 speech_embedding_db
+*.sqlite
