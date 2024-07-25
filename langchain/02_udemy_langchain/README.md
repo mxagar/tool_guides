@@ -52,6 +52,8 @@ Table of contents:
     - [LLMChain](#llmchain)
     - [SimpleSequentialChain](#simplesequentialchain)
     - [SequentialChain](#sequentialchain)
+    - [LLMRouterChain](#llmrouterchain)
+    - [TransformChain](#transformchain)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
@@ -316,6 +318,8 @@ llm.invoke('Tell me a fact about Mars')
 Notebook: [`00-Models-IO/01-Prompt-Templates.ipynb`](./00-Models-IO/01-Prompt-Templates.ipynb):
 
 We can use prompt templates to define parametrized messages/instructions for the chatbot. These are an alternative to using f-string literals.
+
+**Personal opinion**: I have the impression that most of these prompt templates are an excessive wrapping that in many cases is not really necessary.
 
 ```python
 ### -- LLM Models
@@ -1197,6 +1201,8 @@ chain = prompt | model | output_parser
 chain.invoke({"topic": "ice cream"})
 ```
 
+**Personal opinion**: I have the impression that most of these chains are an excessive wrapping that in many cases is not really necessary.
+
 ### LLMChain
 
 `LLMChain` is a very simple chain in which a prompt and a LLM/chat are linked. It is the most basic chain.
@@ -1312,7 +1318,124 @@ The class `SequentialChain` is deprecated. The same style as in the previous sec
 
 Notebook: [`02-Chains/02-SequentialChain.ipynb`](./02-Chains/02-SequentialChain.ipynb).
 
+### LLMRouterChain
 
+> `LLMRouterChains` can take in an input and redirect it to the most appropriate `LLMChain` sequence.
+
+![LLMRouterChain](./assets/llmrouterchain.png)
+
+Notebook: [`02-Chains/03-LLMRouterChain.ipynb`](./02-Chains/03-LLMRouterChain.ipynb).
+
+In the notebook example we have an `LLMRouterChain` which answers physics questions for either 8th-grade-level students or PhD-level students. We ingest the question and in the chain an LLM decides the level, then, the question is routed to the appropriate sequence chain.
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+openai_token = os.getenv("OPENAI_API_KEY")
+
+beginner_template = '''You are a physics teacher who is really
+focused on beginners and explaining complex topics in simple to understand terms. 
+You assume no prior knowledge. Here is the question\n{input}'''
+
+expert_template = '''You are a world expert physics professor who explains physics topics
+to advanced audience members. You can assume anyone you answer has a 
+PhD level understanding of Physics. Here is the question\n{input}'''
+
+# We can create templates for additional chains
+empty_template = 'empty'
+
+# We need to create a list of dictionaries that contain the prompt name, description, and template
+# We can add more prompts/chains by adding more dictionaries to the list
+prompt_infos = [
+    #{'name':'empty','description':'Replies to empty questions','prompt_template':empty_template},
+    {'name':'advanced physics','description': 'Answers advanced physics questions',
+     'prompt_template':expert_template},
+    {'name':'beginner physics','description': 'Answers basic beginner physics questions',
+     'prompt_template':beginner_template},
+    
+]
+
+from langchain_openai import ChatOpenAI
+from langchain.chains.router import MultiPromptChain
+llm = ChatOpenAI()
+
+# Here we create a MultiPromptChain from the prompt_infos list, 
+# which is the router for the chains.
+# Internally an initial default prompt is used, 
+# which asks to decide between our prompt chains,
+# and then, the correct promt+llm chain is run.
+chain = MultiPromptChain.from_prompts(llm, prompt_infos, verbose=True)
+
+chain.invoke("How do magnets work?")
+# > Entering new MultiPromptChain chain...
+# beginner physics: {'input': 'How do magnets work?'}
+# Magnets work by creating a magnetic field around them...
+
+chain.invoke("How do Feynman Diagrams work?")
+# > Entering new MultiPromptChain chain...
+# advanced physics: {'input': 'How do Feynman Diagrams work in the context of particle interactions?'}
+# Feynman diagrams are a graphical representation of the mathematical expressions that describe particle interactions in quantum field theory...
+```
+
+### TransformChain
+
+In a `TransformChain` we can add a custom function that transforms our data in a step of the chain.
+
+Notebook: [`02-Chains/04-TransformChain.ipynb`](./02-Chains/04-TransformChain.ipynb).
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+openai_token = os.getenv("OPENAI_API_KEY")
+
+from langchain.chains import TransformChain, LLMChain, SimpleSequentialChain
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+
+yelp_review = open('yelp_review.txt').read()
+# The review has some features we'd like to remove:
+# - it is all caps, we want small characters
+# - It has a title, we just want the body of the review
+# We create a function that processes the review to remove these features
+print(yelp_review) # TITLE: AN ABSOLUTE DELIGHT! A CULINARY HAVEN!
+
+def transformer_fun(inputs: dict) -> dict:
+    '''
+    Notice how this always takes an inputs dictionary.
+    Also outputs a dictionary. You can call the output and input keys whatever you want, 
+    just make sure to reference it correct in the chain call.
+    '''
+    # Grab incoming chain text
+    text = inputs['text']
+    only_review_text = text.split('REVIEW:')[-1]
+    lower_case_text = only_review_text.lower()
+    return {'output':lower_case_text}
+
+# TransformChain is basically a class which runs our function
+# and it can be chained to other chain steps
+transform_chain = TransformChain(
+    input_variables=['text'],
+    output_variables=['output'],
+    transform=transformer_fun
+)
+
+transform_chain.invoke(yelp_review) # 'output': "\noh my goodness, ...
+
+llm = ChatOpenAI()
+
+template = "Create a one sentence summary of this review:\n{text}"
+prompt = ChatPromptTemplate.from_template(template)
+summary_chain = prompt|llm
+sequential_chain = transform_chain|summary_chain
+
+result = sequential_chain.invoke(yelp_review)
+
+result.content # This review raves about the phenomenal ambiance...
+```
 
 ## 5. Memory
 
