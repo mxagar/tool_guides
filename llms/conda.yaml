@@ -28,6 +28,7 @@ dependencies:
       - langchain-openai
       - langchain-community
       - lxml
+      - numexpr
       - ollama
       - openai
       - pydantic
