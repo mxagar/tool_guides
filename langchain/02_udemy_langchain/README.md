@@ -55,6 +55,7 @@ Table of contents:
     - [LLMRouterChain](#llmrouterchain)
     - [TransformChain](#transformchain)
     - [OpenAI Function Calling](#openai-function-calling)
+    - [LLMMathChain](#llmmathchain)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
@@ -1511,7 +1512,54 @@ chain = chat_prompt|llm.with_structured_output(schema=json_schema)
 result = chain.invoke({"country": "Indian"})
 print(result) # {'first_name': 'A.P.J.', 'last_name': 'Abdul Kalam'}
 type(result) # dict
+```
 
+### LLMMathChain
+
+Math problems, even easy ones, are difficult for LLMs because they produce text hallucinations, i.e., they really cannot compute. `MathChain` addresses that issue in a way that it prompts to create the mathematical representation of the question which is then evaluated.
+
+Notebook: [`02-Chains/06-MathChain.ipynb`](./02-Chains/06-MathChain.ipynb).
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+
+from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
+
+# The chat/LLM model; OPENAI_API_KEY needs to be defined in the environment
+model = ChatOpenAI()
+
+# In Python, eval() can easily be used to transform a code string
+# into code that is executed; so we can execute mathematical expressions
+eval('17**11')
+
+# We ask the plain question
+result = model.invoke([HumanMessage(content="What is 17 raised to the power of 11?")])
+result.content # A hallucination is output
+
+# We prompt the model to generate the Python formula
+# for the simple question
+result = model.invoke([HumanMessage(content="Give me the Python formula that represents: What is 17 raised to the power of 11? Only reply with the formula, nothing else!")])
+result.content # Now, a formula is ouput: '17 ** 11'
+
+# The output formula, evaluated, yields the correct result
+eval(result.content)
+
+# With LLMMathChain it is much easier!
+from langchain import LLMMathChain
+
+llm_math_model = LLMMathChain.from_llm(model)
+llm_math_model.invoke("What is 17 raised to the power of 11?") # 34271896307633
 ```
 
 ## 5. Memory
