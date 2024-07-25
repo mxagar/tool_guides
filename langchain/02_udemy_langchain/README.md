@@ -54,6 +54,7 @@ Table of contents:
     - [SequentialChain](#sequentialchain)
     - [LLMRouterChain](#llmrouterchain)
     - [TransformChain](#transformchain)
+    - [OpenAI Function Calling](#openai-function-calling)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
@@ -480,7 +481,7 @@ Sometimes the output parsers don't work because the model outputs some more text
 - System prompt: we explicitly highlight the format.
 - We can use `OutputFixingParser`, which re-requests to the model to reformat the answer.
 
-Also, regarding the `Pydantic` parser/format, check the [OpenAI Function Calling](https://platform.openai.com/docs/guides/function-calling):
+Also, regarding the `Pydantic` parser/format, check the section [OpenAI Function Calling](#openai-function-calling). According to the [official documentation](https://platform.openai.com/docs/guides/function-calling):
 
 > In an API call, you can describe functions and have the model intelligently choose to output a JSON object containing arguments to call one or many functions. The Chat Completions API does not call the function; instead, the model generates JSON that you can use to call the function in your code. Example: `extract_data(name: string, birthday: string)`.
 
@@ -1435,6 +1436,82 @@ sequential_chain = transform_chain|summary_chain
 result = sequential_chain.invoke(yelp_review)
 
 result.content # This review raves about the phenomenal ambiance...
+```
+
+### OpenAI Function Calling
+
+According to the official documentation, [OpenAI Function calling](https://platform.openai.com/docs/guides/function-calling):
+
+> In an API call, you can describe functions and have the model intelligently choose to output a JSON object containing arguments to call one or many functions. The Chat Completions API does not call the function; instead, the model generates JSON that you can use to call the function in your code. Example: `extract_data(name: string, birthday: string)`.
+
+Notebook: [`02-Chains/05-OpenAI-Functions.ipynb`](./02-Chains/05-OpenAI-Functions.ipynb).
+
+In the notebook example, the output of the LLM is formated to match a JSON schema. The example is equivalent to the `Pydantic` parser/formatting, shown in the section [Parsing Outputs](#parsing-outputs).
+
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+from typing import Optional
+
+from langchain.chains.openai_functions import (
+    create_openai_fn_chain,
+    create_structured_output_chain,
+)
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain.schema import HumanMessage, SystemMessage
+
+# Choose the correct model based on: 
+# https://platform.openai.com/docs/models/
+llm = ChatOpenAI(model='gpt-4o-mini')
+
+# We have a class we'd like to fill in with outputs from LLMs
+# LLMs return text, but using Function Calling
+# we can enforce some structure in the returns
+class Scientist():
+    def __init__(self,first_name,last_name):
+        self.first_name = first_name
+        self.last_name = last_name
+
+# We define a JSON schema that specified
+# the structure of the return data
+json_schema = {
+  "title": "Scientist",
+  "description": "Information about a famous scientist",
+  "type": "object",
+  # properties is the dict used by OpenAI
+  # we need to define the fields we want as shown here
+  "properties": {
+      "first_name": {
+        'title':'First Name',
+        'description': "First name of scientist",
+        "type": "string"
+      },
+      "last_name":{
+        'title':'Last Name',
+        'description': "Last name of scientist",
+        "type": "string"
+      },
+  },
+  "required": ['first_name','last_name']
+}
+
+# Prompt
+template = 'Name a famous {country} scientist'
+#human_prompt = HumanMessagePromptTemplate.from_template(template)
+chat_prompt = ChatPromptTemplate.from_template(template)
+
+# Now, we create the chain but enforce the structure in the chat/LLM
+chain = chat_prompt|llm.with_structured_output(schema=json_schema)
+
+result = chain.invoke({"country": "Indian"})
+print(result) # {'first_name': 'A.P.J.', 'last_name': 'Abdul Kalam'}
+type(result) # dict
+
 ```
 
 ## 5. Memory
