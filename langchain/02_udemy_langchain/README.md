@@ -61,6 +61,8 @@ Table of contents:
   - [5. Memory](#5-memory)
     - [ChatMessageHistory](#chatmessagehistory)
     - [ConversationBufferMemory](#conversationbuffermemory)
+    - [ConversationBufferWindowMemory](#conversationbufferwindowmemory)
+    - [ConversationSummaryBufferMemory](#conversationsummarybuffermemory)
   - [6. Agents](#6-agents)
 
 ## 1. Introduction
@@ -1740,7 +1742,7 @@ Memory = Message interaction history.
 The idea is to keep track and store the conversation as part of the context. LangChain provides different options for that:
 
 - Store all messages
-- Store a limited number of interactions: 
+- Store a limited number of interactions
 - Store a limited number of tokens
 - Store summaries of the conversations (and other transformations)
 
@@ -1828,6 +1830,7 @@ print(memory.buffer)
 
 # Also, we can get the memory variables as follows
 # (empty dict needs to be passed)
+# NOTE: load_memory_variables() loads/shows the history
 memory.load_memory_variables({})
 
 # We can manually save conversation items as follows
@@ -1863,6 +1866,89 @@ reload_conversation = ConversationChain(
 )
 
 reload_conversation.memory.buffer
+```
+
+### ConversationBufferWindowMemory
+
+`ConversationBufferWindowMemory` is very similar to `ConversationBufferMemory` but it has a limited `k` window size for the number of interaction items that are recalled, being `k` a parameter set by the user.
+
+Notebook: [`03-Memory/02-ConverationBufferWindowMemory.ipynb`](./03-Memory/02-ConverationBufferWindowMemory.ipynb).
+
+The code is very similar to the previous notebook/section, but `ConversationBufferWindowMemory` is used instead of `ConversationBufferMemory`.
+
+```python
+# ConversationBufferWindowMemory is very similar to ConversationBufferMemory
+# but it has a limited k window size for the number of interaction items 
+# that are recalled, being k a parameter set by the user
+# Here, only one item is remembered
+memory = ConversationBufferWindowMemory(k=1)
+
+# ConversationChain links a LLM/chat and a memory object
+# WARNING: ConversationChain is deprecated and will be removed in LangChain 1.0
+# Instead, use RunnableWithMessageHistory
+# which is quite different...
+# https://api.python.langchain.com/en/latest/runnables/langchain_core.runnables.history.RunnableWithMessageHistory.html
+conversation = ConversationChain(
+    llm=llm, 
+    memory=memory,
+    verbose=True
+)
+```
+
+
+### ConversationSummaryBufferMemory
+
+`ConversationSummaryBufferMemory` is similar to the previous memory classes, but it can summarize the history provided a chat/LLM model to do that.
+
+Notebook: [`03-Memory/03-ConversationSummaryMemory.ipynb`](./03-Memory/03-ConversationSummaryMemory.ipynb).
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Load the OpenAI API key
+api_key = os.getenv("OPENAI_API_KEY")
+
+from langchain_openai import ChatOpenAI
+from langchain.memory import ConversationSummaryBufferMemory
+
+llm = ChatOpenAI(temperature=0.0)
+
+# Create a Long string that will break a token limit, causing the need for a summary
+trip_plans = '''Oh, this weekend I'm actually planning a trip to Yellowstone National
+Park! I'm super excited about it! I'll be starting off by driving through
+the grand entrance and soaking in the stunning scenery. My first stop will
+be the famous Old Faithful Geyser to catch its incredible eruptions.
+Then, I'll wander around the Upper Geyser Basin on the boardwalks to 
+check out all those cool geothermal features. And guess what? I'll 
+be wrapping up the day with a relaxing dip in the Boiling River, 
+a natural hot spring. Can't wait to unwind and enjoy the beauty of 
+nature! So yeah, that's my weekend plan. How about you?'''
+
+# Here, we link a chat/LLM to the memory
+# and specify the max number of tokens
+# in the summrized response that the model
+# will generate
+memory = ConversationSummaryBufferMemory(
+    llm=llm,
+    max_token_limit=100
+)
+
+memory.save_context({"input": "Hello"}, {"output": "Hi!"})
+memory.save_context({"input": "What plans do you have this weekend?"}, 
+                    {"output": f"{trip_plans}"})
+
+# load_memory_variables() shows the history
+# here, the history is summarized!
+memory.load_memory_variables({})
+# {'history': 'System: The human greets the AI and asks about its weekend plans. 
+#  The AI excitedly shares that it is planning a trip to Yellowstone National Park, 
+#  detailing its itinerary from visiting Old Faithful Geyser to relaxing in the Boiling River. 
+#  The AI then asks the human about their weekend plans.'}
+
 ```
 
 ## 6. Agents
