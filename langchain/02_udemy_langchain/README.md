@@ -57,6 +57,7 @@ Table of contents:
     - [OpenAI Function Calling](#openai-function-calling)
     - [LLMMathChain](#llmmathchain)
     - [Additional Chains: QAChains](#additional-chains-qachains)
+    - [Example: Processing Emails](#example-processing-emails)
   - [5. Memory](#5-memory)
   - [6. Agents](#6-agents)
 
@@ -1629,7 +1630,110 @@ docs = db_connection.similarity_search(query)
 chain.invoke({"input_documents":docs,"question":query})["output_text"] # The 14th Amendment states that all persons...
 ```
 
+### Example: Processing Emails
+
+Task:
+
+> 1. Detect the language the email is written in
+> 2. Translate the email from detected language to English
+> 3. Return a summary of the translated email
+
+Notebook: [`01-Data-Connections/11-Data-Connections-Exercise-Solution.ipynb`](./01-Data-Connections/11-Data-Connections-Exercise-Solution.ipynb).
+
+I refactored and optimized a bit the proposed code. However, it still has some optimization potential (e.g., create the chains when instantiating the class).
+
+```python
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain_core.runnables.base import RunnableSequence
+
+# Load environment variables
+load_dotenv()
+
+# Load the OpenAI API key
+api_key = os.getenv("OPENAI_API_KEY")
+
+class EmailProcessor:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.llm = ChatOpenAI(api_key=self.api_key)
+    
+    def detect_language_chain(self) -> RunnableSequence:
+        template = "Return the language this email is written in:\n{email}.\nONLY return the language it was written in."
+        prompt = ChatPromptTemplate.from_template(template)
+        return prompt | self.llm
+    
+    def translate_chain(self) -> RunnableSequence:
+        template = "Translate this email from {language} to English. Here is the email:\n{email}"
+        prompt = ChatPromptTemplate.from_template(template)
+        return prompt | self.llm
+    
+    def summarize_chain(self) -> RunnableSequence:
+        template = "Create a short summary of this email:\n{translated_email}"
+        prompt = ChatPromptTemplate.from_template(template)
+        return prompt | self.llm
+    
+    def process_email(self, email: str) -> dict:
+        """Translates an email written in a detected language to English and generates a summary.
+
+        Args:
+            email (str): The email to be processed and translated.
+
+        Returns:
+            dict: A dictionary containing the following keys:
+            - 'language': The language the email was written in.
+            - 'translated_email': The translated version of the email in English.
+            - 'summary': A short summary of the translated email.
+
+        Raises:
+            Exception: If any error occurs during the LLM chain execution.
+
+        Example:            
+            email_processor = EmailProcessor(api_key=api_key)
+            email = "Hola, ¿cómo estás? Espero que todo vaya bien."
+            result = email_processor.process_email(email)
+            # Output:
+            # {
+            #     'language': 'Spanish',
+            #     'translated_email': 'Hello, how are you? I hope everything is going well.',
+            #     'summary': 'A friendly greeting and a wish for well-being.'
+            # }
+        """
+
+        # Create the chains
+        detect_language_chain = self.detect_language_chain()
+        translate_chain = self.translate_chain()
+        summarize_chain = self.summarize_chain()
+        
+        # Detect the language
+        language_result = detect_language_chain.invoke({"email": email})
+        language = language_result.content
+        
+        # Translate the email
+        translated_email_result = translate_chain.invoke({"language": language, "email": email})
+        translated_email = translated_email_result.content
+        
+        # Summarize the translated email
+        summary_result = summarize_chain.invoke({"translated_email": translated_email})
+        summary = summary_result.content
+        
+        return {
+            'language': language,
+            'translated_email': translated_email,
+            'summary': summary
+        }
+
+email_processor = EmailProcessor(api_key=api_key)
+spanish_email = open('spanish_customer_email.txt', encoding="latin-1").read()
+result = email_processor.process_email(spanish_email)
+print(result)
+```
+
 ## 5. Memory
+
+Memory = Message interaction history.
 
 ## 6. Agents
 
