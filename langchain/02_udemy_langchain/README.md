@@ -59,6 +59,8 @@ Table of contents:
     - [Additional Chains: QAChains](#additional-chains-qachains)
     - [Example: Processing Emails](#example-processing-emails)
   - [5. Memory](#5-memory)
+    - [ChatMessageHistory](#chatmessagehistory)
+    - [ConversationBufferMemory](#conversationbuffermemory)
   - [6. Agents](#6-agents)
 
 ## 1. Introduction
@@ -1734,6 +1736,134 @@ print(result)
 ## 5. Memory
 
 Memory = Message interaction history.
+
+The idea is to keep track and store the conversation as part of the context. LangChain provides different options for that:
+
+- Store all messages
+- Store a limited number of interactions: 
+- Store a limited number of tokens
+- Store summaries of the conversations (and other transformations)
+
+ChatMessageHistory
+ConversationBufferMemory
+ConversationBufferWindowMemory
+ConversationSummaryMemory
+
+### ChatMessageHistory
+
+Notebook: [`03-Memory/00-ChatMessageHistory.ipynb`](./03-Memory/00-ChatMessageHistory.ipynb).
+
+`ChatMessageHistory` is the most basic history class, but it is not attached to a LLM/chat.
+
+```python
+from langchain.memory import ChatMessageHistory
+
+# We can add messages to the history: AI, user or generic (avoid the latter)
+history = ChatMessageHistory()
+
+# User & AI interactions
+history.add_user_message("Hello, nice to meet you.") # user 
+history.add_ai_message("Nice to meet you too!") # AI response
+
+history.messages
+# [HumanMessage(content='Hello, nice to meet you.'),
+#  AIMessage(content='Nice to meet you too!')]
+```
+
+### ConversationBufferMemory
+
+Notebook: [`03-Memory/01-ConversationBufferMemory.ipynb`](./03-Memory/01-ConversationBufferMemory.ipynb).
+
+`ConversationBufferMemory` can be attached to a LLM/chat, e.g., via `ConversationChain`. The notebook shows how to:
+
+- Create a memory/history object and attach it to an LLM/chat.
+- Persist and load the memory/history object.
+
+:warning: **However, important WARNING**: The class `ConversationChain` used 
+
+```python
+import os
+from dotenv import load_dotenv
+
+import langchain
+from langchain_openai import ChatOpenAI
+from langchain.chains import ConversationChain
+from langchain.memory import ConversationBufferMemory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+# Load environment variables
+load_dotenv()
+
+# Load the OpenAI API key
+api_key = os.getenv("OPENAI_API_KEY")
+
+print(langchain.__version__) # 0.2.11
+
+llm = ChatOpenAI(temperature=0.0)
+memory = ConversationBufferMemory()
+
+# ConversationChain links a LLM/chat and a memory object
+# WARNING: ConversationChain is deprecated and will be removed in LangChain 1.0
+# Instead, use RunnableWithMessageHistory
+# which is quite different...
+# https://api.python.langchain.com/en/latest/runnables/langchain_core.runnables.history.RunnableWithMessageHistory.html
+conversation = ConversationChain(
+    llm=llm, 
+    memory=memory, # everything will be saved here
+    verbose=True # conversation will be printed
+)
+
+conversation.invoke(input="Hello, nice to meet you!")
+# The conversattion is printed, because verbose=True
+conversation.invoke(input="Tell me about the Einstein-Szilard Letter ")
+# Complete conversation
+print(memory.buffer)
+
+# Complete conversation
+print(memory.buffer)
+# Human: Hello, nice to meet you!
+# AI: Hello! It's nice to meet you too. I am an AI ...
+# Human: Tell me about the Einstein-Szilard Letter 
+# AI: The Einstein-Szilard Letter was a letter written by ...
+
+# Also, we can get the memory variables as follows
+# (empty dict needs to be passed)
+memory.load_memory_variables({})
+
+# We can manually save conversation items as follows
+memory.save_context(
+    {"input": "Very Interesting."}, 
+    {"output": "Yes, it was my pleasure as an AI to answer."}
+)
+
+# We can also save the memory to a file
+# https://stackoverflow.com/questions/75965605/how-to-persist-langchain-conversation-memory-save-and-load
+# This is the memory object from the ConversationChain
+conversation.memory
+
+import pickle
+
+# Generate pickled string from the memory object
+pickled_str = pickle.dumps(conversation.memory)
+
+# Save pickle as bytes object
+with open('memory.pkl','wb') as f:
+    f.write(pickled_str)
+
+# Load saved memory pickler
+new_memory_load = open('memory.pkl','rb').read()
+
+# Here we create a new conversation chain with the loaded memory
+# The chat/LLM model would be new, but we pass to it the memory/history
+llm = ChatOpenAI(temperature=0.0)
+reload_conversation = ConversationChain(
+    llm=llm, 
+    memory=pickle.loads(new_memory_load),
+    verbose=True
+)
+
+reload_conversation.memory.buffer
+```
 
 ## 6. Agents
 
