@@ -9,7 +9,8 @@ The idea is that we have several modules with different functionalities which ar
 
 - [use cases](https://python.langchain.com/docs/use_cases),
 - list of [modules](https://python.langchain.com/docs/modules/),
-- list oof [integrations](https://python.langchain.com/docs/integrations).
+- list of [integrations](https://python.langchain.com/docs/integrations,
+- and the latest [conceptual guide](https://python.langchain.com/v0.2/docs/concepts/).
 
 Note that LangChain uses models from other frameworks/vendors, such as OpenAI, Cohere, HuggingFace, etc; these are called **integrations**. As such, we need to have the specific keys or access tokens of those vendors. This mini-tutorial uses `dotenv` to load the keys defined in the `.env` file (not committed):
 
@@ -64,6 +65,10 @@ Table of contents:
     - [ConversationBufferWindowMemory](#conversationbufferwindowmemory)
     - [ConversationSummaryBufferMemory](#conversationsummarybuffermemory)
   - [6. Agents](#6-agents)
+    - [Agent Basics](#agent-basics)
+    - [Agent Tools](#agent-tools)
+    - [Custom Tools](#custom-tools)
+    - [Conversation Agents](#conversation-agents)
 
 ## 1. Introduction
 
@@ -1953,5 +1958,56 @@ memory.load_memory_variables({})
 
 ## 6. Agents
 
+Seminal paper on LLM-based agents:
+
+[ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022, Google)](https://arxiv.org/abs/2210.03629)
+
+Agents are the newest part of LangChain.
+
+Agents connect LLMs to tools:
+
+- Wikipedia search
+- Calculator
+- Google search
+- etc.
+
+Additionally, they provide a structured approach to decide between tools and complete a task.
+
+The core idea of the **ReAct** paper/framework is to combine small pseudo-reasoning and action/tool-usage steps iteratively or in sequence. In LangChain, the steps are composed by:
+
+- Observation
+- Thought
+- Action
+
+Agents can be very powerful, specially when we start building our own tools are provide them with those tools.
+
+:warning: Note that LangChain is currently updating its [Agents](https://python.langchain.com/v0.2/docs/concepts/#agents) to use [LangGraph](https://github.com/langchain-ai/langgraph), not covered here.
+
+Contents:
+
+- Agent Basics
+- Agent Tools
+- Custom Tools
+- Conversation Agents
+
+:warning: The notebooks were missing so I created them coding along with the lectures.
+
+### Agent Basics
+
+Notebook: [`04-Agents/00-Agents-Basics.ipynb`](./04-Agents/00-Agents-Basics.ipynb).
+
+```python
+
+```
+
+### Agent Tools
+
+
+
+### Custom Tools
+
+
+
+### Conversation Agents
 
 
