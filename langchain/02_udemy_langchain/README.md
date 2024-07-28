@@ -1990,18 +1990,253 @@ Contents:
 - Custom Tools
 - Conversation Agents
 
-:warning: The notebooks were missing so I created them coding along with the lectures.
+:warning: Some caveats:
+
+- The notebooks were missing so I created them coding along with the lectures.
+- The lectures use old interfaces which are deprecated; I collect both the old and the new calls.
 
 ### Agent Basics
 
-Notebook: [`04-Agents/00-Agents-Basics.ipynb`](./04-Agents/00-Agents-Basics.ipynb).
+Notebook: [`04-Agents/00-Agents-Basics.ipynb`](./04-Agents/00-Agents-Basics.ipynb):
+
+- Available tools and agent types are listed.
+- A `llm-math` tool is used with the new and old interfaces.
 
 ```python
+import os
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+
+# Load the OpenAI API key
+api_key = os.getenv("OPENAI_API_KEY")
+
+from langchain.agents import load_tools, initialize_agent, AgentType
+from langchain.agents.load_tools import get_all_tool_names
+from langchain_openai import ChatOpenAI
+
+# For tools/agents, use temeprature=0 to get deterministic results
+llm = ChatOpenAI(temperature=0)
+
+# Integrations > Tools:
+# https://python.langchain.com/v0.2/docs/integrations/tools/
+tools = load_tools(["llm-math"], llm=llm) # list
+
+# load_tools returns a list of the tools related to the tool names we input
+#len(tools) # 1
+type(tools[0]) # langchain_core.tools.Tool
+
+# Get all tool names
+all_tool_names = get_all_tool_names()
+print(all_tool_names)
+
+# dir: return an alphabetized list of names comprising 
+# (some of) the attributes of the given object, 
+# and of attributes reachable from it
+# Here, we get all the AgentTypes
+dir(AgentType)
+# 'CHAT_CONVERSATIONAL_REACT_DESCRIPTION',
+# 'CHAT_ZERO_SHOT_REACT_DESCRIPTION',
+# 'CONVERSATIONAL_REACT_DESCRIPTION',
+# 'OPENAI_FUNCTIONS',
+# 'OPENAI_MULTI_FUNCTIONS',
+# 'REACT_DOCSTORE',
+# 'SELF_ASK_WITH_SEARCH',
+# 'STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION',
+# 'ZERO_SHOT_REACT_DESCRIPTION': no examples
+
+# We create a Zero-shot Agent
+# WARNING: initialize_agent is deprecated...
+# Instead, we should use new agent constructor methods:
+# create_react_agent, create_json_agent, create_structured_chat_agent, ...
+agent = initialize_agent(
+    tools, # LLM-Math
+    llm, 
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True # check what is happening inside
+)
+
+agent.run("What is 123456 multiplied by 29748?") # 3672569088
+# > Entering new AgentExecutor chain...
+# I need to multiply 123456 by 29748.
+# Action: Calculator
+# Action Input: 123456 * 29748
+# Observation: Answer: 3672569088
+# Thought:I now know the final answer
+# Final Answer: 3672569088
+
+### --- NEW INTERFACES
+
+# Same example but with the new interface
+# https://api.python.langchain.com/en/latest/langchain_api_reference.html#module-langchain.agents
+# https://api.python.langchain.com/en/latest/agents/langchain.agents.react.agent.create_react_agent.html#langchain.agents.react.agent.create_react_agent
+from langchain.agents.react.agent import create_react_agent
+from langchain.agents import AgentExecutor
+
+from langchain_core.prompts import PromptTemplate
+
+template = '''Answer the following questions as best you can. You have access to the following tools:
+
+{tools}
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Begin!
+
+Question: {input}
+Thought:{agent_scratchpad}'''
+
+prompt = PromptTemplate.from_template(template)
+
+agent = create_react_agent(
+    llm,
+    tools,
+    prompt
+)
+
+agent_executor = AgentExecutor(agent=agent, tools=tools)
+
+agent_executor.invoke({"input": "What is 123456 multiplied by 29748?"})
 ```
 
 ### Agent Tools
 
+Notebook: [`04-Agents/01-Agent-Tools.ipynb`](./04-Agents/01-Agent-Tools.ipynb):
+
+- The Brave search tool is used with the new and old interfaces.
+- In another agent, Python is used as tool to execute Python code: `sort()`.
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Load API keys
+openai_api_key = os.getenv("OPENAI_API_KEY")
+brave_api_key = os.getenv("BRAVE_API_KEY")
+
+from langchain.agents import load_tools, initialize_agent, AgentType
+from langchain_openai import ChatOpenAI
+
+# For tools/agents, use temeprature=0 to get deterministic results
+llm = ChatOpenAI(temperature=0)
+
+# Tools:
+# # https://python.langchain.com/v0.2/docs/integrations/tools/
+# For most of them we need to set an API key
+# Check each integration page for instructions
+# Here the SerpAPI is used: Search Engine Results API
+# https://python.langchain.com/v0.2/docs/integrations/tools/serpapi/
+# https://serpapi.com/
+# from langchain_community.utilities import SerpAPIWrapper
+# However, I decided to choose the Brave Search API
+# https://python.langchain.com/v0.2/docs/integrations/tools/brave_search/
+# https://api.search.brave.com
+from langchain_community.tools import BraveSearch
+
+search_tool = BraveSearch.from_api_key(
+    api_key=brave_api_key,
+    search_kwargs={"count": 3}
+)
+
+type(search_tool) # langchain_community.tools.brave_search.tool.BraveSearch
+search_tool.run("obama middle name") # [{"title": "Barack Obama - Wikipedia", "link": "https://en.wikipedia.org/wiki/Barack_Obama", "snippet": "In January 2007, he left...
+
+# We load the LC math tool and add the Brave search tool to the list
+tools = load_tools(["llm-math"], llm=llm) # list
+tools = tools + [search_tool]
+
+# We create a Zero-shot Agent
+# WARNING: initialize_agent is deprecated...
+# Instead, we should use new agent constructor methods:
+# create_react_agent, create_json_agent, create_structured_chat_agent, ...
+agent = initialize_agent(
+    tools, # Brave-Search
+    llm, 
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True # check what is happening inside
+)
+
+agent.run("What is the year Albert Einstein was born? What is this year multiplied by 5?") # ... 9400
+
+### ---
+
+# Same agent but using the new interface
+# https://api.python.langchain.com/en/latest/langchain_api_reference.html#module-langchain.agents
+# https://api.python.langchain.com/en/latest/agents/langchain.agents.react.agent.create_react_agent.html#langchain.agents.react.agent.create_react_agent
+from langchain.agents.react.agent import create_react_agent
+from langchain.agents import AgentExecutor
+
+from langchain_core.prompts import PromptTemplate
+
+template = '''Answer the following questions as best you can. You have access to the following tools:
+
+{tools}
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Begin!
+
+Question: {input}
+Thought:{agent_scratchpad}'''
+
+prompt = PromptTemplate.from_template(template)
+
+agent = create_react_agent(
+    llm,
+    tools,
+    prompt
+)
+
+agent_executor = AgentExecutor(agent=agent, tools=tools)
+
+agent_executor.invoke({"input": "What is the year Albert Einstein was born? What is this year multiplied by 5?"})
+# {'input': 'What is the year Albert Einstein was born? What is this year multiplied by 5?',
+# 'output': 'Albert Einstein was born in 1879. 1879 multiplied by 5 is 9395.'}
+
+### --- Python Agent Tool
+
+# This agent can run Python code. It is very powerful, but can be dangerous at the same time.
+
+from langchain_experimental.tools.python.tool import PythonREPLTool
+from langchain_experimental.utilities import PythonREPL
+from langchain_experimental.agents.agent_toolkits import create_python_agent
+
+llm = ChatOpenAI(temperature=0.0)
+
+agent = create_python_agent(
+    tool=PythonREPLTool(),
+    llm=llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+python_list = [1,1,2,3,1,2,5,50,1,4,8,6,78,9]
+
+agent.run(f"Sort this list: {python_list}") # '[1, 1, 1, 1, 2, 2, 3, 4, 5, 6, 8, 9, 50, 78]'
+
+```
 
 
 ### Custom Tools
