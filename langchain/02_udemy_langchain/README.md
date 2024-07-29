@@ -1979,6 +1979,8 @@ The core idea of the **ReAct** paper/framework is to combine small pseudo-reason
 - Thought
 - Action
 
+![LangChain Agents](./assets/langchain_agents.png)
+
 Agents can be very powerful, specially when we start building our own tools are provide them with those tools.
 
 :warning: Note that LangChain is currently updating its [Agents](https://python.langchain.com/v0.2/docs/concepts/#agents) to use [LangGraph](https://github.com/langchain-ai/langgraph), not covered here.
@@ -2241,8 +2243,147 @@ agent.run(f"Sort this list: {python_list}") # '[1, 1, 1, 1, 2, 2, 3, 4, 5, 6, 8,
 
 ### Custom Tools
 
+Notebook: [`04-Agents/02-Custom-Agents.ipynb`](./04-Agents/02-Custom-Agents.ipynb):
 
+In this notebook, several python functions are defined which are the converted into tools using the `@tool` decorator. Each function must have a clear docstring which explains the actions, input and outputs of the function; then, the LLM decides to pick the tool is the question posed is related to the docstring. This way, anything can be converted into a tool, our libraries or even external APIs.
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Load API keys
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+from langchain.agents import load_tools
+from langchain.agents import initialize_agent
+from langchain.agents import AgentType
+from langchain.agents import tool # Decorator
+
+from langchain_openai import ChatOpenAI
+
+# Here, we define our tool in a function
+# The Docstring is key here, as it will be used by the LLM to pick it
+# depending on the task:
+# LLM -> Tools Docstrings -> Pick tool -> Action -> Observation
+# Then, we implement the function an decorate it with @tool
+# This will make it available to the LLM.
+# The Docstring must explain the input and output of the function
+# as well as the action it performs.
+@tool
+def coolest_guy(text: str) -> str:
+    """Returns the name of the coolest person in the Universe.
+    Expects an input of an empty string '' and returns the
+    name of the coolest person in the Universe.
+    """
+    return "John Smith"
+
+
+llm = ChatOpenAI(temperature=0.0)
+
+tools = load_tools(
+    tool_names=['llm-math'],
+    llm=llm
+)
+
+# Here's where we add our tool
+tools += [coolest_guy]
+
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+agent.run("Who's the coolest guy in the Universe?") # John Smith
+
+# We can easily add more tools to the agent
+# or the connection to any API!
+@tool
+def some_api(text: str) -> str:
+    """Connect to this API, use this key, and return the response.
+    Here we explain in detail the input and output of the function
+    as well as the action it performs.
+    """
+    return "API response"
+
+    from datetime import datetime
+
+# Clock
+@tool
+def get_current_time(text: str) -> str:
+    """Returns the current time. Use this for any questions
+    reagrding the current time. Input is an empty string and the current
+    time is returned as string format. Only use this tool for the current time.
+    """
+    return str(datetime.now())
+
+from datetime import datetime
+
+# Clock
+@tool
+def get_current_time(text: str) -> str:
+    """Returns the current time. Use this for any questions
+    reagrding the current time. Input is an empty string and the current
+    time is returned as string format. Only use this tool for the current time.
+    """
+    return str(datetime.now())
+
+agent = initialize_agent(
+    tools=tools + [get_current_time],
+    llm=llm,
+    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+agent.run("What time is it?") # The current time is 2024-07-28 19:17:03.988113
+
+agent.run("What time did the Pearl Harbour attack happen?") # The chain breaks...
+```
 
 ### Conversation Agents
 
+Conversation agents make possible to attach a memory object to the agent so that we can refer to previous questions and answers, i.e., the history is used in the context and w can refer to it.
 
+Notebook: [`04-Agents/03-Conversation-Agents.ipynb`](./04-Agents/03-Conversation-Agents.ipynb).
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Load API keys
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+from langchain.agents import load_tools
+from langchain.agents import initialize_agent
+from langchain.agents import AgentType
+from langchain.memory import ConversationBufferMemory
+
+from langchain_openai import ChatOpenAI
+
+memory = ConversationBufferMemory(memory_key='chat_history')
+llm = ChatOpenAI(temperature=0.0)
+tools = load_tools(['llm-math'], llm=llm)
+
+# WARNING: Deprecated... use create_react_agent or similar instead
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+    memory=memory,
+    verbose=True
+)
+
+# WARNING: Deprecated... use invoke instead
+agent.run("What are some good Thai food recipes?") # Here are some popular Thai food recipes...
+
+agent.run("Which one of those dishes tends to be the spiciest?") # Among the dishes I mentioned, Tom Yum Goong is typically the spiciest...
+
+agent.run("Ok, give me a grocery shopping list for that dish") # Here is a grocery shopping list...
+```
