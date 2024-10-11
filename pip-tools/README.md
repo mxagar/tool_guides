@@ -15,17 +15,12 @@ The original repository of pip-tools [jazzband/pip-tools](https://github.com/jaz
   - As an alternative to `pip install`, we can use `pip-sync requirements.txt`: that will update our environment according to what's in `requirements.txt`; note: do not forget to `pip-compile` beforehand to have an updated `requirements.txt`.
   - We should commit to the repository both `requirements.in` (`pyproject.toml`) and `requirements.txt`.
 
-:warning: `pip-tools` does not handle different Python versions, i.e., we need to manually install and select the Python version we want to use! In contrast, poetry does handle those situations via the `pyproject.toml`:
-
-```
-[tool.poetry.dependencies]
-python = "~3.10"
-```
-
-Table of contents:
+## Table of Contents
 
 - [Pip-Tools Guide](#pip-tools-guide)
+  - [Table of Contents](#table-of-contents)
   - [Basic Usage](#basic-usage)
+  - [Which Setup Should I Use? Conda, Poetry, Pip, Pip-Tools...](#which-setup-should-i-use-conda-poetry-pip-pip-tools)
   - [Further Tips](#further-tips)
   - [Interesting Links](#interesting-links)
   - [Authorship](#authorship)
@@ -178,6 +173,57 @@ requirements-dev.in
 requirements-dev.txt
 ```
 
+## Which Setup Should I Use? Conda, Poetry, Pip, Pip-Tools...
+
+:warning: `pip-tools` does not handle different Python versions, i.e., we need to manually install and select the Python version we want to use! In contrast, poetry does handle those situations via the `pyproject.toml`:
+
+```
+[tool.poetry.dependencies]
+python = "~3.10"
+```
+
+An alternative to using poetry would be to use Conda exclusively for the environment creation with a specific Python version and pip-tools for package installation:
+
+```bash
+# Create environment (Python 3.10, pip & pip-tools)
+conda env create -f conda.yaml
+# Activate environment
+conda activate baubgl
+
+# Generate pinned dependencies and install/sync
+pip-compile requirements.in --verbose
+pip-sync requirements.txt
+
+# If we need a new dependency,
+# add it to requirements.in 
+# (WATCH OUT: try to follow alphabetical order)
+# And then:
+pip-compile requirements.in
+pip-sync requirements.txt
+```
+
+With `conda.yaml`:
+
+```yaml
+name: myenv
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - pip-tools
+```
+
+Why so much hassle if we can work with Conda?
+
+- Poetry works fine in my experience, but I have seen colleagues facing some issues with it.
+- Pip-tools is simpler and works, but requires a way to handle different Python versions/installations.
+- Conda just works, but it is heavy and slow, so not the best option if you want to deploy your application using a Docker container.
+- So, my current solution is:
+  - For development: Conda + pip-tools; Conda exclusively for environment installation and pip-tools for package installation.
+  - For deployments: Python-specific Docker image + pip-tools / `pip install -r requirements.txt`.
 
 ## Further Tips
 
