@@ -188,7 +188,7 @@ An alternative to using poetry would be to use Conda exclusively for the environ
 # Create environment (Python 3.10, pip & pip-tools)
 conda env create -f conda.yaml
 # Activate environment
-conda activate baubgl
+conda activate myenv
 
 # Generate pinned dependencies and install/sync
 pip-compile requirements.in --verbose
