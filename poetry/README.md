@@ -37,6 +37,7 @@ Table of contents:
     - [Create requirements.txt From poetry.lock](#create-requirementstxt-from-poetrylock)
   - [6. Distribution: Publishing the Package](#6-distribution-publishing-the-package)
   - [7. Most Common Commands](#7-most-common-commands)
+  - [8. Quick Setup Summary (Windows)](#8-quick-setup-summary-windows)
 
 ## 1. Introduction and Setup
 
@@ -454,4 +455,78 @@ $ poetry check	# Validate pyproject.toml.
 $ poetry config --list	# Show the Poetry configuration.
 $ poetry env list	# List the virtual environments of your project.
 $ poetry export	# Export poetry.lock to other formats.
+```
+
+## 8. Quick Setup Summary (Windows)
+
+Here's a quick recipe to start using Poetry:
+
+1. Install desired Python executable(s): [https://www.python.org/downloads/windows/](https://www.python.org/downloads/windows/) 
+     - Add location of python executables to environment variables (`Path` or `PATH`).
+     - On Windws, check the different Python versions with the Python launcher `py`.
+
+2. Install poetry; e.g., via Powershell command:
+    ```
+    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+    ```
+    - Add Location of python executables to environment variables (`Path` or `PATH`)
+
+3. Then, open new Powershell/Shell (no Conda) and
+
+    ```bash 
+    # --- Go to desired folder
+    cd .../my_project
+
+    # --- Create pyproject.toml
+    # See example below
+
+    # --- Initialize Poetry (Windows)
+    py --list # list all available Python versions, select one, e.g., 3.11
+    py -3.11 -c "import sys; print(sys.executable)" # get Python executable path: PYTHON_PATH
+    poetry env use PYTHON_PATH # replace with Python executable path; environment will be created
+    poetry env list # our environment should be there
+    poetry shell # activate environment, i.e., venv with desired Python executable linked
+
+    # --- Install packages; poetry.lock should be created
+    poetry install --no-root
+
+    # --- Test env works: 
+    poetry run python # import a package, check python/package version, etc.
+
+    # --- If you re-open your project later
+    cd .../my_project
+    poetry shell # activate environment
+    # or...
+    poetry run python .../my_script.py
+    # or...
+    poetry run jupyter-lab
+    # or ...
+    code . # and select environment
+
+    # --- Install new packages, if required
+    poetry add requests # pyproject.toml and poetry.lock are updated; alternatively add them to pyproject.toml
+    poetry lock # pin = parse pyproject.toml for dependencies and update pyproject.toml
+    poetry install --no-root
+    ```
+
+A very simple `pyproject.toml`:
+
+```bash
+[tool.poetry]
+name = "my-basic-project"
+version = "0.1.0"
+description = "A basic project using Poetry"
+authors = ["Your Name <your.email@example.com>"]
+python = "^3.11"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 ```
