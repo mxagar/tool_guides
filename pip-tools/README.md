@@ -194,6 +194,10 @@ conda activate myenv
 pip-compile requirements.in --verbose
 pip-sync requirements.txt
 
+# Install package as editable: changes are immediately reflected without reinstalling
+# This requires a setup.py, as explained below
+pip install -e .
+
 # If we need a new dependency,
 # add it to requirements.in 
 # (WATCH OUT: try to follow alphabetical order)
@@ -214,6 +218,41 @@ dependencies:
   - pip
   - pip:
     - pip-tools
+```
+
+Additionally, to allow for editable installation of our package, we should define a `setup.py` in case we're using `pip-tools`:
+
+```python
+from setuptools import setup, find_packages
+
+# Case: the code is in src/, and setup.py is in the same level as src/
+setup(
+    name="project_name",
+    version="0.0.1",
+    description="Project description.",
+    author="Mikel Sagardia",
+    author_email="sagardia.mikel@gmail.com",
+    packages=find_packages(include=["src*", "src.*"]), # Include the `src` namespace, if the code is inside src/
+    package_dir={"src": "src"}, # Map the `src` directory to the `src` namespace
+    python_requires=">=3.01",
+    install_requires=[], # Use pip-tools for dependency management
+)
+```
+
+Finally, we can also define a `pyproject.toml` which makes reference to `pip-tools` as installation engine:
+
+```
+[tool.poetry]
+name = "project-name"
+version = "0.0.1"
+description = "Project description."
+authors = ["Mikel Sagardia <sagardia.mikel@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "src", from = "." }]
+
+[build-system]
+requires = ["pip-tools"]
+build-backend = "setuptools.build_meta"
 ```
 
 Why so much hassle if we can work with Conda?
