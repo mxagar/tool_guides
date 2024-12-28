@@ -10,6 +10,7 @@ This file contains a summary of the most common git commands and workflows when 
     - [Fast-Forward (FF) Merge](#fast-forward-ff-merge)
     - [Rebase (and FF Merge)](#rebase-and-ff-merge)
   - [Resolving Merge Conflicts](#resolving-merge-conflicts)
+  - [Git Stash](#git-stash)
   - [Artifacts, Binaries, Large Files, Submodules](#artifacts-binaries-large-files-submodules)
     - [Model Registries](#model-registries)
     - [Git LFS](#git-lfs)
@@ -23,7 +24,7 @@ This is not a basics guide, but rather an itermmediate-advanced one, focusing on
 
 ## Fork-Branch-Merge Workflow
 
-This is the most common go-to workflow when working in teams. It is also known as the **(Bidirectional) Three-Way Merge**; its rartionale is explained in [Three-Way Merge](#three-way-merge-from-our-branch-to-main).
+This is the most common go-to workflow when working in teams. It is also known as the **(Bidirectional) Three-Way Merge**; its rationale is explained in [Three-Way Merge](#three-way-merge-from-our-branch-to-main).
 
 ```bash
 # -- 1. Create a new branch to work on, forking from the default branch (e.g., dev)
@@ -392,6 +393,47 @@ git merge --abort
 
 ![Solving Merge Conflicts: Summary](./assets/solving_merge_conflicts_summary.png)
 
+## Git Stash
+
+`git stash` is a feature that allows you to temporarily save (or “stash”) changes in your working directory without committing them. It’s useful when you need to switch branches or perform other Git operations but don’t want to lose or commit your current uncommitted work. The stashed changes are saved on a stack, and you can apply or discard them later.
+
+Useful when:
+
+-	We’re working on a feature but need to switch to another branch temporarily.
+-	We want to pull changes from the remote branch but have uncommitted changes.
+-	We need to test something quickly without losing our current work.
+
+Usual workflow:
+
+```bash
+# Save our current work to stash
+# Saved: Modified tracked files + files added with git add
+git stash
+
+# List stashed stuff
+git stash list
+
+# Now, we could checkout another branch and work on it
+git checkout other-branch
+# work on it, git add + push ...
+# Checkout the branch with teh stashed stuff
+git checkout original-branch
+# Bring back stashed stuff, i.e., files saved away
+git stash pop
+```
+
+However, note that if we run `git stash` several times, then we get a stack of several stashed items, which can be see with `git stash list`. In that case, we need to manually `apply` all the items we need from the stack:
+
+```bash
+# Get stash list: we see we have two items in the stack
+git stash list
+# stash@{0}: WIP on main: 123abc Added feature X
+# stash@{1}: WIP on main: 456def Fixed bug Y
+
+# We need to manually apply (pop) all the specific items
+git stash pop stash@{0}
+git stash pop stash@{1}
+```
 
 ## Artifacts, Binaries, Large Files, Submodules
 
