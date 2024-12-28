@@ -29,8 +29,11 @@ Other related repositories of mine:
 
 - [LLM Tools](https://github.com/mxagar/tool_guides/tree/master/llms): Llamafile, Ollama, etc.
 - [Generative AI Guide](https://github.com/mxagar/generative_ai_udacity): Notes of the [Udacity GenAI Nanodegree](https://www.udacity.com/course/generative-ai--nd608).
+  - **This repository contains important guides on other LangChain-based tools**:
+    - RAGs and Agents
+    - LangSmith
+    - LangGraph
+    - etc.
 
 Mikel Sagardia, 2024.  
 No guarantees.
-
-
