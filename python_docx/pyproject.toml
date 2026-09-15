@@ -1,0 +1,19 @@
+[project]
+name = "python-docx-quotes"
+version = "0.1.0"
+description = "Generate budget and receipt Word documents from JSON with python-docx."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "docx2pdf>=0.1.8",
+    "email-validator>=2.1.0",
+    "ipykernel>=6.29.0",
+    "jupyter>=1.0.0",
+    "matplotlib>=3.8.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "pillow>=10.0.0",
+    "pydantic>=2.7.0",
+    "python-docx>=1.1.2",
+    "qrcode[pil]>=7.4.2",
+]

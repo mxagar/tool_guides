@@ -1,0 +1,53 @@
+{
+  "budget_id": "BUD-2026-0001",
+  "document_date": "2026-05-31",
+  "valid_until": "2026-06-30",
+  "iva_rate": "0.21",
+  "company": {
+    "name": "Northwind Robotics SL",
+    "tax_id": "B12345678",
+    "address": {
+      "street": "Calle de la Innovacion 42",
+      "postal_code": "28020",
+      "city": "Madrid",
+      "country": "Spain"
+    },
+    "email": "billing@northwind-robotics.example",
+    "phone": "+34 910 000 001",
+    "website": "https://northwind-robotics.example"
+  },
+  "client": {
+    "name": "Ane",
+    "surname": "Garcia",
+    "tax_id": "Y1234567Z",
+    "address": {
+      "street": "Paseo de la Concha 10",
+      "postal_code": "20007",
+      "city": "Donostia",
+      "country": "Spain"
+    },
+    "email": "ane.garcia@example.com",
+    "phone": "+34 600 000 002"
+  },
+  "items": [
+    {
+      "description": "Automation requirements workshop",
+      "unit_price": "350.00",
+      "quantity": "1",
+      "unit": "day"
+    },
+    {
+      "description": "Prototype document-generation workflow",
+      "unit_price": "120.00",
+      "quantity": "6",
+      "unit": "hour"
+    },
+    {
+      "description": "Deployment and handover session",
+      "unit_price": "180.00",
+      "quantity": "1",
+      "unit": "session"
+    }
+  ],
+  "notes": "This budget is valid until the date shown above and excludes scope changes requested after approval."
+}
